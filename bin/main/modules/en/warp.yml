@@ -1,0 +1,29 @@
+# Teleportation animation type (standart / gta_style / fog)
+# Note: In current code structure, gta_style is active by default.
+teleport-animation: 'gta_style'
+
+# During GTA style animation, blindness effect is applied if you are
+# further than this distance (blocks) from the target location.
+gta-style-blindness-distance: 100.0
+
+# Teleportation delay time (seconds)
+teleport-delay-seconds: 3
+
+# Cancel teleportation when moving?
+cancel-on-move: true
+
+# Cancel teleportation when taking or dealing damage?
+cancel-on-damage: true
+
+# Teleportation effect settings
+effects:
+  # Show particle effects
+  show-particles: true
+
+  # Radius of the ring that appears when teleportation completes
+  teleport-particle:
+    radius: 2.0
+
+
+# Do not touch
+version: 1

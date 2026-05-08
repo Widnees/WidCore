@@ -1,0 +1,8 @@
+# Her dünya için ayrı void spawn noktası olsun mu?
+# True: Oyuncu düştüğü dünyanın spawnına gider (eğer ayarlıysa).
+# False: Her zaman global void spawn noktasına gider.
+per-world-spawn: true
+
+
+# Dokunma
+version: 1

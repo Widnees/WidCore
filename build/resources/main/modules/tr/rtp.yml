@@ -1,0 +1,150 @@
+# ===============================
+# IŞINLANMA AYARLARI
+# ===============================
+
+# Animasyon türü: 'standart' veya 'gta_style'
+# standart: Parçacık efektli basit ışınlanma
+# gta_style: GTA tarzı sinematik kamera animasyonu
+teleport-animation: 'standart'
+
+# ===============================
+# VARSAYILAN DÜNYA (AUTO RTP)
+# ===============================
+# /rtp komutu parametresiz kullanıldığında ne olacağı
+default-world:
+  enabled: true
+  world: "world"
+  # true ise: /rtp yazınca direkt "world" dünyasına ışınlar
+  # false ise: /rtp yazınca kullanım mesajı gösterir
+  
+  # Varsayılan dünya için Towny ayarları
+  towny:
+    # Açılırsa, RTP oyuncuları Towny claim alanlarının içine ışınlamaz.
+    # Towny/TownyAdvanced eklentisi bulunmalıdır.
+    respect-claims: true
+    # Claim'e denk gelirse mevcut RTP denemesi iptal edilir.
+    # 'retry' genel anahtarı AÇIK ise işlem otomatik yeniden denenir.
+
+# ===============================
+# DÜNYA ÖZEL AYARLAR
+# ===============================
+# Belirli dünyalar için farklı sınırlar belirleyebilirsiniz
+# Eğer dünya burada yoksa, yukarıdaki genel ayarlar kullanılır
+worlds:
+  world_nether:
+    min-y: 30
+    max-y: 120
+    min-x: -5000
+    max-x: 5000
+    min-z: -5000
+    max-z: 5000
+
+# ===============================
+# BEKLEME SÜRESİ
+# ===============================
+
+# Varsayılan bekleme süresi saniye cinsinden (0 = devre dışı)
+# Yetki bazlı süre: widcore.rtp.cooldown.<saniye>
+# Örnek: widcore.rtp.cooldown.30 = 30 saniye bekleme
+# Bypass yetkisi: widcore.rtp.cooldown.bypass
+cooldown:
+  default: 60
+
+# true ise, RTP başarısız olduğunda veya iptal edildiğinde eklenti
+# otomatik olarak başarı sağlanana kadar yeniden dener.
+retry: true
+
+# ===============================
+# ÜCRET
+# ===============================
+
+# RTP ücret ayarları (Vault gerektirir)
+# 0 yaparak ücreti devre dışı bırakabilirsiniz
+# "widcore.rtp.free" yetkisine sahip oyuncular ücretsiz kullanır
+cost:
+  amount: 0
+
+# ===============================
+# YASAKLI BLOKLAR
+# ===============================
+
+# Oyuncu bu blokların üzerinde veya yanında spawn OLMAYACAK
+# Tüm Minecraft blok isimleri desteklenir
+blocked-blocks:
+  - LAVA
+  - WATER
+  - CACTUS
+  - MAGMA_BLOCK
+  - FIRE
+  - CAMPFIRE
+  - SOUL_FIRE
+  - SOUL_CAMPFIRE
+  - SWEET_BERRY_BUSH
+  - POWDER_SNOW
+  - WITHER_ROSE
+  - POINTED_DRIPSTONE
+
+# ===============================
+# HAREKET DONDURMA
+# ===============================
+
+# Açılırsa, konum aranırken oyuncunun yürüme hızı 0 olur
+# Bu, oyuncunun arama sırasında hareket etmesini engeller
+freeze-on-teleport: false
+
+# Açılırsa, oyuncu RTP işlemi süresince görünmez olur
+# Işınlanma tamamlandıktan sonra tekrar görünür olur
+invisibility-during-rtp: true
+
+# ===============================
+# KUYRUK SİSTEMİ
+# ===============================
+
+# Açılırsa, RTP istekleri sıraya alınır
+# max-concurrent değerine ulaşılırsa oyuncular sıra bekler
+# Kapatılırsa, tüm RTP istekleri anında işlenir
+queue:
+  enabled: true
+  # Aynı anda kaç oyuncu RTP yapabilir
+  # Diğer oyuncular kuyrukta bekler
+  max-concurrent: 3
+
+# ===============================
+# KONUM ÖNBELLEĞİ
+# ===============================
+
+# Işınlanma noktaları kayıt edilir
+# Cache sınırı dolduğunda yapılan her RTP, önceden kayıt edilmiş noktalara ışınlanır
+# Bu, aynı konumlara tekrar ışınlanmayı sağlar ve performansı artırır
+cache:
+  enabled: false
+  # Her dünya için kaç konum kaydedilsin
+  # Sınır dolduğunda yeni konum aranmaz, mevcut kayıtlı konumlar kullanılır
+  max-locations: 10
+
+# ===============================
+# PERFORMANS (TPS KONTROLÜ)
+# ===============================
+
+# Açılırsa, sunucu TPS'i düşükken RTP işlemleri yavaşlar
+# TPS iyi olduğunda işlemler hızlı çalışır
+# TPS düşük olduğunda sunucuyu korumak için yavaşlar
+performance:
+  enabled: true
+  # Sunucu TPS'i bu değerin altına düşerse RTP araması yavaşlar
+  min-tps: 18.0
+
+# ===============================
+# IŞINLANMA EFEKTLERİ
+# ===============================
+
+effects:
+  # Işınlanma sırasında parçacık efektleri gösterilsin mi
+  show-particles: true
+  
+  # Işınlanma tamamlandığında görünen halkanın yarıçapı
+  teleport-particle:
+    radius: 2.0
+
+# Dokunma
+version: 3

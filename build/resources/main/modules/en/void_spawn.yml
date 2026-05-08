@@ -1,0 +1,8 @@
+# Should each world have its own void spawn point?
+# True: Player goes to the spawn of the world they fell from (if set).
+# False: Always goes to the global void spawn point.
+per-world-spawn: true
+
+
+# Do not touch
+version: 1

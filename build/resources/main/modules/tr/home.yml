@@ -1,0 +1,46 @@
+# Home Sistemi Yapılandırması
+
+# Varsayılan maksimum ev sayısı (izin yoksa bu kullanılır)
+# NOT: OP yetkisi bile olsa bu sınır geçerlidir, sadece permission ile yükseltilebilir
+default-max-homes: 3
+
+# Işınlanma animasyonu türü (standart / gta_style)
+teleport-animation: 'gta_style'
+
+# GTA stili animasyon sırasında, hedef noktaya bu mesafeden (blok)
+# daha uzaktaysanız körlük efekti uygulanır.
+gta-style-blindness-distance: 100.0
+
+# Işınlanma bekleme süresi (saniye)
+teleport-delay-seconds: 3
+
+# Hareket edince ışınlanma iptal edilsin mi?
+cancel-on-move: true
+
+# Hasar alınca veya verince ışınlanma iptal edilsin mi?
+cancel-on-damage: true
+
+# Blok kırdığında veya yerleştirdiğinde ışınlanma iptal edilsin mi?
+cancel-on-block-break: true
+
+# Işınlanma efekt ayarları
+effects:
+  # Partikül efektlerini göster
+  show-particles: true
+
+  # Işınlanma tamamlandığında oluşacak halkanın yarıçapı
+  teleport-particle:
+    radius: 2.0
+
+# Yasaklı dünyalar - Oyuncular bu dünyalarda ev ayarlayamaz
+banned-worlds:
+  - "world_nether"
+  - "world_the_end"
+
+# Menü ayarları
+menu:
+  # Home menüsünde ev konumunu (dünya, x, y, z) göster
+  show-location: true
+
+# Dokunma
+version: 4

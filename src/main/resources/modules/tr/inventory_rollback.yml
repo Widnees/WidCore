@@ -1,0 +1,12 @@
+# Hangi durumlarda yedek alınsın?
+save-on-death: true
+save-on-join: false
+save-on-quit: true
+save-on-world-change: true
+
+# Kaç dakikada bir otomatik yedek alınsın? (0 = kapalı)
+periodic-save-minutes: 10
+
+
+# Dokunma
+version: 1

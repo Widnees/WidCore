@@ -1,0 +1,22 @@
+# Message sent to players when they try to get or use a banned item.
+ban-message: "&cYou cannot have banned items in your inventory."
+
+# List of items that players cannot pickup, craft, or pick up from ground.
+# Item names (Material) must be in English and uppercase.
+banned-items:
+  - "BEDROCK"
+  - "COMMAND_BLOCK"
+  - "CHAIN_COMMAND_BLOCK"
+  - "REPEATING_COMMAND_BLOCK"
+  - "COMMAND_BLOCK_MINECART"
+  - "BARRIER"
+  - "STRUCTURE_BLOCK"
+  - "STRUCTURE_VOID"
+  - "JIGSAW"
+  - "KNOWLEDGE_BOOK"
+  - "DEBUG_STICK"
+  - "LIGHT"
+
+
+# Do not touch
+version: 1

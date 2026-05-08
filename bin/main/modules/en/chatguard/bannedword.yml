@@ -1,0 +1,22 @@
+# Banned words list
+blacklist:
+  - "badword1"
+  - "badword2"
+  - "offensive"
+
+# Allowed words (not blocked even if found in blacklist)
+whitelist:
+  - "welcome"
+  - "hello"
+
+# Symbol/Character replacement map (e.g: @ -> a)
+# Add characters that players use to bypass the filter here.
+symbol-replacement:
+  "@": "a"
+  "1": "i"
+  "$": "s"
+  "0": "o"
+
+
+# Do not touch
+version: 1

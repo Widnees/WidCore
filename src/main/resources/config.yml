@@ -1,0 +1,88 @@
+# WidCore Main Configuration File
+
+# Plugin Language
+# Enter the file name from the lang folder (without extension). E.g: tr, en
+lang: en
+
+prefix: "&x&7&A&6&3&E&7&lW&x&7&F&6&A&E&5&lI&x&8&4&7&0&E&3&lD&x&8&9&7&7&E&1&lC&x&8&E&7&D&D&F&lO&x&9&3&8&4&D&D&lR&x&9&8&8&A&D&B&lE &r» "
+
+features:
+  # --- Administration & Punishment Systems ---
+  punishment_ban: true      # /ban, /tempban, /unban commands
+  punishment_mute: true     # /mute, /tempmute, /unmute commands
+  punishment_kick: true     # /kick command
+  jail: true                # Jail system (/jail, /setjail)
+  freeze: true              # Player freeze (/freeze)
+  inventory_rollback: true  # Inventory backup and restore (/irp)
+  vanish: true              # Invisibility mode (/vanish)
+  troll: true               # Fun/Troll commands (/troll)
+  disguise: true            # Disguise system (/disguise)
+  godmode: true             # God mode (/god)
+  economy: true             # Economy system (/eco)
+  announcer: true           # Auto announcement system
+  customcommand: true       # Custom command creation
+
+  # --- Basic Player Commands ---
+  teleport: true            # Teleport commands (/tp, /tpall)
+  tpa: true                 # Teleport requests (/tpa, /tpaccept)
+  tempfly: true             # Temporary flight system (/tempfly)
+  spawn: true               # Spawn point (/spawn, /setspawn)
+  warp: true                # Warp points (/warp, /setwarp)
+  home: true                # Home teleport system (/home, /sethome)
+  back: true                # Return to death location (/back)
+  fly: true                 # Flight mode (/fly)
+  gamemode: true            # Gamemode change (/gm)
+  heal: true                # Heal player (/heal)
+  feed: true                # Feed player (/feed)
+  repair: true              # Item repair (/repair)
+  speed: true               # Speed adjustment (/speed)
+  item: true                # Give item (/i)
+  enderchest: true          # Virtual chest (/ec)
+  invsee: true              # View inventory (/inv)
+  compassteleport: true     # Compass teleportation feature
+  head: true                # Hat command (/head)
+
+  # --- Chat Management ---
+  chatformat: true          # Chat format and LuckPerms support
+  messaging: true           # Private messaging (/msg, /r)
+  show-item: true           # Item display in chat ([i], [inv])
+
+  # --- Server & World Management ---
+  worldmanager: true        # World management (/wm)
+  void-spawn: true          # Teleport to spawn when falling into void
+  item_removal: true        # Automatic item removal from ground
+  joinleave: true           # Join/Leave messages
+  motd: true                # Server list (MOTD) customization
+  banneditem: true          # Item banning system
+  antimobspawn: true        # Prevent mob spawning
+  stack_death_drops: true   # Drop items as chest on death
+  merge_experience_orbs: true # Merge XP orbs (FPS boost)
+  mobstacker: true          # Stack same type mobs to improve server performance and reduce lag
+
+  # --- Fun & Other ---
+  lightning: true           # Lightning strike (/lightning)
+  fireball: true            # Fireball throw (/fireball)
+  fireballstick: true       # Fireball stick (/fireballstick)
+  rtp: true                 # Random teleport (/rtp)
+
+  # --- Protection & Visibility ---
+  pluginhider: true         # Hide plugin list and server fork
+
+  # --- Item Edit ---
+  itemedit_name: true       # Name change (/iname)
+  itemedit_lore: true       # Add lore (/ilore)
+  itemedit_enchant: true    # Add enchantment (/enchant)
+  itemedit_color: true      # Armor dyeing (/color)
+  itemedit_hide: true       # Hide attributes (/hide)
+  itemedit_attribute: true  # Add attributes (/attribute)
+  itemedit_unbreaking: true # Unbreakable (/unbreaking)
+  itemedit_effect: true     # Add effect to item (/effect)
+
+chatguard:
+  bannedword: true          # Banned word blocking
+  spam: true                # Spam protection
+  flood: true               # Repeated message blocking
+  advertisement: true       # Advertisement blocking
+
+# Do not touch
+version: 10

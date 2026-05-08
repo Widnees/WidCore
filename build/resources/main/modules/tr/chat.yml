@@ -1,0 +1,15 @@
+# Varsayılan sohbet formatı
+# {prefix}, {name}, {message} değişkenlerini kullanın
+chat-format: "&7{prefix} &f{name} &8» &f{message}"
+
+# LuckPerms grup adlarına göre özel formatlar
+# Grup ismi küçük harflerle yazılmalıdır.
+group-formats:
+  admin: "&c[Yönetici] &f{name} &8» &e{message}"
+  vip: "&6[VIP] &e{name} &8» &f{message}"
+  default: "&7{prefix} &f{name} &8» &7{message}"
+
+
+
+# Dokunma
+version: 1

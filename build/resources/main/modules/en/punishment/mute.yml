@@ -1,0 +1,25 @@
+# Mute broadcast message to server
+broadcast-message: "&c{target} &7was muted by &c{player}&7. &8(&f{reason}&8)"
+
+# Private message sent to muted player
+player-message: "&cYou have been muted by &7{player}&c. Reason: &f{reason} &cDuration: &f{duration}"
+
+# These players cannot be muted
+exempt-players:
+  - "Notch"
+
+# Use preset reason shortcuts in commands
+use-reason-shortcuts: true
+
+# Force use of only registered shortcuts
+force-reason-shortcuts: false
+
+# Preset reasons and durations
+reasons:
+  swearing: "1h"
+  spam: "30m"
+  insult: "2h"
+
+
+# Do not touch
+version: 1

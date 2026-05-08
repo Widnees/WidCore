@@ -1,0 +1,29 @@
+# MOTD listesinden rastgele bir tane mi seçilsin?
+# true: Listeden rastgele seçer.
+# false: Listenin en başındaki (ilk) MOTD'yi gösterir.
+random: false
+
+player-count:
+  # Oyuncu sayısı değiştirme özelliğini aktif eder.
+  enabled: true
+
+  # Görünen maksimum oyuncu sayısını (aktif oyuncu + 1) olarak gösterir.
+  # Örnek: 10 kişi varsa 11/11 gibi görünür.
+  just-one-more: true
+
+  # Sunucuya girebilecek gerçek oyuncu limiti (Slot).
+  max-players: 100
+
+  # Fare ile oyuncu sayısının üzerine gelince çıkan oyuncu listesini gizler.
+  # Bu özellik için ProtocolLib gereklidir.
+  disable-player-list-hover: true
+
+# Sunucu listesinde gösterilecek MOTD listesi.
+# Hex renk kodları (#123456) ve gradyanlar desteklenir.
+motds:
+  - line1: "<gradient:#7A63E7:#988ADB>           ✦ WidCore ▸ Essentials Alternatifi ✦</gradient>"
+    line2: "<gradient:#7A63E7:#988ADB>  🌎 oyna.widcore.com | ⛏ Sürüm: 1.16 - 1.21</gradient>"
+
+
+# Dokunma
+version: 1

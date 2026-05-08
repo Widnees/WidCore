@@ -1,0 +1,31 @@
+# Ban broadcast message to server
+broadcast-message: "&c{target} &7was banned by &c{player}&7. &8(&f{reason}&8)"
+
+# Message shown on banned player's screen
+kick-screen-message:
+  - "&c&lYOU HAVE BEEN BANNED"
+  - ""
+  - "&7Reason: &f{reason}"
+  - "&7Duration: &f{duration}"
+  - ""
+  - "&7You can appeal on our Discord."
+
+# These players cannot be banned
+exempt-players:
+  - "Notch"
+
+# Use preset reason shortcuts in commands (e.g: /tempban player cheating)
+use-reason-shortcuts: true
+
+# Force use of only registered shortcuts
+force-reason-shortcuts: false
+
+# Preset reasons and durations (s: seconds, m: minutes, h: hours, d: days)
+reasons:
+  cheating: "30d"
+  swearing: "1d"
+  advertising: "7d"
+
+
+# Do not touch
+version: 1

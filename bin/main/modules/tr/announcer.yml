@@ -1,0 +1,65 @@
+# Duyuru sistemi ayarları
+settings:
+  # Duyurular kaç saniyede bir geçsin?
+  interval: 60
+
+  # Duyurular rastgele mi seçilsin?
+  # true: Rastgele bir duyuru seçer.
+  # false: Sırayla (1, 2, 3...) gider.
+  random-order: false
+
+  # Duyuru yapıldığında çalacak ses.
+  # Ses istemiyorsan boş bırak: ""
+  sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+
+# --- TIKLANABİLİR KELİMELER (REPLACEMENTS) ---
+# Duyuru metinleri içerisinde %anahtar% şeklinde kullandığınızda
+# aşağıdaki ayarlar geçerli olur.
+replacements:
+  # Kullanım: %discord%
+  discord:
+    input: "&9&lDISCORD"           # Sohbette görünecek yazı
+    output: "https://discord.com/" # Tıklanınca açılacak link
+    hover: "&7Discord sunucumuza katılmak için tıkla!" # (Opsiyonel) Üzerine gelince çıkan yazı
+
+  # Kullanım: %site%
+  site:
+    input: "&b&lWEB SITEMIZ"
+    output: "https://www.google.com"
+    hover: "&fSitemizi ziyaret et!"
+
+# --- GENEL DUYURULAR ---
+# Aşağıdaki 'worlds' kısmında TANIMLANMAMIŞ tüm dünyalarda
+# bu duyurular gösterilir.
+global:
+  '1':
+    text:
+      - "&8&m---------------------------------"
+      - " &6&lGenel Duyuru &8» &fSunucumuza hoş geldin, &e%player_name%&f!"
+      - " &fDiscord adresimiz için: %discord%"
+      - "&8&m---------------------------------"
+  '2':
+    text:
+      - "&aVip almak için %site% adresini ziyaret edebilirsin."
+
+# --- DÜNYAYA ÖZEL DUYURULAR ---
+# Buraya eklenen dünyalarda SADECE buradaki duyurular çıkar.
+# Global duyurular bu dünyalarda GÖRÜNMEZ.
+worlds:
+  # Nether dünyası için özel mesajlar
+  world_nether:
+    '1':
+      text:
+        - "&c&lDikkat! &eNether'desin, lavlara dikkat et!"
+    '2':
+      text:
+        - "&6Nether'de PvP açıktır!"
+
+  # End dünyası için özel mesajlar
+  world_the_end:
+    '1':
+      text:
+        - "&bEnd dünyasında ejderha etkinliği yakında!"
+
+# Dokunma
+version: 2

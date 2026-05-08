@@ -1,0 +1,51 @@
+# Assign players to a group via permission: widcore.group.<group>
+# NOTE: the 'default' group is automatically applied to EVERYONE; no permission is required for it.
+#       If a player has widcore.group.<group> they will use that group's rules, otherwise 'default' is used.
+#
+#
+# How rule patterns work (examples)
+# - tpa      => allows ONLY the root command "/tpa" with NO arguments
+# - tpa *    => allows ALL sub-commands and argument forms, e.g.:
+#               "/tpa <player>", "/tpaaccept", "/tpadeny", "/tpa toggle" etc.
+#
+# Tab-complete list follows the same logic:
+# - tpa      => only shows "tpa" on tab-complete
+# - tpa *    => shows all sub paths (accept, deny, toggle, etc.) in tab-complete
+#
+# Additional notes:
+# - If a group's 'command' or 'tabacomplate' list contains only "*", that group can use/see ALL commands (like OP).
+
+groups:
+  default:
+    # Allowed commands to EXECUTE
+    command:
+      - tpa *
+      - discord
+    # Visible commands in TAB-COMPLETE
+    tabacomplate:
+      - tpa *
+      - discord
+
+  # Example group: 'staff'
+  # To assign this group, give the player 'widcore.group.staff' permission.
+  # Using '*' below allows all commands and shows all commands in tab-complete for this group.
+  staff:
+    # Allowed commands to EXECUTE
+    command:
+      - "*"
+    # Visible commands in TAB-COMPLETE
+    tabacomplate:
+      - "*"
+
+# Messages shown when sensitive info commands are typed
+messages:
+  plugins-blocked: "&cPlugin list is hidden."
+  version-blocked: "&cServer version is hidden."
+
+# Server brand name (shown in F3 screen and client brand info)
+# Examples: "vanilla", "naber", "MyServer" etc.
+brand-name: "WidCore"
+
+
+# Do not touch
+version: 1

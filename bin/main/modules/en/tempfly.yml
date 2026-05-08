@@ -1,0 +1,29 @@
+# TempFly Module Configuration
+# Temporary flight system settings
+
+# Countdown mode - Determines when the duration decreases
+# Available modes:
+#   flying  - Time only decreases while the player is actively flying
+#   online  - Time decreases while the player is online (even if not flying)
+#   always  - Time always decreases (even when the player is offline)
+countdown-mode: "flying"
+
+# Time merging (disabled - new time overwrites old time)
+# This feature is disabled. The /tempfly give command
+# always replaces the old time with the new time.
+merge-time: false
+
+# Remaining time display settings
+# Time updates per minute (refreshes every 60 seconds)
+display:
+  # Show remaining time in ActionBar
+  actionbar: true
+  # Show remaining time in BossBar
+  bossbar: false
+  # BossBar color: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+  bossbar-color: "GREEN"
+  # BossBar style: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  bossbar-style: "SOLID"
+
+# Do not touch
+version: 1

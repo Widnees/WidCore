@@ -1,0 +1,37 @@
+# Spawn Module Configuration
+
+# Teleportation delay time (seconds)
+teleport-delay-seconds: 3
+
+# Cancel teleportation when moving?
+cancel-on-move: true
+
+# Cancel teleportation when taking or dealing damage?
+# Checked in TeleportDamageListener.java
+cancel-on-damage: true
+
+# Animation type: 'standart', 'gta_style' or 'fog'
+teleport-animation: "standart"
+
+# Blindness distance for GTA style animation
+gta-style-blindness-distance: 100.0
+
+# Force teleport player to spawn on join
+force-spawn-on-join: false
+
+# Teleport first-time players to spawn point
+spawn-on-first-join: true
+
+# Disable bed spawn
+override-bed-spawn: false
+
+# Teleportation effect particle width
+effects:
+  # Show particle effects
+  show-particles: true
+
+  teleport-particle:
+    radius: 4.0
+
+# Do not touch
+version: 4

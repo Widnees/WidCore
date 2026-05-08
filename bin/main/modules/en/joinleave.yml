@@ -1,0 +1,169 @@
+# ====================================
+# FIRST JOIN SETTINGS
+# ====================================
+first-join:
+  enabled: true
+  
+  # --- MESSAGES ---
+  messages:
+    # Messages sent to all players
+    all-players:
+      chat: "&8[&6⭐&8] &e%player% &7joined the server for the first time!"
+      title: ""
+      subtitle: ""
+      actionbar: "&e%player% &7joined us for the first time!"
+    
+    # Messages sent only to the first-time joining player
+    only-player:
+      chat: "&aWelcome to the server &e%player%&a! This is your first time!"
+      title: "&6Welcome!"
+      subtitle: "&7First Time Join"
+      actionbar: "&eYou joined our server for the first time!"
+  
+  # --- DURATION SETTINGS ---
+  # Title/Subtitle display duration (in milliseconds)
+  title-duration: 3500
+  
+  # ActionBar display duration (in milliseconds)
+  actionbar-duration: 3000
+  
+  # --- WELCOME MENU ---
+  # Special menu shown on first join
+  welcome-menu:
+    enabled: true
+    size: 27  # Menu size: 9, 18, 27, 36, 45, 54
+    
+    # Menu title
+    title: "§6First Join Menu"
+    
+    # Menu items (by slot number)
+    items:
+      # Simple glass pane
+      "0":
+        material: "BLACK_STAINED_GLASS_PANE"
+        name: " "
+        lore: []
+  
+  # --- SOUND SETTINGS ---
+  sound:
+    all-players: "UI_TOAST_CHALLENGE_COMPLETE"
+    only-player: "ENTITY_PLAYER_LEVELUP"
+
+
+# ====================================
+# PLAYER JOIN SETTINGS
+# ====================================
+join:
+  enabled: true
+  
+  # --- MESSAGES ---
+  messages:
+    # Messages sent to all players
+    all-players:
+      chat: "&8[&a+&8] &7%player%"
+      title: ""
+      subtitle: ""
+      actionbar: "&a%player% &7joined the server!"
+    
+    # Messages sent only to the joining player
+    only-player:
+      chat: "&aWelcome &e%player%&a!"
+      title: "&aWelcome"
+      subtitle: "&7%server%"
+      actionbar: "&aYou successfully joined the server!"
+  
+  # --- DURATION SETTINGS ---
+  # Title/Subtitle display duration (in milliseconds)
+  title-duration: 3500
+  
+  # ActionBar display duration (in milliseconds)
+  actionbar-duration: 3000
+  
+  # --- WELCOME MENU ---
+  # Menu shown when player joins
+  welcome-menu:
+    enabled: false  # Set to true to enable
+    size: 27  # Menu size: 9, 18, 27, 36, 45, 54
+    
+    # Menu title
+    # Special fonts:
+    #   - ItemsAdder: %img_icon_name% or char
+    #   - Nexo: %nexo_icon_name% or char
+    title: "§8Welcome Menu"
+    
+    # Menu items (by slot number)
+    items:
+      # Simple glass pane
+      "0":
+        material: "BLACK_STAINED_GLASS_PANE"
+        name: " "
+        lore: []
+      
+      # ItemsAdder item example (commented):
+      # "13":
+      #   material: "itemsadder:namespace:item_id"
+      #   name: "&aCustom Item"
+      #   lore:
+      #     - "&7This is an ItemsAdder item"
+      #     - "&7Menu is read-only"
+      
+      # Nexo item example (commented):
+      # "22":
+      #   material: "nexo:item_id"
+      #   name: "&cNexo Item"
+      #   lore:
+      #     - "&7This is a Nexo item"
+      #     - ""
+      #     - "&ePress ESC to close menu"
+  
+  # --- SOUND SETTINGS ---
+  # Supports vanilla sounds and custom sounds from ItemsAdder/Oraxen/Nexo
+  # Example custom sound: join:custom_join_sound
+  # ItemsAdder/Nexo support:
+  #   - Emoji: :emoji_name:
+  #   - ItemsAdder tag: %img_item_name%
+  #   - Nexo tag: %nexo_item_name%
+  sound:
+    all-players: "ENTITY_EXPERIENCE_ORB_PICKUP"
+    only-player: "BLOCK_NOTE_BLOCK_PLING"
+
+
+# ====================================
+# PLAYER QUIT SETTINGS
+# ====================================
+quit:
+  enabled: true
+  
+  # --- MESSAGES ---
+  messages:
+    # Messages sent to all players
+    all-players:
+      chat: "&8[&c-&8] &7%player%"
+      title: ""
+      subtitle: ""
+      actionbar: "&c%player% &7left the server!"
+    # Note: Cannot send messages to quitting player
+  
+  # --- DURATION SETTINGS ---
+  # Title/Subtitle display duration (in milliseconds)
+  title-duration: 3500
+  
+  # ActionBar display duration (in milliseconds)
+  actionbar-duration: 3000
+  
+  # --- SOUND SETTINGS ---
+  # Supports vanilla sounds and custom sounds from ItemsAdder/Oraxen/Nexo
+  # Example custom sound: quit:custom_quit_sound
+  # ItemsAdder/Nexo support:
+  #   - Emoji: :emoji_name:
+  #   - ItemsAdder tag: %img_item_name%
+  #   - Nexo tag: %nexo_item_name%
+  sound:
+    all-players: "UI_BUTTON_CLICK"
+
+# Send fake join/leave messages for players in vanish mode
+fake-messages-on-vanish: true
+
+
+# Do not touch
+version: 4

@@ -1,0 +1,18 @@
+escape-message: "&c&lHAPİS! &fBuradan kaçamazsın, cezanın bitmesini bekle."
+command-blocked-message: "&c&lHAPİS! &fCezalıyken bu komutu kullanamazsın."
+
+command-enforcement:
+  # Eğer true ise sadece aşağıdaki 'whitelist-commands' listesindekilere izin verir.
+  use-whitelist-mode: true
+  
+  whitelist-commands:
+    - "msg"
+    - "tell"
+    - "help"
+  
+  blocked-commands:
+    - "*"
+
+
+# Dokunma
+version: 1

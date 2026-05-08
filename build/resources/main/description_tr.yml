@@ -1,0 +1,101 @@
+MODÜLLER:
+
+  Announcer: "Belirli aralıklarla veya zamanlama ile otomatik sunucu duyuruları gönderir; rastgele veya sıralı mesaj desteği mevcuttur."
+
+  AntiMobSpawn: "Belirli mob türlerinin doğmasını dünya veya bölge bazında engeller."
+
+  Back: "Oyuncunun önceki konumuna veya öldüğü noktaya dönüş sağlar."
+
+  BannedItem: "Oyuncunun belirli bir eşyayı yerden almasını engeller."
+
+  ChatFormat: "Rütbeye göre önek ve sonek desteğiyle sohbet mesajlarını biçimlendirir; MiniMessage ve PlaceholderAPI uyumludur."
+
+  ChatGuard: "Otomatik sohbet denetimi sağlar; spam, flood, caps kilidi, reklam ve yasaklı kelime filtrelerini kapsar, ihlaller için özelleştirilebilir eylemler içerir."
+
+  CompassTeleport: "Oyuncunun baktığı yönde en yakın blok veya oyuncuya pusula ile ışınlanmasını sağlar."
+
+  CustomCommand: "Özel komutlar oluşturmayı sağlar; her komut için çalıştırılacak komut listesi, izin gereksinimleri ve mesajlar tanımlanabilir."
+
+  Death: "Oyuncu ölümlerinde özelleştirilebilir bildirim mesajları gösterir; hasar türü veya öldüren varlık tipine göre farklı mesajlar ve rastgeleleştirme desteği sunar."
+
+  Disguise: "Oyuncuları paket tabanlı olarak varlık, eşya veya başka bir oyuncu görünümüne büründürür; ses efektleri içerir."
+
+  Economy: "Vault entegrasyonuyla temel para sistemi komutlarını sağlar; bakiye görüntüleme, para transferi, para verme/alma ve zenginler sıralaması içerir."
+
+  EnderChest: "Oyuncuların kendi veya başkalarının ender sandıklarına komutla erişmesini sağlar; izin bazlı yönetim desteği içerir."
+
+  Feed: "Oyuncuyu tam doygunluğa anında kavuşturur; hedef oyuncu belirtilebilir."
+
+  Fireball: "Oyunculara ateş topu fırlatma komutu sağlar; güç seviyesi ve hasar ayarları yapılandırılabilir."
+
+  FireballStick: "Tıkladığında ateş topu fırlatan özel bir sopa aracı oluşturur; yöneticiler için eğlenceli bir araç modülüdür."
+
+  Fly: "Oyuncuların uçuş modunu komutla açıp kapamalarını sağlar; hedef oyuncu desteği ve izin bazlı kısıtlama mevcuttur."
+
+  Freeze: "Çevrimiçi oyuncuları yerinde dondurur; dondurulan oyuncu hareket edemez, komut kullanamaz ve donma süresi yapılandırılabilir."
+
+  Gamemode: "Oyun modunu komutla değiştirmeye yarar; survival, creative, adventure ve spectator modları için kısa komut takma adları içerir."
+
+  God: "Oyuncuya hasar bağışıklığı kazandıran tanrı modunu açıp kapatır; hedef oyuncu desteği mevcuttur."
+
+  Head: "Oyuncunun elindeki eşyayı kafa slotuna takmasını sağlar."
+
+  Heal: "Oyuncuyu anında iyileştirir ve açlık çubuğunu doldurur; hedef oyuncu desteği mevcuttur."
+
+  Home: "Oyuncuların ev noktası belirlemesine ve bu noktalara ışınlanmasına olanak tanır; GUI arayüzü ve rütbeye göre ev limiti desteği sunar."
+
+  InventoryRollback: "Oyuncuların envanterini belirli zaman noktalarına geri alır; ölüm, çıkış veya belirtilen olaylar sonrasında kayıp eşyaları kurtarmak için kullanılır."
+
+  Invsee: "Çevrimiçi ve çevrimdışı oyuncuların envanterlerini ve ender sandıklarını görüntülemeye ve düzenlemeye imkân tanır."
+
+  Item: "Oyuncuya belirli bir eşyayı verir."
+
+  ItemEdit: "Oyuncunun elindeki eşyanın nitelik, dayanıklılık, renk, aşı ve benzeri özelliklerini düzenlemesini sağlar."
+
+  ItemRemoval: "Yerde düşmüş olan tüm eşyaları siler."
+
+  Jail: "Oyuncuları belirlenmiş hapishane noktalarına ışınlar ve orada tutar; süre bazlı veya manuel serbest bırakma desteği sunar."
+
+  JoinLeave: "Oyuncu giriş ve çıkış mesajlarını özelleştirme desteği sunar; Giriş menüsü mevcuttur."
+
+  Lightning: "Hedef oyuncunun veya bakılan konumun üzerine yıldırım düşüren bir yönetici komutu sağlar."
+
+  MergeExperienceOrb: "Yakın konumdaki deneyim toplarını birleştirerek sunucu performansını artırır; birleştirme yarıçapı yapılandırılabilir."
+
+  Messaging: "Oyuncular arası özel mesajlaşma sistemi sunar."
+
+  MobStacker: "Aynı türdeki yakın mobları tek bir yığın halinde birleştirir."
+
+  Motd: "Sunucunun giriş mesajını (MOTD) yönetir; maksimum oyuncu sayısını +1 artık gösterme, oyuncu listesi hover'ını gizleme, rastgele veya sıralı MOTD seçimi desteği sunar."
+
+  Punishment: "Ban, Mute ve Kick içeren kapsamlı bir ceza sistemi; ceza geçmişi arayüzü desteği sunar."
+
+  Repair: "Elde tutulan veya tüm envanterdeki eşyaları onarır."
+
+  Rtp: "Oyuncuları dünyaya özgü koordinat sınırları içinde rastgele bir konuma ışınlar; chunk güvenlik kontrolü, Towny entegrasyonu ve otomatik dünya yönlendirmesi içerir."
+
+  ServerInfoHider: "Sunucunun marka adını, sürüm bilgisini ve eklenti listesini gizler; başka sunucu yazılımı gibi görünmesini sağlayan paket tabanlı bir gizleme modülüdür."
+
+  ShowItem: "Oyuncunun elindeki eşyayı sohbet üzerinden diğer oyunculara göstermesini sağlar; eşya adı, aşılar ve özellikler görüntülenir."
+
+  Spawn: "Sınırsız spawn noktası oluşturmayı ve yönetmeyi sağlar; yeniden doğmada spawn seçimi desteği sunar."
+
+  Speed: "Oyuncunun yürüyüş ve uçuş hızını komutla ayarlar."
+
+  StackDeathDrops: "Oyuncu veya mob ölümünde yere düşen eşyaları otomatik olarak yığınlar; dağınık drop sorununu önler."
+
+  Teleport: "Oyuncuyu belirli bir koordinata, başka bir oyuncuya veya dünyaya ışınlar."
+
+  TempFly: "Oyunculara belirli süreli geçici uçuş hakkı verir; süre dolunca uçuş otomatik olarak devre dışı bırakılır."
+
+  Tpa: "Oyuncular arası ışınlanma isteği sistemi; istek zaman aşımı, kabul/red komutları ve gelen istekleri engelleme seçeneği içerir."
+
+  Troll: "Yöneticilerin oyuncuları rahatsız etmek için kullanabileceği çeşitli esprili efektler ve aksiyonlar sunar."
+
+  Vanish: "Kendini diğer oyunculardan gizler; ses gizleme desteği sunar."
+
+  VoidSpawn: "Oyuncu boşluğa düştüğünde otomatik olarak spawn noktasına ışınlar; hasar iptali ve dünya bazlı yapılandırma seçeneği mevcuttur."
+
+  Warp: "Herkesin kullanabileceği genel hızlı seyahat noktaları oluşturur."
+
+  WorldManager: "Özel dünyalar oluşturur ve yönetir; dinamik yükleme/boşaltma ve GUI ile oyun kuralı düzenleme desteği sunar."

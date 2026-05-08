@@ -1,0 +1,15 @@
+# Default chat format
+# Use {prefix}, {name}, {message} variables
+chat-format: "&7{prefix} &f{name} &8» &f{message}"
+
+# Custom formats based on LuckPerms group names
+# Group names must be in lowercase.
+group-formats:
+  admin: "&c[Admin] &f{name} &8» &e{message}"
+  vip: "&6[VIP] &e{name} &8» &f{message}"
+  default: "&7{prefix} &f{name} &8» &7{message}"
+
+
+
+# Do not touch
+version: 1

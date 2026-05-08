@@ -1,0 +1,40 @@
+# TPA Modülü Ayarları
+
+# Işınlanma animasyonu türü: 'standart', 'gta_style' veya 'fog'
+teleport-animation: "standart"
+
+# GTA stili animasyonda körlük mesafesi
+gta-style-blindness-distance: 100.0
+
+# İstek zaman aşımı (saniye)
+request-timeout: 60
+# Tekrar istek gönderme bekleme süresi (saniye)
+cooldown: 30
+
+# Işınlanma öncesi bekleme ayarları
+teleport-warmup:
+  enabled: true
+  duration: 3
+  cancel-on-move: true
+
+# Oyuncu ışınlanma sırasında bir varlığa hasar verirse işlem iptal edilsin mi?
+cancel-on-damage-deal: true
+
+# Oyuncu ışınlanma sırasında blok kırarsa işlem iptal edilsin mi?
+cancel-on-block-break: true
+
+# Işınlanma sonrası koruma süresi (saniye)
+teleport-protection:
+  enabled: true
+  duration: 5
+
+# Işınlanma partikül genişliği (eğer standart kullanılıyorsa)
+effects:
+  # Partikül efektlerini göster
+  show-particles: true
+
+  teleport-particle:
+    radius: 4.0
+
+# Dokunma
+version: 4

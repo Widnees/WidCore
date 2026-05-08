@@ -1,0 +1,22 @@
+# Bu listeye eklenen tüm mob'lar, BÜTÜN dünyalarda engellenir.
+# Bu liste önceliklidir.
+all_worlds:
+  - ZOMBIE
+  - CREEPER
+  - SKELETON
+
+# Bu bölüme, sadece belirli dünyalarda engellemek istediğiniz
+# mob'ları ekleyebilirsiniz.
+# 'all_worlds' listesindekilere EK olarak çalışır.
+worlds:
+  # 'world_nether' dünyasında (all_worlds'e ek olarak) PIGLIN'ler de engellenecek.
+  world_nether:
+    - PIGLIN
+    - HOGLIN
+
+  # 'world' dünyasında (all_worlds'e ek olarak) PHANTOM'lar da engellenecek.
+  world:
+    - PHANTOM
+
+# Dokunma
+version: 1

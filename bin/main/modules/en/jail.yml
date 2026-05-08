@@ -1,0 +1,18 @@
+escape-message: "&c&lJAIL! &fYou cannot escape from here, wait for your sentence to end."
+command-blocked-message: "&c&lJAIL! &fYou cannot use this command while jailed."
+
+command-enforcement:
+  # If true, only commands in 'whitelist-commands' list below are allowed.
+  use-whitelist-mode: true
+  
+  whitelist-commands:
+    - "msg"
+    - "tell"
+    - "help"
+  
+  blocked-commands:
+    - "*"
+
+
+# Do not touch
+version: 1

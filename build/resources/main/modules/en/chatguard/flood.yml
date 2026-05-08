@@ -1,0 +1,11 @@
+# Maximum number of times the same message can be sent consecutively
+max-repeat: 3
+
+# Message similarity percentage
+# Messages with 80% or higher similarity are considered flood.
+similarity-percentage: 80
+
+
+
+# Do not touch
+version: 1

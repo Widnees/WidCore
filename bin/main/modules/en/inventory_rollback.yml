@@ -1,0 +1,12 @@
+# When should backups be taken?
+save-on-death: true
+save-on-join: false
+save-on-quit: true
+save-on-world-change: true
+
+# How often should automatic backups be taken (minutes)? (0 = disabled)
+periodic-save-minutes: 10
+
+
+# Do not touch
+version: 1

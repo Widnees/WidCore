@@ -1,0 +1,29 @@
+# TempFly Modülü Ayarları
+# Geçici uçuş sistemi yapılandırması
+
+# Geri sayım modu - Sürenin ne zaman azalacağını belirler
+# Kullanılabilir modlar:
+#   flying  - Süre sadece oyuncu uçarken azalır
+#   online  - Süre oyuncu sunucuda çevrimiçi olduğu sürece azalır (uçmasa bile)
+#   always  - Süre her zaman azalır (oyuncu sunucuda olmasa bile)
+countdown-mode: "flying"
+
+# Süre birleştirme (kapalı - yeni süre eski sürenin üzerine yazılır)
+# Bu özellik devre dışı bırakılmıştır. /tempfly give komutu
+# her zaman eski süreyi silerek yeni süreyi yazar.
+merge-time: false
+
+# Kalan süre gösterim ayarları
+# Süre dakika cinsinden güncellenir (her 60 saniyede bir yenilenir)
+display:
+  # ActionBar'da kalan süreyi göster
+  actionbar: true
+  # BossBar'da kalan süreyi göster
+  bossbar: false
+  # BossBar rengi: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+  bossbar-color: "GREEN"
+  # BossBar stili: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  bossbar-style: "SOLID"
+
+# Dokunma
+version: 1

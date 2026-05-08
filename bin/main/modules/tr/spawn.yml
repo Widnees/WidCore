@@ -1,0 +1,37 @@
+# Spawn Modülü Ayarları
+
+# Işınlanma bekleme süresi (saniye)
+teleport-delay-seconds: 3
+
+# Hareket edince ışınlanma iptal edilsin mi?
+cancel-on-move: true
+
+# Hasar alınca veya verince ışınlanma iptal edilsin mi?
+# TeleportDamageListener.java içerisinde kontrol edilir.
+cancel-on-damage: true
+
+# Animasyon türü: 'standart', 'gta_style' veya 'fog'
+teleport-animation: "standart"
+
+# GTA stili animasyonda körlük mesafesi
+gta-style-blindness-distance: 100.0
+
+# Oyuncu sunucuya girince zorla spawna ışınla
+force-spawn-on-join: false
+
+# İlk kez sunucuya giren oyuncuları spawn noktasına ışınla
+spawn-on-first-join: true
+
+# Yatak spawnını devre dışı bırak
+override-bed-spawn: false
+
+# Işınlanma efekt partikül genişliği
+effects:
+  # Partikül efektlerini göster
+  show-particles: true
+
+  teleport-particle:
+    radius: 4.0
+
+# Dokunma
+version: 4

@@ -4,3 +4,5 @@ bin/
 .idea/
 .vscode/
 *.log
+build-compile.log
+build-compile.log

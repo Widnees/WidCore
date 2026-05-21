@@ -87,7 +87,7 @@ public class CustomCommandManager {
                     knownCommands = result = (Map)getKnownCommandsMethod.invoke((Object)this.commandMap, new Object[0]);
                 }
                 catch (NoSuchMethodException getKnownCommandsMethod) {
-                    
+
                 }
             }
             for (DynamicCommand cmd : this.registeredCommands) {

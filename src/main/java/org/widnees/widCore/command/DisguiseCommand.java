@@ -238,7 +238,7 @@ public class DisguiseCommand implements CommandExecutor, TabCompleter {
                     break;
             }
         } else if (args.length == 3) {
-            
+
             List<String> playerNames = Bukkit.getOnlinePlayers().stream()
                     .map(Player::getName)
                     .collect(Collectors.toList());

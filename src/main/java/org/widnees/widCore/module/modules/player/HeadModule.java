@@ -39,6 +39,6 @@ public class HeadModule implements Module {
 
     @Override
     public void unregister() {
-        
+
     }
 }

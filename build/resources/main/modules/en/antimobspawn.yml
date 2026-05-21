@@ -1,0 +1,22 @@
+# Mobs added to this list will be blocked in ALL worlds.
+# This list has priority.
+all_worlds:
+  - ZOMBIE
+  - CREEPER
+  - SKELETON
+
+# In this section, you can add mobs that you want to block
+# in specific worlds only.
+# Works IN ADDITION to the 'all_worlds' list.
+worlds:
+  # In 'world_nether' (in addition to all_worlds), PIGLINs will also be blocked.
+  world_nether:
+    - PIGLIN
+    - HOGLIN
+
+  # In 'world' (in addition to all_worlds), PHANTOMs will also be blocked.
+  world:
+    - PHANTOM
+
+# Do not touch
+version: 1

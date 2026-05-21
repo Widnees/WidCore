@@ -77,7 +77,7 @@ public class ItemEditCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
 
         String commandLabel = label.toLowerCase();
-        
+
         String labelKey = plugin.getAliasManager().lookupKey(commandLabel);
 
         if (labelKey.equals("iname") || labelKey.equals("irename")) {

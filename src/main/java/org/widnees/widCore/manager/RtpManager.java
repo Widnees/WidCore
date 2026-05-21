@@ -377,7 +377,7 @@ public class RtpManager {
                 return Integer.parseInt(seconds);
             }
             catch (NumberFormatException numberFormatException) {
-                
+
             }
         }
         return config.getInt("cooldown.default", 60);
@@ -470,7 +470,7 @@ public class RtpManager {
             }
         }
         catch (Exception exception) {
-            
+
         }
         return null;
     }

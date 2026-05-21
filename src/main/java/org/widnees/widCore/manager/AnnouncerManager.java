@@ -34,6 +34,7 @@ public class AnnouncerManager {
     private final Map<String, Integer> worldIndexes = new HashMap<String, Integer>();
     private int interval;
     private boolean randomOrder;
+    private boolean centerText;
     private Sound sound;
     private String customSound;
 
@@ -52,6 +53,7 @@ public class AnnouncerManager {
         this.globalIndex = 0;
         this.interval = this.config.getInt("settings.interval", 60);
         this.randomOrder = this.config.getBoolean("settings.random-order", false);
+        this.centerText = this.config.getBoolean("settings.center-text", false);
         String soundName = this.config.getString("settings.sound", "");
         this.sound = null;
         this.customSound = null;
@@ -124,6 +126,9 @@ public class AnnouncerManager {
                 if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
                     line = PlaceholderAPI.setPlaceholders((Player)player, (String)line);
                 }
+                if (this.centerText) {
+                    line = this.centerLine(line);
+                }
                 Component component = TextParser.parse(line);
                 for (Map.Entry<String, Replacement> entry : this.replacements.entrySet()) {
                     String placeholder = "%" + entry.getKey() + "%";
@@ -164,6 +169,25 @@ public class AnnouncerManager {
             this.globalIndex = index;
         }
         return announcement;
+    }
+
+    private String centerLine(String line) {
+
+        String stripped = line
+                .replaceAll("(?i)(&|§)[0-9a-fk-or]", "")
+                .replaceAll("<[^>]+>", "");
+        int visibleLength = stripped.length();
+        int chatWidth = 53;
+        if (visibleLength >= chatWidth) {
+            return line;
+        }
+        int spaces = (chatWidth - visibleLength) / 2;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < spaces; i++) {
+            sb.append(' ');
+        }
+        sb.append(line);
+        return sb.toString();
     }
 
     private static class Announcement {

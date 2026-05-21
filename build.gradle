@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'org.widnees'
-version = '2.6.5'
+version = '2.6.6'
 
 repositories {
     mavenCentral()
@@ -29,20 +29,16 @@ dependencies {
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     implementation 'org.bstats:bstats-bukkit:3.0.2'
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
-    compileOnly 'com.github.retrooper.packetevents:api:2.3.0' // packetevents
-    compileOnly 'com.palmergames.bukkit.towny:towny:0.100.2.0' // towny
-    // Use previously compiled classes (bin/main) to satisfy missing source packages during shadow build
-    compileOnly files('bin/main')
+    compileOnly 'com.github.retrooper.packetevents:api:2.3.0'
+    compileOnly 'com.palmergames.bukkit.towny:towny:0.100.2.0'
+    // Closed-source precompiled classes (ProtocolLibHook, ErrorLogHandler, etc.)
+    compileOnly files('libs/widcore-precompiled.jar')
 }
 
 shadowJar {
     relocate 'org.bstats', 'org.widnees.widCore.bstats'
-    // Also include precompiled classes from bin/main so they are bundled into the fat jar
-    from('bin/main') {
-        // Ensure newly compiled ItemEffectManager overrides the legacy one from bin/main
-        exclude 'org/widnees/widCore/manager/ItemEffectManager.class'
-        exclude 'org/widnees/widCore/manager/ItemEffectManager$*.class'
-    }
+    // Include closed-source precompiled classes into the fat jar
+    from(zipTree('libs/widcore-precompiled.jar'))
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     doLast {
@@ -57,57 +53,6 @@ shadowJar {
             println ">>> Uyarı: testserver/plugins klasörü bulunamadı, kopyalama atlandı."
         }
     }
-}
-
-// Build a Shadow (fat) JAR without compiling sources, using the already-built classes under bin/main
-// and the processed resources (plugin.yml, langs, modules, etc.). This avoids compile errors while
-// still producing a runnable artifact. Usage: gradlew shadowBin
-tasks.register('shadowBin', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-    group = 'build'
-    description = 'Create fat jar from bin/main + resources without compiling source.'
-    archiveBaseName.set('WidCore')
-    archiveVersion.set(version)
-    archiveClassifier.set('all')
-
-    // Include patch-compiled classes first (override), then precompiled classes and processed resources
-    from('build/patch-classes')
-    from('bin/main')
-    from('build/resources/main')
-
-    // Shade runtime implementation deps (e.g., bStats, json-simple) into the jar
-    configurations = [project.configurations.runtimeClasspath]
-
-    // Keep relocation consistent with normal shadowJar
-    relocate 'org.bstats', 'org.widnees.widCore.bstats'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    // Ensure resources are processed (plugin.yml expansion) before packaging
-    dependsOn 'processResources', 'compilePatchJava'
-}
-
-// Compile only the patch sources (small subset) against Paper API and existing compiled classes under bin/main
-tasks.register('compilePatchJava', JavaCompile) {
-    group = 'build'
-    description = 'Compile patch sources in src/patch/java only.'
-    source = fileTree('src/patch/java') { include '**/*.java' }
-    destinationDirectory = file('build/patch-classes')
-    options.encoding = 'UTF-8'
-    // Classpath includes normal compile classpath plus previously compiled classes from bin/main
-    classpath = files(configurations.compileClasspath, 'bin/main')
-    // Use the same toolchain/release as main
-    def targetJavaVersion = 17
-    if (JavaVersion.current() < JavaVersion.toVersion(targetJavaVersion)) {
-        options.release.set(targetJavaVersion)
-    }
-}
-
-
-task copyLibs(type: Copy) {
-    from configurations.runtimeClasspath
-    from configurations.compileClasspath
-    include '**/*.jar'
-
-    into 'libs'
 }
 
 tasks {
@@ -134,41 +79,11 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
-def destDir = file('libs')
-
-
 processResources {
     def props = [version: version]
     inputs.properties props
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
         expand props
-    }
-}
-
-// --- Utility task: Decompile ItemEffectManager.class with CFR (uses Gradle's Java toolchain) ---
-// 1) Ensure libs/cfr-0.152.jar exists (download with: curl -L -o libs/cfr-0.152.jar \
-//    https://github.com/leibnitz27/cfr/releases/download/0.152/cfr-0.152.jar)
-// 2) Run: ./gradlew decompileItemEffect
-// Output will be written under src/decompiled/org/widnees/widCore/manager/ItemEffectManager.java
-tasks.register('decompileItemEffect', JavaExec) {
-    group = 'decompile'
-    description = 'Decompile ItemEffectManager.class using CFR'
-    // Gradle 8+: use property setter
-    mainClass.set('org.benf.cfr.reader.Main')
-    // Use the CFR jar placed in libs folder
-    classpath = files('libs/cfr-0.152.jar')
-    // Input .class and output directory
-    args 'bin/main/org/widnees/widCore/manager/ItemEffectManager.class', '--outputdir', 'src/decompiled'
-    // Ensure JavaExec uses the configured toolchain (JDK 17) even if 'java' is not on PATH
-    def launcher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(targetJavaVersion) }
-    javaLauncher.set(launcher)
-    doFirst {
-        def inFile = file('bin/main/org/widnees/widCore/manager/ItemEffectManager.class')
-        if (!inFile.exists()) {
-            throw new GradleException("Input class not found: ${inFile}. Build or copy classes under bin/main first.")
-        }
-        mkdir('src/decompiled')
-        logger.lifecycle("Decompiling ${inFile} to src/decompiled ...")
     }
 }

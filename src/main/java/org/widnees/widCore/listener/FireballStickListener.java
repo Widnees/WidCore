@@ -48,10 +48,10 @@ public class FireballStickListener implements Listener {
 
         Player player = event.getPlayer();
         final UUID playerUuid = player.getUniqueId();
-        
+
         dropCooldown.add(playerUuid);
         FoliaScheduler.runAtEntityLater(plugin, player, () -> dropCooldown.remove(playerUuid), 3L);
-        
+
         event.setCancelled(true);
         Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("fireballstick.drop-prevent"));
     }
@@ -126,7 +126,7 @@ public class FireballStickListener implements Listener {
         ItemStack item = event.getItem();
         if (isFireballStick(item)) {
             event.setCancelled(true);
-            
+
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
                 String ownerUuidStr = meta.getPersistentDataContainer().get(fireballOwnerKey, PersistentDataType.STRING);
@@ -136,7 +136,7 @@ public class FireballStickListener implements Listener {
                     return;
                 }
             }
-            
+
             if (!player.hasPermission("widcore.fireball")) {
                 Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("fireballstick.no-perm"));
                 return;

@@ -23,7 +23,7 @@ public class GodModeListener implements Listener {
     public void onDamage(EntityDamageEvent event) {
         if (!ConfigManager.isConfigLoaded()) {return;}
         if (event.getEntity() instanceof Player) {
-            
+
             Player player = (Player) event.getEntity();
             if (plugin.getGodModePlayers().contains(player.getUniqueId())) {
                 event.setCancelled(true);

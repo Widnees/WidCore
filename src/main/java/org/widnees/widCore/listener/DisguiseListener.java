@@ -52,7 +52,7 @@ public class DisguiseListener implements Listener {
             if (deathMessage != null) {
                 event.setDeathMessage(deathMessage.replace(player.getName(), data.getPlayerName()));
             }
-            
+
             event.getDrops().clear();
             event.setDroppedExp(0);
         }
@@ -62,7 +62,7 @@ public class DisguiseListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        
+
     }
 
     @SuppressWarnings("deprecation")

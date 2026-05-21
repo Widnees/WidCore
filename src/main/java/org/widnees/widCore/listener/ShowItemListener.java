@@ -57,7 +57,7 @@ public class ShowItemListener implements Listener {
     private String createCallback(UUID targetUUID, String type) {
         String id = String.valueOf(callbackCounter.incrementAndGet());
         pendingCallbacks.put(id, new ShowItemCallback(targetUUID, type));
-        
+
         long now = System.currentTimeMillis();
         pendingCallbacks.entrySet().removeIf(e -> now - e.getValue().createdAt > 300000);
         return id;

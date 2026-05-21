@@ -32,7 +32,7 @@ public class WorldManagerModule implements Module {
 
     @Override
     public void register() {
-        
+
         this.worldManagerGUI = new WorldManagerGUI(plugin);
 
         WorldManagerCommand worldManagerCommand = new WorldManagerCommand(plugin, plugin.getWorldDataManager());
@@ -50,7 +50,7 @@ public class WorldManagerModule implements Module {
 
     @Override
     public void unregister() {
-        
+
         this.worldManagerGUI = null;
         this.worldManagerListener = null;
     }

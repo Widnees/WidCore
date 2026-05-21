@@ -59,7 +59,7 @@ public class BinaryDataManager {
     }
 
     public CompletableFuture<Void> saveAllCachedPlayerData() {
-        
+
         for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
             PlayerData data = playerDataCache.get(player.getUniqueId());
             if (data != null) {
@@ -81,7 +81,7 @@ public class BinaryDataManager {
         Object lock = fileLocks.computeIfAbsent(file.getAbsolutePath(), k -> new Object());
         return CompletableFuture.runAsync(() -> {
             synchronized (lock) {
-                
+
                 File parentDir = file.getParentFile();
                 if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
                     plugin.getLogger().severe("Dizin oluşturulamadı: " + parentDir.getAbsolutePath());
@@ -356,7 +356,7 @@ public class BinaryDataManager {
                         return newData;
                     }
                 } catch (java.io.InvalidClassException e) {
-                    
+
                     plugin.getLogger().info("Migrating old PlayerData format for: " + uuid);
                     try (ObjectInputStream ois2 = new ObjectInputStream(new FileInputStream(playerDataFile)) {
                         @Override
@@ -562,7 +562,7 @@ public class BinaryDataManager {
     }
 
     public void saveBackup(Player player, InventoryBackup.BackupReason reason) {
-        
+
         if (isInventoryEmpty(player)) {
             return;
         }
@@ -868,6 +868,35 @@ public class BinaryDataManager {
         String enderChestContentsData;
         int totalExperience;
         int level;
+    }
+
+    public static class MentionPrefsData implements Serializable {
+        private static final long serialVersionUID = 1L;
+        public Map<UUID, MentionPrefs> players = new ConcurrentHashMap<>();
+    }
+
+    public static class MentionPrefs implements Serializable {
+        private static final long serialVersionUID = 1L;
+        public boolean enabled   = true;
+        public boolean title     = true;
+        public boolean actionbar = false;
+        public boolean toast     = false;
+        public boolean sound     = false;
+    }
+
+    private File getMentionPrefsFile() {
+        return new File(databaseDir, "mention_prefs.dat");
+    }
+
+    public void saveMentionPrefs(MentionPrefsData data) {
+        saveObjectToFile(getMentionPrefsFile(), data);
+    }
+
+    public void loadMentionPrefs(Consumer<MentionPrefsData> callback) {
+        loadObjectFromFile(getMentionPrefsFile(), MentionPrefsData.class).thenAccept(data -> {
+            Bukkit.getScheduler().runTask(plugin, () ->
+                    callback.accept(data != null ? data : new MentionPrefsData()));
+        });
     }
 
     private File getEconomyFile() {

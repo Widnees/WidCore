@@ -1,0 +1,42 @@
+# Require @ symbol before player name to trigger a mention
+require-at-symbol: true
+
+# Color/format applied to the mentioned player's name in chat
+highlight-color: "&b&l"
+
+# Who sees the highlighted name?
+# MENTIONED_ONLY - only the mentioned player sees it highlighted
+# EVERYONE       - all players see it highlighted
+highlight-visibility: MENTIONED_ONLY
+
+# Title & Subtitle notification
+title:
+  title: "&e&lYou were mentioned!"
+  subtitle: "&f{sender} &7mentioned you"
+  fade-in: 10
+  stay: 60
+  fade-out: 20
+
+# Action bar notification
+actionbar:
+  message: "&e✦ &f{sender} &7mentioned you in chat!"
+
+# Toast (advancement) notification
+toast:
+  item: BELL
+  # TASK = yellow frame | GOAL = green frame | CHALLENGE = purple frame
+  frame: GOAL
+  title: "&e{sender} &7mentioned you"
+
+# Sound notification
+sound:
+  sound: ENTITY_EXPERIENCE_ORB_PICKUP
+  volume: 1.0
+  pitch: 1.2
+
+# How long (ms) before the same sender can trigger notifications again for this target
+# Default 5000 ms matches the toast advancement display duration
+notification-cooldown-ms: 5000
+
+# Do not touch
+version: 1

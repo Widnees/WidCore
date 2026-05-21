@@ -1,0 +1,16 @@
+# ====================================
+# FREEZE AYARLARI
+# ====================================
+
+# Freeze olmuş oyuncuların kullanabileceği komutlar
+# Not: Komutlar küçük harfle yazılmalı ve '/' olmadan
+allowed-commands:
+  - "help"
+  - "rules"
+  - "discord"
+  - "website"
+  - "appeal"
+  - "ticket"
+
+# Dokunma
+version: 1

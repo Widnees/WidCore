@@ -77,7 +77,7 @@ public class GamemodeCommand implements CommandExecutor {
                 return true;
             }
             player.setGameMode(gameMode);
-            
+
         } else {
             if (!sender.hasPermission("widcore.gamemode.other")) {
                 Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("gamemode.no-perm-other"));

@@ -30,7 +30,7 @@ public class MobStackerListener implements Listener {
             return;
 
         LivingEntity entity = event.getEntity();
-        
+
         FoliaScheduler.runAtEntityLater(plugin, entity, () -> {
             if (entity.isValid()) {
                 manager.tryStackNearby(entity);
@@ -48,7 +48,7 @@ public class MobStackerListener implements Listener {
         LivingEntity entity = (LivingEntity) event.getEntity();
 
         if (manager.isStacked(entity)) {
-            
+
             if (entity.getHealth() - event.getFinalDamage() <= 0) {
                 entity.setCustomNameVisible(false);
             }

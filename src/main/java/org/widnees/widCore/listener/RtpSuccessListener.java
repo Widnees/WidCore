@@ -24,7 +24,7 @@ public class RtpSuccessListener implements Listener {
     public void onTeleport(PlayerTeleportEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         if (rtpManager.isPlayerInRtp(uuid)) {
-            
+
             RtpRetryService.markSuccess(uuid);
         }
     }

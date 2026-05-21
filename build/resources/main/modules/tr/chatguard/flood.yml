@@ -1,0 +1,11 @@
+# Art arda aynı mesajı maksimum kaç kere gönderebilir?
+max-repeat: 3
+
+# Mesaj benzerlik oranı yüzdesi
+# %80 ve üzeri benzerlikte mesajlar flood sayılır.
+similarity-percentage: 80
+
+
+
+# Dokunma
+version: 1

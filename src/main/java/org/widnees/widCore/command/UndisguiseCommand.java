@@ -32,7 +32,7 @@ public class UndisguiseCommand implements CommandExecutor, TabCompleter {
 
         Player target;
         if (args.length >= 1) {
-            
+
             if (!sender.hasPermission("widcore.disguise.other")) {
                 Main.sendMessage(plugin, sender,
                         plugin.getLanguageManager().getMessage("disguise.no-perm-other"));
@@ -46,7 +46,7 @@ public class UndisguiseCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
         } else {
-            
+
             if (!(sender instanceof Player)) {
                 Main.sendMessage(plugin, sender,
                         plugin.getLanguageManager().getMessage("general.only-players"));
@@ -80,7 +80,7 @@ public class UndisguiseCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            
+
             List<String> disguisedNames = Bukkit.getOnlinePlayers().stream()
                     .filter(p -> plugin.getDisguiseManager().isDisguised(p))
                     .map(Player::getName)

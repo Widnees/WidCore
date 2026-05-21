@@ -117,7 +117,6 @@ public class LanguageManager {
         if (currentVer >= newVer && this.langFile.exists() && this.langFile.length() > 0L) {
             return;
         }
-        this.plugin.getLogger().info("[WidCore] Dil dosyas\u0131 (" + langName + ".yml) g\u00fcncelleniyor... (v" + currentVer + " -> v" + newVer + ")");
         try {
             List<String> templateLines = new ArrayList<>();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(this.plugin.getResource(resourcePath), StandardCharsets.UTF_8))) {
@@ -181,7 +180,9 @@ public class LanguageManager {
                                     ++i;
                                 }
                                 currentPath.remove(currentPath.size() - 1);
-                            } else if (!currentConfig.isConfigurationSection(fullPath)) {
+                            } else if (currentConfig.isConfigurationSection(fullPath)) {
+                                newContent.append(matcher.group(1)).append(keyName).append(":\n");
+                            } else {
                                 String newValue = userValue.toString();
                                 if (userValue instanceof String) {
                                     newValue = "\"" + newValue.replace("\"", "\\\"") + "\"";

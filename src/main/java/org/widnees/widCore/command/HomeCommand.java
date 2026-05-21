@@ -29,7 +29,7 @@ public class HomeCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        
+
         String cmdName = plugin.getAliasManager().lookupKey(command.getName());
 
         switch (cmdName) {
@@ -54,10 +54,10 @@ public class HomeCommand implements CommandExecutor {
         }
 
         if (args.length == 0) {
-            
+
             homeListener.openHomeMenu(player);
         } else {
-            
+
             String homeName = args[0];
             homeManager.getHome(player.getUniqueId(), homeName).thenAccept(location -> {
                 if (location == null) {
@@ -68,7 +68,7 @@ public class HomeCommand implements CommandExecutor {
 
                 homeManager.teleportWithDelay(player, location, homeName,
                         () -> {
-                            
+
                             Main.sendMessage(plugin, player, plugin.getLanguageManager().getMessage("home.success")
                                     .replace("%home%", homeName));
                         },

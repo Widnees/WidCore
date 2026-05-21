@@ -1,0 +1,27 @@
+# Maximum block distance required for mobs to merge
+stack-radius: 5
+
+# Distance (blocks) required for mob name (x2 Zombie) to be visible
+name-visible-distance: 10
+
+# How often (seconds) mobs should be checked and merged
+check-interval-seconds: 5
+
+# Mob types that cannot be merged
+blacklisted-mobs:
+  - "VILLAGER"
+  - "WITHER"
+  - "ENDER_DRAGON"
+
+# Worlds where this feature is disabled
+blacklisted-worlds:
+  - "disabled_world"
+
+# Maximum stack size a mob can reach
+max-stack-size: 256
+
+# Name format displayed above the mob
+stack-nametag: "&e(x{amount}) &f{type}"
+
+# Do not touch
+version: 1

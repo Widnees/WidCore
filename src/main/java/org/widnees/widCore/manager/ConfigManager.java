@@ -56,7 +56,7 @@ public class ConfigManager {
 
     private void restoreMissingConfigs() {
         String lang = this.plugin.getConfig().getString("lang", "en").toLowerCase();
-        String[] moduleFiles = new String[]{"announcer", "antimobspawn", "banneditem", "chat", "customcommand", "home", "inventory_rollback", "jail", "joinleave", "mobstacker", "motd", "removeitem", "spawn", "tpa", "void_spawn", "warp", "rtp", "chatguard/advertisement", "chatguard/bannedword", "chatguard/flood", "chatguard/spam", "punishment/ban", "punishment/kick", "punishment/mute"};
+        String[] moduleFiles = new String[]{"announcer", "antimobspawn", "banneditem", "chat", "customcommand", "home", "inventory_rollback", "jail", "joinleave", "mobstacker", "motd", "removeitem", "spawn", "tpa", "void_spawn", "warp", "rtp", "mention", "chatguard/advertisement", "chatguard/bannedword", "chatguard/flood", "chatguard/spam", "punishment/ban", "punishment/kick", "punishment/mute"};
         for (String modulePath : moduleFiles) {
             String langResourcePath = "modules/" + lang + "/" + modulePath + ".yml";
             String fallbackResourcePath = "modules/" + modulePath + ".yml";
@@ -105,25 +105,25 @@ public class ConfigManager {
 
         console.sendMessage("");
         console.sendMessage(top);
-        console.sendMessage("║" + padLine(" " + ChatColor.YELLOW + "Config Changes", width) + "║");
+        console.sendMessage("║" + padLine(" " + ChatColor.YELLOW + "Config Changes", width) + ChatColor.RESET + "║");
         console.sendMessage(sep);
 
         if (hasRestored) {
-            console.sendMessage("║" + padLine(" " + ChatColor.AQUA + "Restored (missing files created):", width) + "║");
+            console.sendMessage("║" + padLine(" " + ChatColor.AQUA + "Restored (missing files created):", width) + ChatColor.RESET + "║");
             console.sendMessage(empty);
             for (String fileName : restoredFiles) {
                 String line = ChatColor.AQUA + "+" + ChatColor.RESET + " " + fileName;
-                console.sendMessage("║" + padLine("  " + line, width) + "║");
+                console.sendMessage("║" + padLine("  " + line, width) + ChatColor.RESET + "║");
             }
         }
 
         if (hasUpdated) {
             if (hasRestored) console.sendMessage(empty);
-            console.sendMessage("║" + padLine(" " + ChatColor.YELLOW + "Updated (version migrated):", width) + "║");
+            console.sendMessage("║" + padLine(" " + ChatColor.YELLOW + "Updated (version migrated):", width) + ChatColor.RESET + "║");
             console.sendMessage(empty);
             for (String entry : updatedFiles) {
                 String line = ChatColor.YELLOW + "~" + ChatColor.RESET + " " + entry;
-                console.sendMessage("║" + padLine("  " + line, width) + "║");
+                console.sendMessage("║" + padLine("  " + line, width) + ChatColor.RESET + "║");
             }
         }
 
@@ -179,7 +179,7 @@ public class ConfigManager {
         if (currentVer >= newVer && file.exists()) {
             return;
         }
-        
+
         updatedFiles.add(file.getName() + ChatColor.GRAY + " (v" + currentVer + " \u2192 v" + newVer + ")");
         try {
             List<String> templateLines = new ArrayList<>();
@@ -281,9 +281,9 @@ public class ConfigManager {
                                 }
                                 currentPath.remove(currentPath.size() - 1);
                             } else if (currentDiskConfig.isConfigurationSection(fullPath)) {
-                                
+
                                 newContent.append(prefixSpace).append(keyName).append(":").append(templateComment).append("\n");
-                                
+
                             } else {
                                 String newValue = userValue.toString();
                                 if (userValue instanceof String && (newValue.contains(":") || newValue.startsWith("&") || newValue.contains("#") || newValue.isEmpty() || newValue.startsWith("%"))) {
@@ -308,7 +308,7 @@ public class ConfigManager {
 
     private String padLine(String s, int width) {
         if (s == null) s = "";
-        
+
         String stripped = s.replaceAll("\u00a7[0-9a-fk-orA-FK-OR]", "");
         int visible = stripped.length();
         StringBuilder sb = new StringBuilder(s);

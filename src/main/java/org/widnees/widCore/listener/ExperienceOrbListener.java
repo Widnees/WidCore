@@ -41,7 +41,7 @@ public class ExperienceOrbListener implements Listener {
     }
 
     private void mergeNearbyOrbs(ExperienceOrb orb) {
-        
+
         Location loc = orb.getLocation();
         World world = loc.getWorld();
         if (world == null)

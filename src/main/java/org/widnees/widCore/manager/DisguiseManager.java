@@ -138,7 +138,7 @@ public class DisguiseManager {
         }
 
         try {
-            
+
             org.widnees.widCore.listener.DisguisePacketHandler.removeDisguise(plugin, player, false);
             org.widnees.widCore.listener.DisguisePacketHandler.removeSelfDisguise(player);
         } catch (NoClassDefFoundError ignored) {}
@@ -186,7 +186,7 @@ public class DisguiseManager {
     }
 
     public CompletableFuture<Boolean> disguiseAsPlayer(Player player, String targetName) {
-        
+
         if (isDisguised(player)) {
             silentUndisguise(player);
         }
@@ -197,7 +197,7 @@ public class DisguiseManager {
 
         Player targetPlayer = Bukkit.getPlayerExact(targetName);
         if (targetPlayer != null && targetPlayer.isOnline()) {
-            
+
             fetchSkinFromPlayer(targetPlayer, data);
 
             return CompletableFuture.supplyAsync(() -> true).thenApplyAsync(result -> {
@@ -214,7 +214,7 @@ public class DisguiseManager {
                 return false;
             });
         } else {
-            
+
             return fetchSkinFromMojang(targetName).thenApplyAsync(skinData -> {
                 if (skinData != null) {
                     data.setSkinValue(skinData[0]);
@@ -312,7 +312,7 @@ public class DisguiseManager {
     }
 
     private void applyInvisibility(Player player) {
-        
+
         player.addPotionEffect(new PotionEffect(
                 PotionEffectType.INVISIBILITY,
                 Integer.MAX_VALUE,
@@ -357,11 +357,11 @@ public class DisguiseManager {
         for (Map.Entry<UUID, DisguiseData> entry : activeDisguises.entrySet()) {
             Player disguised = Bukkit.getPlayer(entry.getKey());
             if (disguised == null || !disguised.isOnline()) continue;
-            
+
             DisguiseData data = entry.getValue();
-            
+
             if (disguised.equals(observer)) {
-                
+
                 try {
                     org.widnees.widCore.listener.DisguisePacketHandler.applySelfDisguise(plugin, disguised, data);
                 } catch (NoClassDefFoundError ignored) {}
@@ -472,7 +472,7 @@ public class DisguiseManager {
             int selfFakeId = player.getEntityId() + 100000;
             org.widnees.widCore.listener.DisguisePacketHandler.sendTeleportPacket(player, selfFakeId);
             org.widnees.widCore.listener.DisguisePacketHandler.sendHeadRotationPacket(player, selfFakeId);
-            
+
             org.widnees.widCore.listener.DisguisePacketHandler.syncFakeEntityForObservers(player);
         }, 1L, 1L);
         data.setSelfDisguiseTask(task);

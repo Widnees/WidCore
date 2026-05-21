@@ -76,8 +76,12 @@ public class CommandManager {
 
     public void unregister(String name) {
         if (this.knownCommands != null) {
-            this.knownCommands.remove(name);
-            this.knownCommands.remove(String.valueOf(this.plugin.getName().toLowerCase()) + ":" + name);
+
+            Command existing = this.knownCommands.get(name);
+            if (existing instanceof PluginCommand && ((PluginCommand) existing).getPlugin() == this.plugin) {
+                this.knownCommands.remove(name);
+            }
+            this.knownCommands.remove(this.plugin.getName().toLowerCase() + ":" + name);
         }
     }
 }

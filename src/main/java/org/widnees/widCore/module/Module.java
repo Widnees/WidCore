@@ -7,11 +7,11 @@ public interface Module {
     boolean isEnabled();
     void register();
     void unregister();
-    
+
     default List<String> getMissingDependencies() {
         return List.of();
     }
-    
+
     default List<String> getMissingOptionalDependencies() {
         return List.of();
     }

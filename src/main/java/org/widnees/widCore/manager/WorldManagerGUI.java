@@ -65,7 +65,7 @@ implements InventoryHolder {
                 rules.add(rule);
             }
             catch (IllegalArgumentException illegalArgumentException) {
-                
+
             }
             ++n2;
         }
@@ -216,7 +216,7 @@ implements InventoryHolder {
                     rulesForNav.add(r);
                 }
                 catch (IllegalArgumentException illegalArgumentException) {
-                    
+
                 }
                 ++n2;
             }
@@ -245,7 +245,7 @@ implements InventoryHolder {
                 rules.add(rule);
             }
             catch (IllegalArgumentException illegalArgumentException) {
-                
+
             }
             ++n3;
         }

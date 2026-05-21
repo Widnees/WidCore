@@ -67,6 +67,7 @@ public final class Main extends JavaPlugin {
     private AliasManager aliasManager;
     private RtpManager rtpManager;
     private DisguiseManager disguiseManager;
+    private BinaryDataManager.MentionPrefsData mentionPrefsData;
 
     private final HashMap<UUID, UUID> openOfflineInventories = new HashMap<>();
     private final HashMap<UUID, UUID> openInvseeInventories = new HashMap<>();
@@ -103,14 +104,16 @@ public final class Main extends JavaPlugin {
         this.updateManager = new UpdateManager(this);
 
         this.dataManager = new BinaryDataManager(this);
+        this.mentionPrefsData = new BinaryDataManager.MentionPrefsData();
+        this.dataManager.loadMentionPrefs(loaded -> this.mentionPrefsData = loaded);
         this.versionSupport = new VersionSupport(this);
         this.dismissMenuManager = new DismissMenuManager(this);
         this.joinLeaveListener = new JoinLeaveListener(this, this.dismissMenuManager);
         this.vanishManager = new VanishManager(this, this.joinLeaveListener);
-        
+
         getServer().getPluginManager().registerEvents(
             new org.widnees.widCore.listener.WelcomeMenuListener(this, this.dismissMenuManager), this);
-        
+
         this.showItemManager = new ShowItemManager(this);
         this.itemRemovalManager = new ItemRemovalManager(this);
         this.worldDataManager = new WorldDataManager(this);
@@ -146,9 +149,9 @@ public final class Main extends JavaPlugin {
 
         this.moduleManager = new ModuleManager(this);
         this.moduleManager.initializeModules();
-        
+
         printStartupMessage();
-        
+
         this.tempFlyManager.loadData();
         this.moduleManager.registerModules();
 
@@ -287,6 +290,10 @@ public final class Main extends JavaPlugin {
         return dataManager;
     }
 
+    public BinaryDataManager.MentionPrefsData getMentionPrefsData() {
+        return mentionPrefsData;
+    }
+
     public VersionSupport getVersionSupport() {
         return versionSupport;
     }
@@ -401,25 +408,25 @@ public final class Main extends JavaPlugin {
     }
 
     public void reloadPlugin() {
-        
+
         moduleManager.unregisterModules();
-        
+
         moduleManager.clearModules();
-        
+
         configManager.clearCache();
         configManager.setupMainConfig();
         languageManager.loadLanguage();
         aliasManager.loadConfig();
         jailManager.loadJails();
         bannedItemManager.loadBannedItems();
-        
+
         moduleManager.initializeModules();
         moduleManager.registerModules();
-        
+
         getServer().getPluginManager().registerEvents(new UpdateListener(this), this);
-        
+
         this.helpMenuManager = new HelpMenuManager(this, this.moduleManager, "widcore");
-        
+
         getLogger().info("Plugin reloaded!");
     }
 

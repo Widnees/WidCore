@@ -55,7 +55,7 @@ public class MobStackerManager {
                 this.blacklistedTypes.add(EntityType.valueOf((String)s.toUpperCase()));
             }
             catch (IllegalArgumentException illegalArgumentException) {
-                
+
             }
         }
         this.blacklistedWorlds = this.config.getStringList("blacklisted-worlds");

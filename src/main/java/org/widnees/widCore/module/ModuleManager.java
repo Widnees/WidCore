@@ -95,6 +95,7 @@ public class ModuleManager {
         modules.add(new ChatGuardModule(plugin));
         modules.add(new MessagingModule(plugin));
         modules.add(new ShowItemModule(plugin));
+        modules.add(new MentionModule(plugin));
     }
 
     private void addServerModules() {
@@ -110,7 +111,7 @@ public class ModuleManager {
         modules.add(new MobStackerModule(plugin));
         modules.add(new AnnouncerModule(plugin));
         modules.add(new CustomCommandModule(plugin));
-        
+
         modules.add(new org.widnees.widCore.module.modules.server.ServerInfoHiderModule(plugin));
     }
 
@@ -155,19 +156,19 @@ public class ModuleManager {
         modulesWithMissingOptionalDeps.clear();
 
         for (Module module : modules) {
-            
+
             List<String> missingDeps = module.getMissingDependencies();
             if (!missingDeps.isEmpty()) {
                 disabledDueToMissingDependencies.put(module.getName(), missingDeps);
                 disabledFeatures.add(module.getName());
                 continue;
             }
-            
+
             List<String> missingOptional = module.getMissingOptionalDependencies();
             if (!missingOptional.isEmpty()) {
                 modulesWithMissingOptionalDeps.put(module.getName(), missingOptional);
             }
-            
+
             if (module.isEnabled()) {
                 try {
                     module.register();
@@ -282,33 +283,33 @@ public class ModuleManager {
         }
 
         console.sendMessage("╚" + repeat('═', width) + "╝");
-        
+
         printMissingDependencies(console, width);
-        
+
         plugin.getConfigManager().printChangesBox(console, width);
     }
-    
+
     private void printMissingDependencies(org.bukkit.command.ConsoleCommandSender console, int width) {
         boolean hasRequiredMissing = !disabledDueToMissingDependencies.isEmpty();
         boolean hasOptionalMissing = !modulesWithMissingOptionalDeps.isEmpty();
-        
+
         if (!hasRequiredMissing && !hasOptionalMissing) {
             return;
         }
-        
+
         console.sendMessage("");
         String top = "╔" + repeat('═', width) + "╗";
         String sep = "╠" + repeat('═', width) + "╣";
         String empty = "║" + padColored(" ", width) + "║";
-        
+
         console.sendMessage(top);
         console.sendMessage("║" + padColored(" " + ChatColor.YELLOW + "Missing Dependencies", width) + "║");
         console.sendMessage(sep);
-        
+
         if (hasRequiredMissing) {
             console.sendMessage("║" + padColored(" " + ChatColor.RED + "Required (features disabled):", width) + "║");
             console.sendMessage(empty);
-            
+
             for (Map.Entry<String, List<String>> entry : disabledDueToMissingDependencies.entrySet()) {
                 String moduleName = normalizeModuleName(entry.getKey());
                 String deps = String.join(", ", entry.getValue());
@@ -317,29 +318,29 @@ public class ModuleManager {
                 console.sendMessage("║" + padColored("  " + line, width) + "║");
             }
         }
-        
+
         if (hasOptionalMissing) {
             if (hasRequiredMissing) {
                 console.sendMessage(empty);
             }
             console.sendMessage("║" + padColored(" " + ChatColor.YELLOW + "Optional (features limited):", width) + "║");
             console.sendMessage(empty);
-            
+
             for (Map.Entry<String, List<String>> entry : modulesWithMissingOptionalDeps.entrySet()) {
                 String moduleName = normalizeModuleName(entry.getKey());
                 List<String> deps = entry.getValue();
                 if (deps.isEmpty()) continue;
-                
+
                 String header = ChatColor.YELLOW + "!" + ChatColor.RESET + " " + moduleName;
                 console.sendMessage("║" + padColored("  " + header, width) + "║");
-                
+
                 for (String dep : deps) {
                     String sub = ChatColor.GRAY + "- " + ChatColor.RESET + dep;
                     console.sendMessage("║" + padColored("    " + sub, width) + "║");
                 }
             }
         }
-        
+
         console.sendMessage("╚" + repeat('═', width) + "╝");
     }
 

@@ -49,7 +49,7 @@ public class TabCompleteGuardListener implements Listener {
 
         String root = tokens[0];
         if (!access.isRootVisible(player, root)) {
-            
+
             event.getCompletions().clear();
             return;
         }
@@ -61,7 +61,7 @@ public class TabCompleteGuardListener implements Listener {
         }
         List<String> prevArgs = new ArrayList<>(allArgs);
         if (!endsWithSpace && !prevArgs.isEmpty()) {
-            
+
             prevArgs = prevArgs.subList(0, prevArgs.size() - 1);
         }
 

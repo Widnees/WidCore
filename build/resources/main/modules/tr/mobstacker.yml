@@ -1,0 +1,27 @@
+# Mobların birleşmesi için gereken maksimum blok uzaklığı
+stack-radius: 5
+
+# Mob isminin (x2 Zombie) görünmesi için gereken uzaklık (blok)
+name-visible-distance: 10
+
+# Mobların kaç saniyede bir kontrol edilip birleştirileceği
+check-interval-seconds: 5
+
+# Birleşmesi engellenen mob türleri
+blacklisted-mobs:
+  - "VILLAGER"
+  - "WITHER"
+  - "ENDER_DRAGON"
+
+# Özelliğin devre dışı olduğu dünyalar
+blacklisted-worlds:
+  - "disabled_world"
+
+# Bir mobun ulaşabileceği maksimum stack sayısı
+max-stack-size: 256
+
+# Mobun üzerinde görünecek isim formatı
+stack-nametag: "&e(x{amount}) &f{type}"
+
+# Dokunma
+version: 1

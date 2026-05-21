@@ -87,7 +87,7 @@ public class UpdateManager {
         console.sendMessage(ChatColor.YELLOW + " and to see other servers using our plugins,");
         console.sendMessage(ChatColor.YELLOW + "        you can join our Discord:");
         console.sendMessage("");
-        console.sendMessage(ChatColor.AQUA + "     https://discord.gg/widnees");
+        console.sendMessage(ChatColor.AQUA + "     https://discord.gg/dCDYQ3HPct");
         console.sendMessage(ChatColor.GOLD + "====================================================");
         console.sendMessage("");
     }

@@ -36,10 +36,15 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
         }
 
         String commandName = command.getName().toLowerCase();
-        
+
         String commandKey = plugin.getAliasManager().lookupKey(commandName);
 
         if (!checkPermission(sender, commandKey)) {
+            return true;
+        }
+
+        if (commandKey.equals("kickall")) {
+            handleKickAll(sender, args);
             return true;
         }
 
@@ -94,7 +99,7 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean checkPermission(CommandSender sender, String commandName) {
-        
+
         String permission = null;
         switch (commandName) {
             case "ban":
@@ -118,6 +123,9 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             case "kick":
                 permission = "widcore.kick";
                 break;
+            case "kickall":
+                permission = "widcore.kickall";
+                break;
             case "banlist":
                 permission = "widcore.banlist";
                 break;
@@ -134,7 +142,7 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
     }
 
     private void handleUnpunish(CommandSender sender, String commandName, String[] args) {
-        
+
         String actionPast;
         if (commandName.equals("unban")) {
             actionPast = plugin.getLanguageManager().getMessage("punishment.type-ban");
@@ -168,7 +176,7 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
     }
 
     private void handleTempPunishment(CommandSender sender, Player target, String commandName, String[] args) {
-        
+
         if (args.length < 2) {
             sendUsage(sender, commandName);
             return;
@@ -236,6 +244,24 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
         punishmentManager.mutePlayer(target, sender, reason);
     }
 
+    private void handleKickAll(CommandSender sender, String[] args) {
+        String reason = (args.length > 0) ? String.join(" ", args)
+                : plugin.getLanguageManager().getMessage("punishment.default-reason");
+
+        int count = 0;
+        for (Player online : new ArrayList<>(Bukkit.getOnlinePlayers())) {
+            if (sender instanceof Player && ((Player) sender).getUniqueId().equals(online.getUniqueId())) {
+                continue;
+            }
+            punishmentManager.kickPlayer(online, sender, reason);
+            count++;
+        }
+
+        Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.kickall-success")
+                .replace("%count%", String.valueOf(count))
+                .replace("%reason%", reason));
+    }
+
     private void sendUsage(CommandSender sender, String commandName) {
         String usageKey = "punishment.usage." + commandName;
         Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage(usageKey));
@@ -245,7 +271,7 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         final List<String> completions = new ArrayList<>();
         String commandName = command.getName().toLowerCase();
-        
+
         String commandKey = plugin.getAliasManager().lookupKey(commandName);
 
         if (args.length == 1) {

@@ -1,0 +1,25 @@
+# Sunucuya duyurulacak susturma mesajı
+broadcast-message: "&c{target} &7adlı oyuncu &c{player} &7tarafından susturuldu. &8(&f{reason}&8)"
+
+# Susturulan oyuncuya gidecek özel mesaj
+player-message: "&c{player} &7tarafından susturuldunuz. Sebep: &f{reason} &7Süre: &f{duration}"
+
+# Bu oyuncular susturulamaz
+exempt-players:
+  - "Notch"
+
+# Komutlarda hazır sebep kısayollarını kullan
+use-reason-shortcuts: true
+
+# Sadece kayıtlı kısayolların kullanılmasını zorunlu kıl
+force-reason-shortcuts: false
+
+# Hazır sebepler ve süreleri
+reasons:
+  kufur: "1h"
+  spam: "30m"
+  hakaret: "2h"
+
+
+# Dokunma
+version: 1

@@ -90,7 +90,7 @@ implements Listener {
                 }
             }
             catch (IllegalArgumentException illegalArgumentException) {
-                
+
             }
             ++n2;
         }
@@ -162,7 +162,7 @@ implements Listener {
                 }
             }
             catch (IllegalArgumentException illegalArgumentException) {
-                
+
             }
             ++n2;
         }
@@ -242,20 +242,20 @@ implements Listener {
             String path = "worlds." + worldName;
             String envStr = this.worldManagerConfig.getString(path + ".environment", "NORMAL");
             String genType = this.worldManagerConfig.getString(path + ".generator-type", "NORMAL");
-            
+
             World.Environment env;
             try {
                 env = World.Environment.valueOf(envStr.toUpperCase());
             } catch (Exception e) {
                 env = World.Environment.NORMAL;
             }
-            
+
             WorldCreator creator = new WorldCreator(worldName);
             creator.environment(env);
             if ("EMPTY".equalsIgnoreCase(genType)) {
                 creator.generator(this.plugin.getName() + ":empty");
             }
-            
+
             World world = Bukkit.createWorld(creator);
             if (world != null) {
                 this.plugin.getLogger().info("World loaded: " + worldName);

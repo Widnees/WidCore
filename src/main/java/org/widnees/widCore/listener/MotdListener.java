@@ -29,14 +29,14 @@ public class MotdListener implements Listener {
 
     private void registerPacketListener() {
         try {
-            
+
             Class<?> hookClass = Class.forName("org.widnees.widCore.listener.PacketEventsMotdHook");
             java.lang.reflect.Method regMethod = hookClass.getMethod("register",
                     Main.class,
                     org.bukkit.configuration.file.FileConfiguration.class);
             regMethod.invoke(null, plugin, motdConfig);
         } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
-            
+
         } catch (Exception ignored) {}
     }
 

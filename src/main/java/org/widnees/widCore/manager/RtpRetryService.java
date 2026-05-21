@@ -18,9 +18,9 @@ public final class RtpRetryService {
     private static RtpManager rtpManager;
 
     private static final Map<UUID, Integer> failAttempts = new ConcurrentHashMap<>();
-    
+
     private static final Set<UUID> successMarker = ConcurrentHashMap.newKeySet();
-    
+
     private static final Map<UUID, Long> townyCancelledAt = new ConcurrentHashMap<>();
 
     private RtpRetryService() {}
@@ -32,7 +32,7 @@ public final class RtpRetryService {
 
     public static void queue(Player player, World world) {
         if (plugin == null || rtpManager == null) {
-            
+
             if (player != null && world != null) {
                 try { plugin.getRtpManager().queueRtp(player, world); } catch (Throwable ignored) {}
             }

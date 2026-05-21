@@ -115,7 +115,7 @@ public class TrollCommand implements CommandExecutor, TabCompleter {
     }
 
     private void openTrollMenu(Player sender, Player target) {
-        
+
         updateMenuTitle();
         Inventory trollMenu = Bukkit.createInventory(null, 27, TROLL_MENU_TITLE);
 
@@ -220,7 +220,7 @@ public class TrollCommand implements CommandExecutor, TabCompleter {
         final boolean[] cancelled = { false };
         Object[] taskRef = new Object[1];
         taskRef[0] = FoliaScheduler.runAtEntityTimer(plugin, target, () -> {
-            
+
             if (cancelled[0]) {
                 return;
             }
@@ -296,7 +296,7 @@ public class TrollCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean isCreeperSpawnAllowed(World world) {
-        
+
         Boolean mobSpawning = world.getGameRuleValue(GameRule.DO_MOB_SPAWNING);
         if (mobSpawning != null && !mobSpawning) {
             return false;
@@ -316,7 +316,7 @@ public class TrollCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
         }
-        
+
         for (String s : cfg.getStringList("worlds." + world.getName())) {
             if ("CREEPER".equalsIgnoreCase(s)) {
                 return false;

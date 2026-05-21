@@ -178,7 +178,7 @@ public class WorldManagerCommand implements CommandExecutor, TabCompleter {
 
         switch (worldType) {
             case "flat":
-                
+
                 if (environment != World.Environment.NORMAL) {
                     Main.sendMessage(this.plugin, sender,
                             plugin.getLanguageManager().getMessage("worldmanager.flat-env-error"));
@@ -326,7 +326,7 @@ public class WorldManagerCommand implements CommandExecutor, TabCompleter {
         World newWorld = Bukkit.createWorld(creator);
 
         if (newWorld != null) {
-            
+
             if (savedGeneratorType == null) {
                 creator.environment(newWorld.getEnvironment());
                 worldDataManager.saveWorldData(worldName, creator, "NORMAL", null);
@@ -516,7 +516,7 @@ public class WorldManagerCommand implements CommandExecutor, TabCompleter {
                 else if (args.length == 4)
                     completions.addAll(Arrays.asList("normal", "flat", "empty"));
                 else if (args.length == 5) {
-                    
+
                     completions.addAll(Arrays.stream(Biome.values()).map(b -> b.name().toLowerCase())
                             .collect(Collectors.toList()));
                 }

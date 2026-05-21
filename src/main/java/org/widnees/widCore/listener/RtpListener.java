@@ -31,7 +31,7 @@ public class RtpListener implements Listener {
         }
 
         if (event.getFrom().getY() < event.getTo().getY()) {
-            
+
             event.setTo(event.getFrom());
         }
     }

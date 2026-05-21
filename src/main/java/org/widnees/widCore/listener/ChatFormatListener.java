@@ -72,7 +72,7 @@ public class ChatFormatListener implements Listener {
 
         Component chatComponent = TextParser.parse(formatString);
 
-        for (Player p : Bukkit.getOnlinePlayers()) {
+        for (Player p : event.getRecipients()) {
             p.sendMessage(chatComponent);
         }
         Bukkit.getConsoleSender().sendMessage(chatComponent);
@@ -93,7 +93,7 @@ public class ChatFormatListener implements Listener {
         }
 
         String defaultFormat = chatConfig.getString("chat-format");
-        
+
         return (defaultFormat != null && !defaultFormat.isEmpty()) 
             ? defaultFormat 
             : "<{prefix}{name}&r> {message}";

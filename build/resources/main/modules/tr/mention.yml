@@ -1,0 +1,42 @@
+# Mention tetiklenmesi için oyuncu adı başına @ sembolü zorunlu mu?
+require-at-symbol: true
+
+# Chatte etiketlenen oyuncunun adına uygulanacak renk/format
+highlight-color: "&b&l"
+
+# Renkli isim kimin ekranında görünsün?
+# MENTIONED_ONLY - sadece etiketlenen oyuncuda görünür
+# EVERYONE       - tüm oyuncularda görünür
+highlight-visibility: MENTIONED_ONLY
+
+# Title ve Subtitle bildirimi
+title:
+  title: "&e&lEtiketlendin!"
+  subtitle: "&f{sender} &7seni etiketledi"
+  fade-in: 10
+  stay: 60
+  fade-out: 20
+
+# Action bar bildirimi
+actionbar:
+  message: "&e✦ &f{sender} &7seni sohbette etiketledi!"
+
+# Toast (başarım) bildirimi
+toast:
+  item: BELL
+  # TASK = sarı çerçeve | GOAL = yeşil çerçeve | CHALLENGE = mor çerçeve
+  frame: GOAL
+  title: "&e{sender} &7seni etiketledi"
+
+# Ses bildirimi
+sound:
+  sound: ENTITY_EXPERIENCE_ORB_PICKUP
+  volume: 1.0
+  pitch: 1.2
+
+# Aynı gönderici tekrar bildirim gönderene kadar geçmesi gereken süre (ms)
+# Toast başarım bildirimi varsayılan 5sn göründüğünden 5000 önerilir
+notification-cooldown-ms: 5000
+
+# Dokunma
+version: 1

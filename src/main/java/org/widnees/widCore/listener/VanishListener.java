@@ -52,7 +52,7 @@ public class VanishListener implements Listener {
     private void registerPacketListeners() {
         try {
             Class<?> implClass = Class.forName("org.widnees.widCore.listener.VanishPacketListenerImpl");
-            
+
             if (packetListener != null) {
                 try {
                     Method unregMethod = implClass.getMethod("unregisterSelf", Object.class);
@@ -63,7 +63,7 @@ public class VanishListener implements Listener {
             Method regMethod = implClass.getMethod("registerSelf", Main.class, Set.class, Set.class);
             packetListener = regMethod.invoke(null, plugin, INTERACTIVE_CONTAINERS, BLOCKED_CONTAINER_SOUNDS);
         } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
-            
+
         } catch (Exception ignored) {}
     }
 
@@ -109,11 +109,11 @@ public class VanishListener implements Listener {
 
         if (vanishManager.isVanished(player)) {
             sendSelfInvisibilityPacket(player, true);
-            
+
             for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
                 if (online.equals(player)) continue;
                 if (online.isOp() || online.hasPermission("widcore.vanish.see")) {
-                    
+
                     online.showPlayer(plugin, player);
                     final Player obs = online;
                     final Player vanished = player;

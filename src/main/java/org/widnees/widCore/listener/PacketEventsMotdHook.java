@@ -52,7 +52,7 @@ public class PacketEventsMotdHook extends PacketListenerAbstract {
 
             JsonObject players = root.has("players") ? root.getAsJsonObject("players") : null;
             if (players != null) {
-                
+
                 if (plugin.getConfig().getBoolean("features.vanish", false)) {
                     int vanishedCount = plugin.getVanishedPlayers().size();
                     int online = players.has("online") ? players.get("online").getAsInt() : 0;
@@ -74,7 +74,7 @@ public class PacketEventsMotdHook extends PacketListenerAbstract {
             }
 
         } catch (Exception ignored) {
-            
+
         }
     }
 }

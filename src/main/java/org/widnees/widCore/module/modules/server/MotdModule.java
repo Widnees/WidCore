@@ -32,7 +32,7 @@ public class MotdModule implements Module {
     @Override
     public void unregister() {
     }
-    
+
     @Override
     public java.util.List<String> getMissingOptionalDependencies() {
         if (!isPacketEventsAvailable()) {

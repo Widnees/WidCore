@@ -32,7 +32,7 @@ public class EconomyModule implements Module {
     public boolean isEnabled() {
         return plugin.getConfig().getBoolean("features.economy", false);
     }
-    
+
     @Override
     public java.util.List<String> getMissingDependencies() {
         if (!org.bukkit.Bukkit.getPluginManager().isPluginEnabled("Vault")) {
@@ -50,7 +50,7 @@ public class EconomyModule implements Module {
 
         String ecoDesc = plugin.getLanguageManager().getMessage("economy.eco-desc");
         String ecoUsage = plugin.getLanguageManager().getMessage("economy.eco-usage");
-        
+
         moduleManager.registerCommand(this, "economy", ecoDesc, ecoUsage,
                 aliasManager.getPermission("economy"), aliasManager.getAliases("economy"),
                 new EconomyCommand(plugin, economyManager));

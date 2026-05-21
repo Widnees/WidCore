@@ -56,7 +56,7 @@ public class JailListener implements Listener {
         if (action == Action.LEFT_CLICK_BLOCK) {
             Location loc = event.getClickedBlock().getLocation();
             jailManager.setJailPos(player, 1, loc);
-            
+
             String msg = plugin.getLanguageManager().getMessage("jail.setup-pos1")
                     .replace("%x%", String.valueOf(loc.getBlockX()))
                     .replace("%y%", String.valueOf(loc.getBlockY()))
@@ -65,7 +65,7 @@ public class JailListener implements Listener {
         } else if (action == Action.RIGHT_CLICK_BLOCK) {
             Location loc = event.getClickedBlock().getLocation();
             jailManager.setJailPos(player, 2, loc);
-            
+
             String msg = plugin.getLanguageManager().getMessage("jail.setup-pos2")
                     .replace("%x%", String.valueOf(loc.getBlockX()))
                     .replace("%y%", String.valueOf(loc.getBlockY()))
@@ -270,7 +270,7 @@ public class JailListener implements Listener {
 
         Location jailSpawn = jailManager.getJailSpawn(jailEntry.jailName);
         if (jailSpawn != null) {
-            
+
             FoliaScheduler.runTaskLater(plugin, () -> {
                 if (player.isOnline()) {
                     FoliaScheduler.teleportAsync(player, jailSpawn, null);

@@ -53,7 +53,7 @@ implements ChatGuardChecker {
 
         if (config.getBoolean("discord.block-invites", true)) {
             String noSpaceMessage = message.replaceAll("\\s+", "").toLowerCase();
-            
+
             matcher = Pattern.compile("discord\\.?gg/?([a-zA-Z0-9]+)").matcher(noSpaceMessage);
             while (matcher.find()) {
                 String serverId = matcher.group(1);

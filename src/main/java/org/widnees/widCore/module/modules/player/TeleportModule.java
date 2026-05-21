@@ -35,7 +35,7 @@ public class TeleportModule implements Module {
         String tpAllUsage = plugin.getLanguageManager().getMessage("teleport.tpall_usage_args");
 
         moduleManager.registerCommand(this, "teleport", tpDesc, tpUsage, "widcore.tp", null, teleportExecutor);
-        
+
         moduleManager.registerCommand(this, "tphere", tpDesc, tpUsage, "widcore.tphere", null, teleportExecutor);
         moduleManager.registerCommand(this, "tpall", tpAllDesc, tpAllUsage, "widcore.tp.all", null, teleportExecutor);
     }

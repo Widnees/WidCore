@@ -23,7 +23,7 @@ public class ServerInfoHiderModule implements Module {
 
     @Override
     public boolean isEnabled() {
-        
+
         if (plugin.getConfig().isSet("features.pluginhider")) {
             return plugin.getConfig().getBoolean("features.pluginhider", false);
         }
@@ -33,20 +33,20 @@ public class ServerInfoHiderModule implements Module {
     @Override
     public void register() {
         var cfg = plugin.getConfigManager().getModuleConfig("plugin-hider");
-        
+
         plugin.getServer().getPluginManager().registerEvents(new ServerInfoHiderListener(plugin, cfg), plugin);
-        
+
         CommandAccessManager accessManager = new CommandAccessManager(plugin);
         plugin.getServer().getPluginManager().registerEvents(new CommandGuardListener(plugin, accessManager), plugin);
         plugin.getServer().getPluginManager().registerEvents(new TabCompleteGuardListener(accessManager), plugin);
-        
+
         try {
             Class<?> hiderClass = Class.forName("org.widnees.widCore.listener.PacketEventsBrandHider");
             Method regMethod = hiderClass.getMethod("register", Main.class,
                     org.bukkit.configuration.file.FileConfiguration.class);
             regMethod.invoke(null, plugin, cfg);
         } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
-            
+
         } catch (Exception ignored) {}
     }
 

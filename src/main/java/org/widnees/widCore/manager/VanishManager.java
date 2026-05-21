@@ -23,7 +23,7 @@ public class VanishManager {
         boolean fakeMessagesEnabled = this.plugin.getConfigManager().getModuleConfig("joinleave").getBoolean("fake-messages-on-vanish", true);
         if (vanished) {
             this.plugin.getVanishedPlayers().add(player.getUniqueId());
-            
+
             sendSelfInvisibilityPacket(player, true);
             Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("vanish.enabled"));
             if (this.joinLeaveListener != null && fakeMessagesEnabled) {
@@ -36,9 +36,9 @@ public class VanishManager {
             }
         } else {
             this.plugin.getVanishedPlayers().remove(player.getUniqueId());
-            
+
             sendSelfInvisibilityPacket(player, false);
-            
+
             for (Player observer : Bukkit.getOnlinePlayers()) {
                 if (!observer.equals(player) && (observer.isOp() || observer.hasPermission("widcore.vanish.see"))) {
                     sendGlowPacket(player, observer, false);
@@ -62,10 +62,10 @@ public class VanishManager {
             for (Player vanishedPlayer : Bukkit.getOnlinePlayers()) {
                 if (this.isVanished(vanishedPlayer)) {
                     if (onlinePlayer.equals(vanishedPlayer)) {
-                        
+
                         onlinePlayer.showPlayer((Plugin) this.plugin, vanishedPlayer);
                     } else if (onlinePlayer.isOp() || onlinePlayer.hasPermission("widcore.vanish.see")) {
-                        
+
                         onlinePlayer.showPlayer((Plugin) this.plugin, vanishedPlayer);
                         final Player obs = onlinePlayer;
                         final Player vp = vanishedPlayer;
@@ -76,7 +76,7 @@ public class VanishManager {
                             }
                         }, 3L);
                     } else {
-                        
+
                         onlinePlayer.hidePlayer((Plugin) this.plugin, vanishedPlayer);
                     }
                 } else {
@@ -87,7 +87,7 @@ public class VanishManager {
     }
 
     public void handlePlayerJoin(Player player) {
-        
+
         for (UUID vanishedId : new java.util.HashSet<>(plugin.getVanishedPlayers())) {
             Player vanished = Bukkit.getPlayer(vanishedId);
             if (vanished == null) continue;
@@ -136,7 +136,7 @@ public class VanishManager {
             Player vanishedPlayer = Bukkit.getPlayer(vanishedId);
             if (vanishedPlayer != null) {
                 sendSelfInvisibilityPacket(vanishedPlayer, false);
-                
+
                 for (Player observer : Bukkit.getOnlinePlayers()) {
                     if (!observer.equals(vanishedPlayer) && (observer.isOp() || observer.hasPermission("widcore.vanish.see"))) {
                         sendGlowPacket(vanishedPlayer, observer, false);

@@ -59,7 +59,7 @@ public class WorldManagerListener implements Listener {
             return;
 
         FoliaScheduler.runTaskLater(plugin, () -> {
-            
+
             if (!player.isOnline() || player.getOpenInventory().getTopInventory().getSize() != 54) {
                 worldManagerGUI.handleClose(player);
             }

@@ -43,7 +43,7 @@ public class FreezeListener implements Listener {
             return;
         }
         if (punishmentManager.isFrozen(event.getPlayer().getUniqueId())) {
-            
+
             if (event.getFrom().getX() != event.getTo().getX() ||
                     event.getFrom().getY() != event.getTo().getY() ||
                     event.getFrom().getZ() != event.getTo().getZ() ||
@@ -146,13 +146,13 @@ public class FreezeListener implements Listener {
         }
         Player player = event.getPlayer();
         if (punishmentManager.isFrozen(player.getUniqueId())) {
-            
+
             String command = event.getMessage().substring(1).split(" ")[0].toLowerCase();
-            
+
             java.util.List<String> allowedCommands = plugin.getConfigManager()
                     .getModuleConfig("freeze")
                     .getStringList("allowed-commands");
-            
+
             if (!allowedCommands.contains(command)) {
                 event.setCancelled(true);
                 Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("freeze.frozen"));

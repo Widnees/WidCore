@@ -31,7 +31,7 @@ public class TownyHook {
             try {
                 this.isWildernessMethod = townyApiClass.getMethod("isWilderness", org.bukkit.Location.class);
             } catch (NoSuchMethodException ignored) {
-                
+
             }
 
             try {

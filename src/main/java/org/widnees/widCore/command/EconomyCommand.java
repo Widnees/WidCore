@@ -99,7 +99,6 @@ public class EconomyCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
         double amount;
 
         try {
@@ -111,6 +110,45 @@ public class EconomyCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (args[1].equals("**")) {
+            if (giveAliases.contains(arg0)) {
+                if (!sender.hasPermission("widcore.eco.give.all")) {
+                    Main.sendNoPermission(plugin, sender, "widcore.eco.give.all");
+                    return true;
+                }
+                int count = 0;
+                for (Player online : Bukkit.getOnlinePlayers()) {
+                    economyManager.deposit(online, amount);
+                    Main.sendMessage(plugin, online, plugin.getLanguageManager().getMessage("economy.given-target")
+                            .replace("%amount%", String.valueOf(amount)));
+                    count++;
+                }
+                Main.sendMessage(plugin, sender, plugin.getLanguageManager().getMessage("economy.given-all")
+                        .replace("%amount%", String.valueOf(amount))
+                        .replace("%count%", String.valueOf(count)));
+            } else if (setAliases.contains(arg0)) {
+                if (!sender.hasPermission("widcore.eco.set.all")) {
+                    Main.sendNoPermission(plugin, sender, "widcore.eco.set.all");
+                    return true;
+                }
+                int count = 0;
+                for (Player online : Bukkit.getOnlinePlayers()) {
+                    economyManager.setBalance(online, amount);
+                    Main.sendMessage(plugin, online, plugin.getLanguageManager().getMessage("economy.set-target")
+                            .replace("%amount%", String.valueOf(amount)));
+                    count++;
+                }
+                Main.sendMessage(plugin, sender, plugin.getLanguageManager().getMessage("economy.set-all")
+                        .replace("%amount%", String.valueOf(amount))
+                        .replace("%count%", String.valueOf(count)));
+            } else {
+                Main.sendMessage(plugin, sender, plugin.getLanguageManager().getMessage("economy.eco-usage"));
+            }
+            return true;
+        }
+
+        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
+
         if (giveAliases.contains(arg0)) {
             if (!sender.hasPermission("widcore.eco.give")) {
                 Main.sendNoPermission(plugin, sender, "widcore.eco.give");
@@ -120,7 +158,7 @@ public class EconomyCommand implements CommandExecutor, TabCompleter {
             Main.sendMessage(plugin, sender, plugin.getLanguageManager().getMessage("economy.given")
                     .replace("%player%", target.getName() != null ? target.getName() : "Bilinmiyor")
                     .replace("%amount%", String.valueOf(amount)));
-            
+
             if (target.isOnline() && target.getPlayer() != null) {
                 Main.sendMessage(plugin, target.getPlayer(), plugin.getLanguageManager().getMessage("economy.given-target")
                         .replace("%amount%", String.valueOf(amount)));
@@ -135,7 +173,7 @@ public class EconomyCommand implements CommandExecutor, TabCompleter {
             Main.sendMessage(plugin, sender, plugin.getLanguageManager().getMessage("economy.set")
                     .replace("%player%", target.getName() != null ? target.getName() : "Bilinmiyor")
                     .replace("%amount%", String.valueOf(amount)));
-            
+
             if (target.isOnline() && target.getPlayer() != null) {
                 Main.sendMessage(plugin, target.getPlayer(), plugin.getLanguageManager().getMessage("economy.set-target")
                         .replace("%amount%", String.valueOf(amount)));
@@ -150,7 +188,7 @@ public class EconomyCommand implements CommandExecutor, TabCompleter {
             Main.sendMessage(plugin, sender, plugin.getLanguageManager().getMessage("economy.taken")
                     .replace("%player%", target.getName() != null ? target.getName() : "Bilinmiyor")
                     .replace("%amount%", String.valueOf(amount)));
-            
+
             if (target.isOnline() && target.getPlayer() != null) {
                 Main.sendMessage(plugin, target.getPlayer(), plugin.getLanguageManager().getMessage("economy.taken-target")
                         .replace("%amount%", String.valueOf(amount)));
@@ -171,6 +209,10 @@ public class EconomyCommand implements CommandExecutor, TabCompleter {
                     .collect(Collectors.toList());
             StringUtil.copyPartialMatches(args[0], playerNames, completions);
         } else if (args.length == 2) {
+            String sub = args[0].toLowerCase();
+            if (giveAliases.contains(sub) || setAliases.contains(sub)) {
+                StringUtil.copyPartialMatches(args[1], Collections.singletonList("**"), completions);
+            }
             List<String> playerNames = Bukkit.getOnlinePlayers().stream().map(Player::getName)
                     .collect(Collectors.toList());
             StringUtil.copyPartialMatches(args[1], playerNames, completions);

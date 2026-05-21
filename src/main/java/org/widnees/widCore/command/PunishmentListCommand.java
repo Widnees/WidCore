@@ -35,7 +35,7 @@ public class PunishmentListCommand implements CommandExecutor, TabCompleter {
         }
 
         Player player = (Player) sender;
-        
+
         String commandKey = plugin.getAliasManager().lookupKey(command.getName());
         boolean isBanList = commandKey.equals("banlist");
 
@@ -60,7 +60,7 @@ public class PunishmentListCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            
+
             List<String> completions = new ArrayList<>();
             for (int i = 1; i <= 5; i++) {
                 completions.add(String.valueOf(i));

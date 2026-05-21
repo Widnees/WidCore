@@ -57,7 +57,7 @@ public class DismissMenuManager {
     private int clampSize(int size) {
         if (size < 9) return 9;
         if (size > 54) return 54;
-        
+
         int rem = size % 9;
         return rem == 0 ? size : (size + (9 - rem));
     }

@@ -245,7 +245,7 @@ public class ItemEffectManager {
                 data.icon = !data.icon;
                 break;
             default:
-                
+
                 break;
         }
     }

@@ -1,5 +1,5 @@
 name: WidCore
-version: '2.6.4'
+version: '${version}'
 main: org.widnees.widCore.Main
 api-version: '1.16'
 load: STARTUP
@@ -404,6 +404,7 @@ permissions:
       widcore.unmute: true
       widcore.mutelist: true
       widcore.kick: true
+      widcore.kickall: true
   widcore.ban:
     description: Oyuncu yasaklama izni.
     default: op
@@ -430,6 +431,9 @@ permissions:
     default: op
   widcore.kick:
     description: Oyuncuyu atma izni.
+    default: op
+  widcore.kickall:
+    description: Tüm oyuncuları sunucudan atma izni.
     default: op
 
   widcore.reload:
@@ -505,8 +509,10 @@ permissions:
       widcore.pay: true
       widcore.eco.admin: true
       widcore.eco.give: true
+      widcore.eco.give.all: true
       widcore.eco.take: true
       widcore.eco.set: true
+      widcore.eco.set.all: true
       widcore.baltop: true
 
   widcore.pay:
@@ -519,11 +525,17 @@ permissions:
   widcore.eco.give:
     description: Oyuncuya para verme izni.
     default: op
+  widcore.eco.give.all:
+    description: Tüm çevrimiçi oyunculara para verme izni.
+    default: op
   widcore.eco.take:
     description: Oyuncudan para alma izni.
     default: op
   widcore.eco.set:
     description: Oyuncunun parasını ayarlama izni.
+    default: op
+  widcore.eco.set.all:
+    description: Tüm çevrimiçi oyuncuların parasını ayarlama izni.
     default: op
 
   widcore.baltop:

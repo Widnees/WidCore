@@ -35,7 +35,7 @@ public class CommandGuardListener implements Listener {
         if (tokens.length == 0 || tokens[0].isEmpty()) return;
 
         String token0 = tokens[0];
-        
+
         int ns = token0.indexOf(':');
         String root = ns >= 0 && ns + 1 < token0.length() ? token0.substring(ns + 1) : token0;
         List<String> args = new ArrayList<>();
@@ -57,7 +57,7 @@ public class CommandGuardListener implements Listener {
         }
 
         if (!access.isExecutionAllowed(player, root, args)) {
-            
+
             event.setMessage("/widcore_blocked");
             return;
         }

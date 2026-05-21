@@ -62,7 +62,7 @@ public class VanishPacketListenerImpl extends PacketListenerAbstract {
     public static void sendGlowToReceiver(Player entity, Player receiver, boolean glow) {
         try {
             if (PacketEvents.getAPI() == null) return;
-            
+
             byte flags = glow ? (byte) 0x40 : (byte) 0x00;
             EntityData data = new EntityData(0, EntityDataTypes.BYTE, flags);
             WrapperPlayServerEntityMetadata packet = new WrapperPlayServerEntityMetadata(
@@ -119,7 +119,7 @@ public class VanishPacketListenerImpl extends PacketListenerAbstract {
             } catch (Exception ignored) {}
 
         } else {
-            
+
             try {
                 WrapperPlayServerTeams removePacket = new WrapperPlayServerTeams(
                         GHOST_TEAM_NAME,
@@ -160,7 +160,7 @@ public class VanishPacketListenerImpl extends PacketListenerAbstract {
         Player receiver = (Player) event.getPlayer();
 
         try {
-            
+
             if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
                 handleEntityMetadata(event, receiver);
                 return;
@@ -216,7 +216,7 @@ public class VanishPacketListenerImpl extends PacketListenerAbstract {
             EntityData ed = newList.get(i);
             if (ed.getIndex() == 0) {
                 byte existing = (ed.getValue() instanceof Byte) ? (Byte) ed.getValue() : (byte) 0;
-                
+
                 byte cleared = (byte) (existing & ~0x20 & ~0x40);
                 byte newFlags = (byte) (cleared | flagBit);
                 newList.set(i, new EntityData(0, EntityDataTypes.BYTE, newFlags));

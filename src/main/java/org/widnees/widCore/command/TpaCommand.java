@@ -34,7 +34,7 @@ public class TpaCommand implements CommandExecutor, TabCompleter {
         }
 
         Player player = (Player) sender;
-        
+
         String commandKey = plugin.getAliasManager().lookupKey(command.getName());
 
         switch (commandKey) {

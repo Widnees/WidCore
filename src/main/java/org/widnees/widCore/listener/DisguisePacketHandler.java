@@ -66,7 +66,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
             Player disguised = findPlayerByEntityId(entityId);
             if (disguised != null && !disguised.equals(observer)
                     && plugin.getDisguiseManager().getDisguise(disguised) != null) {
-                
+
                 event.setCancelled(true);
                 DisguiseManager.DisguiseData data = plugin.getDisguiseManager().getDisguise(disguised);
                 FoliaScheduler.runTaskLater(plugin, () ->
@@ -83,7 +83,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
         for (Player observer : Bukkit.getOnlinePlayers()) {
             if (observer.equals(player)) continue;
             if (!observer.canSee(player)) continue;
-            
+
             sendEntityDestroy(observer, player.getEntityId());
             applyEntityDisguiseForObserver(plugin, player, observer, data);
         }
@@ -91,7 +91,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
 
     public static void applyEntityDisguiseForObserver(Main plugin, Player player, Player observer,
                                                        DisguiseManager.DisguiseData data) {
-        
+
         Integer oldFakeId = observerFakeIds.get(player.getUniqueId());
         if (oldFakeId != null) sendEntityDestroy(observer, oldFakeId);
 
@@ -199,7 +199,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
                 }
             }
         } catch (Exception e) {
-            
+
         }
     }
 

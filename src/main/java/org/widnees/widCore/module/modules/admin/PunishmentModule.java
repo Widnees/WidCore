@@ -75,6 +75,10 @@ public class PunishmentModule implements Module {
             String kickDesc = plugin.getLanguageManager().getMessage("punishment.command.kick.description");
             String kickUsage = plugin.getLanguageManager().getMessage("punishment.command.kick.usage");
             moduleManager.registerCommand(this, "kick", kickDesc, kickUsage, "widcore.kick", null, punishmentCommand);
+
+            String kickAllDesc = plugin.getLanguageManager().getMessage("punishment.command.kickall.description");
+            String kickAllUsage = plugin.getLanguageManager().getMessage("punishment.command.kickall.usage");
+            moduleManager.registerCommand(this, "kickall", kickAllDesc, kickAllUsage, "widcore.kickall", null, punishmentCommand);
         }
     }
 

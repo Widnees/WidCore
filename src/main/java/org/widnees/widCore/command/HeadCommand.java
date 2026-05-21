@@ -43,9 +43,9 @@ public class HeadCommand implements CommandExecutor {
 
         inventory.setHelmet(itemInHand);
         inventory.setItemInMainHand(itemOnHead);
-        
+
         Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("head.success"));
-        
+
         return true;
     }
 }

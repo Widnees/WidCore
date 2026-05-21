@@ -29,7 +29,7 @@ public final class PacketEventsBrandHider extends PacketListenerAbstract {
             }
             String value = cfg.getString("brand-name", "vanilla");
             PacketEvents.getAPI().getEventManager().registerListener(new PacketEventsBrandHider(value));
-            
+
         } catch (Throwable t) {
             plugin.getLogger().warning("[WidCore] Failed to register brand customizer: " + t.getMessage());
         }
@@ -62,7 +62,7 @@ public final class PacketEventsBrandHider extends PacketListenerAbstract {
                 }
             }
         } catch (Throwable ignored) {
-            
+
         }
     }
 

@@ -33,7 +33,7 @@ public class DisguiseModule implements Module {
 
     @Override
     public List<String> getMissingDependencies() {
-        
+
         try {
             Class.forName("com.github.retrooper.packetevents.PacketEvents");
             if (com.github.retrooper.packetevents.PacketEvents.getAPI() != null) {

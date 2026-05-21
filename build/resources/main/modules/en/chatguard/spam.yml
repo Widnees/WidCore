@@ -1,0 +1,6 @@
+# Message sending cooldown (seconds)
+cooldown-seconds: 3
+
+
+# Do not touch
+version: 1

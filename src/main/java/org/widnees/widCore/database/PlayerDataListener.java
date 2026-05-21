@@ -34,7 +34,7 @@ public class PlayerDataListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         try {
-            
+
             BinaryDataManager.PlayerData cached = plugin.getDataManager().getCachedPlayerData(player.getUniqueId());
             if (cached != null) {
                 cached.inventoryStorage = player.getInventory().getStorageContents().clone();

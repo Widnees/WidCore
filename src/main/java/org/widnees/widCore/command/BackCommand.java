@@ -49,7 +49,7 @@ public class BackCommand implements CommandExecutor {
                 Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("back.success"));
             } else {
                 Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("back.fail"));
-                
+
             }
         });
         return true;

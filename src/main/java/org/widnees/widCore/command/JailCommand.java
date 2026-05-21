@@ -209,7 +209,7 @@ public class JailCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        
+
         String commandKey = plugin.getAliasManager().lookupKey(command.getName());
         List<String> completions = new ArrayList<>();
 

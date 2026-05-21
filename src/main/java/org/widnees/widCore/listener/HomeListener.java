@@ -78,11 +78,11 @@ public class HomeListener implements Listener {
                 for (int i = 0; i < 9; i++) {
                     menu.setItem(i, border);
                 }
-                
+
                 for (int i = bottomRowStart; i < menuSize; i++) {
                     menu.setItem(i, border);
                 }
-                
+
                 for (int row = 1; row <= homeRows; row++) {
                     menu.setItem(row * 9, border);      
                     menu.setItem(row * 9 + 8, border);  
@@ -102,7 +102,7 @@ public class HomeListener implements Listener {
                     int slot = centerSlots.get(i);
 
                     if (homeIndex < homeNames.size()) {
-                        
+
                         String homeName = homeNames.get(homeIndex);
                         Location loc = homes.get(homeName);
 
@@ -130,7 +130,7 @@ public class HomeListener implements Listener {
                         bed.setItemMeta(bedMeta);
                         menu.setItem(slot, bed);
                     } else {
-                        
+
                         ItemStack bed = new ItemStack(Material.GRAY_BED);
                         ItemMeta bedMeta = bed.getItemMeta();
                         bedMeta.setDisplayName(TextParser.colorize(
@@ -290,7 +290,7 @@ public class HomeListener implements Listener {
         if (type == Material.RED_BED) {
             ItemMeta meta = clicked.getItemMeta();
             if (meta != null && meta.hasDisplayName()) {
-                
+
                 String displayName = meta.getDisplayName();
                 String homeName = ChatColor.stripColor(displayName).trim();
 
@@ -325,7 +325,7 @@ public class HomeListener implements Listener {
         }
 
         if (type == Material.LIME_STAINED_GLASS_PANE) {
-            
+
             player.closeInventory();
             pendingMenus.remove(player.getUniqueId());
             pendingDeletes.remove(player.getUniqueId());
@@ -340,7 +340,7 @@ public class HomeListener implements Listener {
                 }
             });
         } else if (type == Material.RED_STAINED_GLASS_PANE) {
-            
+
             player.closeInventory();
             pendingMenus.remove(player.getUniqueId());
             pendingDeletes.remove(player.getUniqueId());

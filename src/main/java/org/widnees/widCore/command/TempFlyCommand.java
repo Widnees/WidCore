@@ -153,7 +153,7 @@ public class TempFlyCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
             }
-            
+
             long remaining = plugin.getTempFlyManager().getRemainingSeconds(target);
             if (remaining <= 0) {
                 Main.sendMessage(plugin, sender, plugin.getLanguageManager().getMessage("tempfly.no-time").replace("%player%", target.getName()));
@@ -189,7 +189,7 @@ public class TempFlyCommand implements CommandExecutor, TabCompleter {
             if (giveAliases.contains(sub) && sender.hasPermission("widcore.tempfly.give")) canSeePlayers = true;
             else if (removeAliases.contains(sub) && sender.hasPermission("widcore.tempfly.remove")) canSeePlayers = true;
             else if (checkAliases.contains(sub) && sender.hasPermission("widcore.tempfly.checkother")) canSeePlayers = true;
-            
+
             if (canSeePlayers) {
                 List<String> playerNames = new ArrayList<>();
                 for (Player p : Bukkit.getOnlinePlayers()) {

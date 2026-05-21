@@ -38,12 +38,12 @@ public class JoinLeaveListener implements Listener {
         event.joinMessage(null);
 
         boolean isFirstJoin = !player.hasPlayedBefore();
-        
+
         if (isFirstJoin && config.getBoolean("first-join.enabled", false)) {
-            
+
             handleFirstJoin(player, config);
         } else if (config.getBoolean("join.enabled", true)) {
-            
+
             handleJoinEvent(player, config);
         }
 
@@ -55,7 +55,7 @@ public class JoinLeaveListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        
+
         if (plugin.getTempFlyManager() != null) {
             plugin.getTempFlyManager().handleQuit(player);
         }
@@ -69,14 +69,14 @@ public class JoinLeaveListener implements Listener {
     }
 
     private void handleJoinEvent(Player player, FileConfiguration config) {
-        
+
         sendMessages(config, "join.messages.all-players", player, null);
-        
+
         sendMessages(config, "join.messages.only-player", player, player);
-        
+
         playSound(config.getString("join.sound.all-players", ""), null);
         playSound(config.getString("join.sound.only-player", ""), player);
-        
+
         boolean welcomeMenuEnabled = config.getBoolean("join.welcome-menu.enabled", false);
         if (welcomeMenuEnabled) {
             dismissManager.openWelcomeMenu(player, config, "join.welcome-menu");
@@ -84,14 +84,14 @@ public class JoinLeaveListener implements Listener {
     }
 
     private void handleFirstJoin(Player player, FileConfiguration config) {
-        
+
         sendMessages(config, "first-join.messages.all-players", player, null);
-        
+
         sendMessages(config, "first-join.messages.only-player", player, player);
-        
+
         playSound(config.getString("first-join.sound.all-players", ""), null);
         playSound(config.getString("first-join.sound.only-player", ""), player);
-        
+
         boolean welcomeMenuEnabled = config.getBoolean("first-join.welcome-menu.enabled", false);
         if (welcomeMenuEnabled) {
             dismissManager.openWelcomeMenu(player, config, "first-join.welcome-menu");
@@ -99,9 +99,9 @@ public class JoinLeaveListener implements Listener {
     }
 
     private void handleQuitEvent(Player player, FileConfiguration config) {
-        
+
         sendMessages(config, "quit.messages.all-players", player, null);
-        
+
         playSound(config.getString("quit.sound.all-players", ""), null);
     }
 
@@ -124,7 +124,7 @@ public class JoinLeaveListener implements Listener {
     }
 
     private void sendMessages(FileConfiguration config, String basePath, Player player, Player target) {
-        
+
         String chatMsg = config.getString(basePath + ".chat", "");
         if (!chatMsg.isEmpty()) {
             Component chatComponent = TextParser.parse(replacePlaceholders(chatMsg, player));
@@ -137,11 +137,11 @@ public class JoinLeaveListener implements Listener {
 
         String titleMsg = config.getString(basePath + ".title", "");
         String subtitleMsg = config.getString(basePath + ".subtitle", "");
-        
+
         if (!titleMsg.isEmpty() || !subtitleMsg.isEmpty()) {
             Component titleComponent = titleMsg.isEmpty() ? Component.empty() : TextParser.parse(replacePlaceholders(titleMsg, player));
             Component subtitleComponent = subtitleMsg.isEmpty() ? Component.empty() : TextParser.parse(replacePlaceholders(subtitleMsg, player));
-            
+
             long durationMs = 3500;
             if (basePath.startsWith("first-join")) {
                 durationMs = config.getInt("first-join.title-duration", 3500);
@@ -150,7 +150,7 @@ public class JoinLeaveListener implements Listener {
             } else {
                 durationMs = config.getInt("join.title-duration", 3500);
             }
-            
+
             Title title = Title.title(
                 titleComponent,
                 subtitleComponent,
@@ -160,7 +160,7 @@ public class JoinLeaveListener implements Listener {
                     Duration.ofMillis(500)   
                 )
             );
-            
+
             if (target == null) {
                 Bukkit.getOnlinePlayers().forEach(p -> p.showTitle(title));
             } else {
@@ -171,13 +171,13 @@ public class JoinLeaveListener implements Listener {
         String actionbarMsg = config.getString(basePath + ".actionbar", "");
         if (!actionbarMsg.isEmpty()) {
             Component actionbarComponent = TextParser.parse(replacePlaceholders(actionbarMsg, player));
-            
+
             if (target == null) {
                 Bukkit.getOnlinePlayers().forEach(p -> p.sendActionBar(actionbarComponent));
             } else {
                 target.sendActionBar(actionbarComponent);
             }
-            
+
         }
     }
 
@@ -202,7 +202,7 @@ public class JoinLeaveListener implements Listener {
             }
             return;
         } catch (IllegalArgumentException ignored) {
-            
+
         }
 
         if (targetPlayer != null) {

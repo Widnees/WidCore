@@ -90,7 +90,7 @@ public class SpawnCommand implements CommandExecutor {
         final boolean[] isCancelled = { false };
 
         taskHolder[0] = FoliaScheduler.runAtEntityTimer(plugin, player, () -> {
-            
+
             if (isCancelled[0]) {
                 return;
             }
@@ -139,7 +139,7 @@ public class SpawnCommand implements CommandExecutor {
             boolean showParticles = spawnConfig.getBoolean("effects.show-particles", true);
 
             if (showParticles) {
-                
+
                 if (animationType.equals("fog")) {
                     double fogHeight = progress * 2.2; 
                     double radius = 0.6;
@@ -147,13 +147,13 @@ public class SpawnCommand implements CommandExecutor {
                         double angle = (ticksPassed[0] * 0.15) + (i * Math.PI / 4);
                         double x = Math.cos(angle) * radius;
                         double z = Math.sin(angle) * radius;
-                        
+
                         player.getWorld().spawnParticle(Particle.SMOKE_LARGE, 
                                 playerLoc.clone().add(x, fogHeight, z), 1, 0.1, 0.1, 0.1, 0.01);
                         player.getWorld().spawnParticle(Particle.SQUID_INK, 
                                 playerLoc.clone().add(-x, fogHeight * 0.8, -z), 1, 0.1, 0.05, 0.1, 0.005);
                     }
-                    
+
                     if (fogHeight > 0.5) {
                         for (double h = 0; h < fogHeight; h += 0.4) {
                             double innerAngle = (ticksPassed[0] * 0.1) + h;
@@ -164,7 +164,7 @@ public class SpawnCommand implements CommandExecutor {
                         }
                     }
                 } else if (animationType.equals("standart")) {
-                    
+
                     double angle = ticksPassed[0] * 0.2;
                     double radius = 1.5 * (1 - progress);
                     double yOffset = progress * 2.5;

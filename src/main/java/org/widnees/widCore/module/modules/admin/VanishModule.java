@@ -25,7 +25,7 @@ public class VanishModule implements Module {
     public boolean isEnabled() {
         return plugin.getConfig().getBoolean("features.vanish", false);
     }
-    
+
     @Override
     public java.util.List<String> getMissingDependencies() {
         return java.util.List.of();

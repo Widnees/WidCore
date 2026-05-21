@@ -75,7 +75,7 @@ public class RtpCommand implements CommandExecutor, TabCompleter {
         String basePerm = plugin.getAliasManager().getPermission("rtp");
 
         if (args.length >= 2) {
-            
+
             if (!sender.hasPermission(otherPerm)) {
                 Main.sendNoPermission(plugin, sender, otherPerm);
                 return true;
@@ -93,7 +93,7 @@ public class RtpCommand implements CommandExecutor, TabCompleter {
                     .replace("%player%", targetPlayer.getName())
                     .replace("%world%", worldName));
         } else {
-            
+
             if (!(sender instanceof Player)) {
                 Main.sendMessage(plugin, sender, plugin.getLanguageManager().getMessage("general.only-players"));
                 return true;
@@ -124,14 +124,14 @@ public class RtpCommand implements CommandExecutor, TabCompleter {
         String otherPerm = plugin.getAliasManager().getSubpermission("rtp", "other");
 
         if (args.length == 1) {
-            
+
             List<String> worldNames = new ArrayList<>();
             for (World world : Bukkit.getWorlds()) {
                 worldNames.add(world.getName());
             }
             StringUtil.copyPartialMatches(args[0], worldNames, completions);
         } else if (args.length == 2 && sender.hasPermission(otherPerm)) {
-            
+
             List<String> playerNames = new ArrayList<>();
             for (Player player : Bukkit.getOnlinePlayers()) {
                 playerNames.add(player.getName());

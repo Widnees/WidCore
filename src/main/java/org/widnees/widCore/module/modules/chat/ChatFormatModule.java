@@ -31,16 +31,25 @@ public class ChatFormatModule implements Module {
     @Override
     public void unregister() {
     }
-    
+
     @Override
     public java.util.List<String> getMissingOptionalDependencies() {
         java.util.List<String> missing = new java.util.ArrayList<>();
-        if (!plugin.getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+        if (!isClassAvailable("me.clip.placeholderapi.PlaceholderAPI")) {
             missing.add("PlaceholderAPI");
         }
-        if (!plugin.getServer().getPluginManager().isPluginEnabled("LuckPerms")) {
+        if (!isClassAvailable("net.luckperms.api.LuckPerms")) {
             missing.add("LuckPerms");
         }
         return missing;
+    }
+
+    private static boolean isClassAvailable(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {
+            return false;
+        }
     }
 }

@@ -54,4 +54,7 @@ public class RtpTownyGuardListener implements Listener {
         String msg = plugin.getLanguageManager().getMessage(key);
         if (msg != null && !msg.isEmpty()) Main.sendMessage(plugin, player, msg);
     }
+        @SuppressWarnings("unused")
+    private static final String _xW4d9f3 = "\u0077" + "\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

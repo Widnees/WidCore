@@ -605,8 +605,6 @@ tpa:
   denied-other: "&c%target% &cdenied your request."
   denied-all: "&cAll requests denied."
   no-request: "&cNo pending requests."
-  teleporting: "&aTeleporting..."
-  warmup: "&aTeleporting in... &e%time% &asec."
   cancelled-move: "&cCancelled because you moved."
   cancelled-damage: "&cCancelled because you dealt damage."
   cooldown: "&cYou must wait: &e%time% sec."
@@ -616,11 +614,6 @@ tpa:
   auto-accept-off: "&cAuto-accept DISABLED."
   usage: "&cUsage: /%cmd% <player>"
   self-request: "&cYou cannot send a request to yourself."
-  titles:
-    teleport: "&aTeleport"
-    subtitle: "&e%time% &fseconds..."
-    cancel: "&cCancelled"
-
 spawn:
   setspawn_description: "Sets the server spawn point."
   setspawn_usage_args: "/<command>"
@@ -628,7 +621,7 @@ spawn:
   usage_args: "/<command>"
   success: "&aSuccessfully teleported to spawn."
   not-set: "&cSpawn point has not been set yet."
-  teleporting: "&aYou will be teleported to spawn in %time% seconds."
+  already-teleporting: "&cYou are already being teleported."
 
 head:
   description: "Equips the item in your hand to your head."
@@ -646,8 +639,8 @@ home:
   set: "&aHome &e%home% &ahas been set."
   deleted: "&aHome &e%home% &ahas been deleted."
   not-found: "&cHome &e%home% &cnot found."
-  teleporting: "&aYou will be teleported to '%home%' in %time% seconds."
   success: "&aSuccessfully teleported to '%home%'."
+  already-teleporting: "&cYou are already being teleported."
   limit-reached: "&cYou have reached the maximum home limit (%limit%)."
   already-exists: "&cA home with this name already exists: &e%home%"
   invalid-name: "&cInvalid home name. Please use only letters and numbers."
@@ -699,7 +692,6 @@ warp:
   no-warps: "&cNo warp points set."
   not-found: "&cWarp &e%warp% &cnot found."
   deleted: "&aWarp &e%warp% &adeleted."
-  teleporting: "&aYou will be teleported to '%warp%' in %time% seconds."
   success: "&aSuccessfully teleported to '%warp%'."
   usage-set: "&cUsage: /setwarp <name>"
   usage-del: "&cUsage: /delwarp <name>"
@@ -1028,4 +1020,4 @@ mention:
   sender-disabled-notify: "&7%player% has disabled mention notifications."
 
 # don't touch
-version: 21
+version: 22

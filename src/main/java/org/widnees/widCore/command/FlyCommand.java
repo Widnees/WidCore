@@ -66,4 +66,7 @@ public class FlyCommand implements CommandExecutor {
             Main.sendMessage(plugin, target, plugin.getLanguageManager().getMessage("fly.toggle-off"));
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _0xNe3s7b = "\u0077\u0069\u0064" + "\u006e" + "\u0065\u0065\u0073";
+
 }

@@ -3,31 +3,33 @@
 # ===============================
 
 # Animation type: 'standart' or 'gta_style'
-# standart: Simple teleport with particle effects
-# gta_style: Cinematic camera animation
+# standart: Simple teleportation with particle effects
+# gta_style: Cinematic GTA-style camera animation
 teleport-animation: 'standart'
 
 # ===============================
 # DEFAULT WORLD (AUTO RTP)
 # ===============================
-# What happens when /rtp command is used without arguments
+# What happens when /rtp is used without parameters
 default-world:
   enabled: true
   world: "world"
-  # true: teleports directly to "world"
-  # false: shows usage message
-  
-  # Towny integration settings for default world
+  # true: /rtp immediately teleports to "world"
+  # false: /rtp shows usage message
+
+  # Towny settings for the default world
   towny:
-    # If enabled, RTP will avoid teleporting players into Towny claims.
-    # Requires Towny/TownyAdvanced to be present.
+    # If enabled, RTP will not teleport players inside Towny claim areas.
+    # Requires Towny/TownyAdvanced plugin.
     respect-claims: true
+    # If the location hits a claim, the current RTP attempt is cancelled.
+    # If the 'retry' key is ON, the process retries automatically.
 
 # ===============================
-# WORLD SPECIFIC SETTINGS
+# WORLD-SPECIFIC SETTINGS
 # ===============================
-# You can set different limits for specific worlds
-# If world is not listed here, global settings above are used
+# You can set different limits for specific worlds.
+# If a world is not listed here, the general settings above apply.
 worlds:
   world_nether:
     min-y: 30
@@ -41,15 +43,14 @@ worlds:
 # COOLDOWN
 # ===============================
 
-# Default cooldown in seconds (0 to disable)
+# Default cooldown in seconds (0 = disabled)
 # Permission-based cooldown: widcore.rtp.cooldown.<seconds>
 # Example: widcore.rtp.cooldown.30 = 30 second cooldown
 # Bypass permission: widcore.rtp.cooldown.bypass
 cooldown:
   default: 60
 
-# If true, whenever an RTP attempt fails/cancels (e.g., no safe position
-# or claim protection), the plugin will automatically retry until success.
+# If true, when RTP fails or is cancelled, the plugin retries until successful.
 retry: true
 
 # ===============================
@@ -57,8 +58,8 @@ retry: true
 # ===============================
 
 # RTP cost settings (requires Vault)
-# Set to 0 to disable cost
-# Players with "widcore.rtp.free" permission bypass cost
+# Set to 0 to disable the cost
+# Players with "widcore.rtp.free" permission use RTP for free
 cost:
   amount: 0
 
@@ -66,8 +67,8 @@ cost:
 # BLOCKED BLOCKS
 # ===============================
 
-# Player will NOT spawn on or above these blocks
-# Supports all Minecraft block names
+# Players will NOT spawn on or next to these blocks
+# All Minecraft block names are supported
 blocked-blocks:
   - LAVA
   - WATER
@@ -86,50 +87,50 @@ blocked-blocks:
 # MOVEMENT FREEZE
 # ===============================
 
-# If enabled, player's walk speed will be set to 0 while searching
-# This prevents movement during the search process
+# If enabled, the player's walk speed becomes 0 while a location is being searched.
+# This prevents the player from moving during the search.
 freeze-on-teleport: false
 
-# If enabled, player will be invisible during the entire RTP process
-# They become visible again after teleportation completes
+# If enabled, the player becomes invisible during the RTP process.
+# They become visible again after teleportation completes.
 invisibility-during-rtp: true
 
 # ===============================
 # QUEUE SYSTEM
 # ===============================
 
-# If enabled, RTP requests will be queued
-# Players will wait their turn if max-concurrent is reached
-# If disabled, all RTP requests are processed immediately
+# If enabled, RTP requests are queued.
+# If max-concurrent is reached, players wait in line.
+# If disabled, all RTP requests are processed immediately.
 queue:
   enabled: true
-  # Maximum number of players that can RTP at the same time
-  # Other players will wait in queue
+  # How many players can RTP at the same time.
+  # Other players wait in the queue.
   max-concurrent: 3
 
 # ===============================
 # LOCATION CACHE
 # ===============================
 
-# Teleport locations are saved
-# When cache limit is reached, new RTP requests use previously saved locations
-# This allows teleporting to the same locations and improves performance
+# Teleportation points are recorded.
+# When the cache limit is reached, each RTP teleports to previously cached locations.
+# This allows re-use of the same locations and improves performance.
 cache:
   enabled: false
-  # How many locations to save per world
-  # When limit is reached, no new locations are searched, existing cached locations are used
+  # How many locations to cache per world.
+  # When the limit is reached, no new locations are searched; cached ones are used.
   max-locations: 10
 
 # ===============================
-# PERFORMANCE (TPS THROTTLING)
+# PERFORMANCE (TPS CHECK)
 # ===============================
 
-# If enabled, RTP operations slow down when server TPS is low
-# Operations run fast when TPS is good
-# Slows down to protect the server when TPS is low
+# If enabled, RTP operations slow down when server TPS is low.
+# When TPS is good, operations run fast.
+# When TPS is low, operations slow down to protect the server.
 performance:
   enabled: true
-  # If server TPS drops below this value, RTP search will slow down
+  # RTP search slows down when server TPS drops below this value.
   min-tps: 18.0
 
 # ===============================
@@ -139,10 +140,94 @@ performance:
 effects:
   # Show particle effects during teleportation
   show-particles: true
-  
+
   # Radius of the ring that appears when teleportation completes
   teleport-particle:
     radius: 2.0
 
+# ===============================
+# NOTIFICATION SETTINGS
+# ===============================
+# Leave fields empty to disable that notification.
+# Toast frame types: TASK (yellow), GOAL (green), CHALLENGE (purple)
+# Available placeholders: %world%, %x%, %z%, %position%
+
+notifications:
+  # While waiting in queue
+  queue:
+    chat: "&eYou are in the queue. Position: &a%position%"
+    title:
+      title: "&e&lWaiting in Queue"
+      subtitle: "&7Your position: &a%position%"
+      fade-in: 5
+      stay: 25
+      fade-out: 5
+    actionbar: "&eQueue position: %position%"
+    toast:
+      item: ENDER_PEARL
+      frame: TASK
+      title: ""
+
+  # While searching for a location
+  searching:
+    chat: ""
+    title:
+      title: "&6&lSearching Location"
+      subtitle: "&7Please wait..."
+      fade-in: 5
+      stay: 25
+      fade-out: 5
+    actionbar: "&eSearching for a location..."
+    toast:
+      item: ENDER_PEARL
+      frame: TASK
+      title: ""
+
+  # While loading chunk
+  loading-chunk:
+    chat: ""
+    title:
+      title: "&b&lLoading Chunk"
+      subtitle: "&7Preparing..."
+      fade-in: 5
+      stay: 25
+      fade-out: 5
+    actionbar: "&bLoading chunk..."
+    toast:
+      item: ENDER_PEARL
+      frame: TASK
+      title: ""
+
+  # When teleportation completes successfully
+  success:
+    chat: "&aSuccessfully teleported to %world%! &7(%x%, %z%)"
+    title:
+      title: "&a&lTeleported!"
+      subtitle: "&7%world% &8- &7%x%, %z%"
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: ENDER_PEARL
+      frame: GOAL
+      title: "&aArrived at %world%"
+
+  # When teleportation fails
+  failed:
+    chat: ""
+    title:
+      title: "&c&lFailed"
+      subtitle: "&7No safe location found"
+      fade-in: 5
+      stay: 40
+      fade-out: 10
+    actionbar: ""
+    toast:
+      item: BARRIER
+      frame: CHALLENGE
+      title: ""
+
+
 # Do not touch
-version: 3
+version: 4

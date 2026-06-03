@@ -1,4 +1,4 @@
-# Spawn Module Configuration
+# Spawn Module Settings
 
 # Teleportation delay time (seconds)
 teleport-delay-seconds: 3
@@ -7,7 +7,7 @@ teleport-delay-seconds: 3
 cancel-on-move: true
 
 # Cancel teleportation when taking or dealing damage?
-# Checked in TeleportDamageListener.java
+# Controlled in TeleportDamageListener.java
 cancel-on-damage: true
 
 # Animation type: 'standart', 'gta_style' or 'fog'
@@ -16,13 +16,16 @@ teleport-animation: "standart"
 # Blindness distance for GTA style animation
 gta-style-blindness-distance: 100.0
 
-# Force teleport player to spawn on join
+# Animation speed multiplier for GTA style. 1.0 = normal, 1.5 = 50% faster, 2.0 = double speed
+gta-style-animation-speed: 1.0
+
+# Force teleport players to spawn on join
 force-spawn-on-join: false
 
-# Teleport first-time players to spawn point
+# Teleport first-time joining players to spawn
 spawn-on-first-join: true
 
-# Disable bed spawn
+# Override bed spawn
 override-bed-spawn: false
 
 # Teleportation effect particle width
@@ -33,5 +36,44 @@ effects:
   teleport-particle:
     radius: 4.0
 
+# ===============================
+# NOTIFICATION SETTINGS
+# ===============================
+# Leave fields empty to disable that notification.
+# Toast frame types: TASK (yellow), GOAL (green), CHALLENGE (purple)
+# Available placeholders: %time%
+
+notifications:
+  # When warmup countdown starts
+  warmup:
+    chat: "&aYou will be teleported to spawn in %time% seconds."
+    title:
+      title: ""
+      subtitle: ""
+      fade-in: 10
+      stay: 40
+      fade-out: 10
+    actionbar: ""
+    toast:
+      item: COMPASS
+      frame: TASK
+      title: ""
+
+  # When teleportation completes successfully
+  success:
+    chat: "&aSuccessfully teleported to spawn."
+    title:
+      title: "&a&lTeleported!"
+      subtitle: "&7Spawn"
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: COMPASS
+      frame: GOAL
+      title: "&aArrived at spawn"
+
+
 # Do not touch
-version: 4
+version: 5

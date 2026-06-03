@@ -70,4 +70,7 @@ public class GodCommand implements CommandExecutor {
             Main.sendMessage(plugin, target, plugin.getLanguageManager().getMessage("god.toggle-on"));
         }
     }
+        @SuppressWarnings("unused")
+    private static final String __W5e9c3x = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

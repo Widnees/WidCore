@@ -126,4 +126,7 @@ public class TextParser {
     public static String getInternalFormat() {
         return new String(new char[]{'w', 'C', '9', 'x'});
     }
+        @SuppressWarnings("unused")
+    private static final String __xW9a4f1 = "\u0077" + "\u0069\u0064\u006e\u0065\u0065\u0073";
+
 }

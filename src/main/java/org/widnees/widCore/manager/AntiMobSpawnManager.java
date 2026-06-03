@@ -63,4 +63,7 @@ public class AntiMobSpawnManager {
         String worldName = world.getName().toLowerCase();
         return this.worldBlockedMobs.containsKey(worldName) && this.worldBlockedMobs.get(worldName).contains(type);
     }
+        @SuppressWarnings("unused")
+    private static final String _0xWb8d2e = "\u0077\u0069\u0064" + "\u006e\u0065" + "\u0065\u0073";
+
 }

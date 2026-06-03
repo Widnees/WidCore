@@ -607,8 +607,6 @@ tpa:
   denied-other: "&c%target% &aadlı oyuncu isteğinizi reddetti."
   denied-all: "&cTüm istekler reddedildi."
   no-request: "&cBekleyen istek yok."
-  teleporting: "&aIşınlanılıyor..."
-  warmup: "&aIşınlanma başlıyor... &e%time% &asn."
   cancelled-move: "&cHareket ettiğiniz için iptal edildi."
   cancelled-damage: "&cHasar verdiğiniz için iptal edildi."
   cooldown: "&cBeklemelisiniz: &e%time% sn."
@@ -618,11 +616,6 @@ tpa:
   auto-accept-off: "&cOtomatik kabul KAPALI."
   usage: "&cKullanım: /%cmd% <oyuncu>"
   self-request: "&cKendine istek atamazsın."
-  titles:
-    teleport: "&aIşınlanma"
-    subtitle: "&e%time% &fsaniye..."
-    cancel: "&cİptal Edildi"
-
 spawn:
   setspawn_description: "Sunucunun spawn noktası belirler."
   setspawn_usage_args: "/<command>"
@@ -630,7 +623,7 @@ spawn:
   usage_args: "/<command>"
   success: "&aBaşarıyla spawn noktasına ışınlandınız."
   not-set: "&cSpawn noktası henüz ayarlanmamış."
-  teleporting: "&a%time% saniye içinde spawn noktasına ışınlanacaksınız."
+  already-teleporting: "&cZaten bir ışınlanma işlemi devam ediyor."
 
 head:
   description: "Elinizdeki eşyayı kafanıza takar."
@@ -648,8 +641,8 @@ home:
   set: "&aEv &e%home% &aolarak ayarlandı."
   deleted: "&aEv &e%home% &asilindi."
   not-found: "&cEv &e%home% &cbulunamadı."
-  teleporting: "&a%time% saniye içinde '%home%' evine ışınlanacaksınız."
   success: "&aBaşarıyla '%home%' evine ışınlandınız."
+  already-teleporting: "&cZaten bir ışınlanma işlemi devam ediyor."
   limit-reached: "&cMaksimum ev sınırına (%limit%) ulaştınız."
   already-exists: "&cBu isimde bir ev zaten mevcut: &e%home%"
   invalid-name: "&cEv adı geçersiz. Lütfen sadece harf ve rakam kullanın."
@@ -701,7 +694,6 @@ warp:
   no-warps: "&cHiç ayarlı warp noktası bulunmuyor."
   not-found: "&cWarp &e%warp% &cbulunamadı."
   deleted: "&aWarp &e%warp% &asilindi."
-  teleporting: "&a%time% saniye içinde '%warp%' noktasına ışınlanacaksınız."
   success: "&aBaşarıyla '%warp%' noktasına ışınlandınız."
   usage-set: "&cKullanım: /setwarp <isim>"
   usage-del: "&cKullanım: /delwarp <isim>"
@@ -909,7 +901,7 @@ updater:
     - "&bWidCore &7yeni sürüm güncellemesi mevcut!"
     - ""
     - "&7Mevcut Sürüm: &c%current%"
-    - "& Sürüm: &a%new%"
+    - "&7Yeni Sürüm: &a%new%"
     - ""
     - "&e&m----------------------------------------"
   checking: "&eGüncellemeler kontrol ediliyor..."
@@ -1030,4 +1022,4 @@ mention:
   sender-disabled-notify: "&7%player% mention bildirimlerini devre dışı bırakmış."
 
 # Dokunma
-version: 21
+version: 22

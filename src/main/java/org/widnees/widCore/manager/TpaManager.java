@@ -27,6 +27,7 @@ import org.widnees.widCore.manager.TeleportAnimator;
 import org.widnees.widCore.manager.TeleportManager;
 import org.widnees.widCore.manager.TextParser;
 import org.widnees.widCore.util.FoliaScheduler;
+import org.widnees.widCore.util.TeleportNotifier;
 
 public class TpaManager {
     private final Main plugin;
@@ -180,7 +181,7 @@ public class TpaManager {
         player.setFallDistance(0.0f);
         player.teleportAsync(location).thenAccept(success -> {
             if (success != null && success.booleanValue()) {
-                Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("tpa.teleporting"));
+                TeleportNotifier.send(this.plugin, player, this.tpaConfig, "notifications.success", new HashMap<>());
                 double maxParticleRadius = this.tpaConfig.getDouble("effects.teleport-particle.radius", 4.0);
                 boolean showParticles = this.tpaConfig.getBoolean("effects.show-particles", true);
                 if (showParticles && maxParticleRadius > 0.0) {
@@ -192,7 +193,9 @@ public class TpaManager {
 
     private void teleportWithWarmup(Player player, Location location, int delay) {
         Object[] taskHolder = new Object[1];
-        Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("tpa.warmup").replace("%time%", String.valueOf(delay)));
+        Map<String, String> warmupPl = new HashMap<>();
+        warmupPl.put("%time%", String.valueOf(delay));
+        TeleportNotifier.send(this.plugin, player, this.tpaConfig, "notifications.warmup", warmupPl);
         int totalTicks = delay * 20;
         int[] ticksPassed = new int[1];
         String animationType = this.tpaConfig.getString("teleport-animation", "standart").toLowerCase();
@@ -209,7 +212,6 @@ public class TpaManager {
                 if (initial != null && (!initial.getWorld().equals((Object)current.getWorld()) || initial.distanceSquared(current) > 0.1)) {
                     if (taskHolder[0] != null) FoliaScheduler.cancelTask(taskHolder[0]);
                     this.teleportManager.cancelTeleport(player, this.plugin.getLanguageManager().getMessage("tpa.cancelled-move"));
-                    this.showTitle(player, "tpa.titles.cancel", "tpa.cancelled-move");
                     return;
                 }
             }
@@ -225,9 +227,11 @@ public class TpaManager {
             }
             if (ticksPassed[0] % 20 == 0) {
                 int remaining = (totalTicks - ticksPassed[0]) / 20;
-                String title = this.plugin.getLanguageManager().getMessage("tpa.titles.teleport");
-                String sub = this.plugin.getLanguageManager().getMessage("tpa.titles.subtitle").replace("%time%", String.valueOf(remaining));
-                player.showTitle(Title.title((Component)TextParser.parse(title), (Component)TextParser.parse(sub), (Title.Times)Title.Times.times((Duration)Duration.ZERO, (Duration)Duration.ofMillis(1200L), (Duration)Duration.ofMillis(200L))));
+                String titleStr = this.tpaConfig.getString("notifications.warmup.title.title", "");
+                String subStr = this.tpaConfig.getString("notifications.warmup.title.subtitle", "").replace("%time%", String.valueOf(remaining));
+                if (!titleStr.isEmpty() || !subStr.isEmpty()) {
+                    player.showTitle(Title.title((Component)TextParser.parse(titleStr), (Component)TextParser.parse(subStr), (Title.Times)Title.Times.times((Duration)Duration.ZERO, (Duration)Duration.ofMillis(1200L), (Duration)Duration.ofMillis(200L))));
+                }
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 2.0f);
             }
             Location playerLoc = player.getLocation();
@@ -325,4 +329,7 @@ public class TpaManager {
             this.type = type;
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _xCr7w3n = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";
+
 }

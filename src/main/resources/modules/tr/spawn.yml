@@ -16,6 +16,9 @@ teleport-animation: "standart"
 # GTA stili animasyonda körlük mesafesi
 gta-style-blindness-distance: 100.0
 
+# GTA style animasyon hız çarpanı. 1.0 = normal, 1.5 = %50 daha hızlı, 2.0 = iki kat hız
+gta-style-animation-speed: 1.0
+
 # Oyuncu sunucuya girince zorla spawna ışınla
 force-spawn-on-join: false
 
@@ -33,5 +36,44 @@ effects:
   teleport-particle:
     radius: 4.0
 
+# ===============================
+# BİLDİRİM AYARLARI
+# ===============================
+# Boş bırakılan alanlar gönderilmez.
+# Toast çerçeve türleri: TASK (sarı), GOAL (yeşil), CHALLENGE (mor)
+# Kullanılabilir placeholder'lar: %time%
+
+notifications:
+  # Bekleme süresi başladığında
+  warmup:
+    chat: "&a%time% saniye içinde spawn noktasına ışınlanacaksınız."
+    title:
+      title: ""
+      subtitle: ""
+      fade-in: 10
+      stay: 40
+      fade-out: 10
+    actionbar: ""
+    toast:
+      item: COMPASS
+      frame: TASK
+      title: ""
+
+  # Işınlanma başarıyla tamamlandığında
+  success:
+    chat: "&aBaşarıyla spawn noktasına ışınlandınız."
+    title:
+      title: "&a&lIşınlandınız!"
+      subtitle: "&7Spawn"
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: COMPASS
+      frame: GOAL
+      title: "&aSpawn'a ulaştınız"
+
+
 # Dokunma
-version: 4
+version: 5

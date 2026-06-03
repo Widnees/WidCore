@@ -171,22 +171,139 @@ public class AnnouncerManager {
         return announcement;
     }
 
-    private String centerLine(String line) {
+    private enum DefaultFontInfo {
+        A('A', 5), a('a', 5), B('B', 5), b('b', 5), C('C', 5), c('c', 5), D('D', 5), d('d', 5),
+        E('E', 5), e('e', 5), F('F', 5), f('f', 4), G('G', 5), g('g', 5), H('H', 5), h('h', 5),
+        I('I', 3), i('i', 1), J('J', 5), j('j', 5), K('K', 5), k('k', 4), L('L', 5), l('l', 1),
+        M('M', 5), m('m', 5), N('N', 5), n('n', 5), O('O', 5), o('o', 5), P('P', 5), p('p', 5),
+        Q('Q', 5), q('q', 5), R('R', 5), r('r', 5), S('S', 5), s('s', 5), T('T', 5), t('t', 4),
+        U('U', 5), u('u', 5), V('V', 5), v('v', 5), W('W', 5), w('w', 5), X('X', 5), x('x', 5),
+        Y('Y', 5), y('y', 5), Z('Z', 5), z('z', 5),
+        NUM_1('1', 5), NUM_2('2', 5), NUM_3('3', 5), NUM_4('4', 5), NUM_5('5', 5),
+        NUM_6('6', 5), NUM_7('7', 5), NUM_8('8', 5), NUM_9('9', 5), NUM_0('0', 5),
+        EXCLAMATION_POINT('!', 1), AT_SYMBOL('@', 6), NUM_SIGN('#', 5), DOLLAR_SIGN('$', 5),
+        PERCENT('%', 5), UP_ARROW('^', 5), AMPERSAND('&', 5), ASTERISK('*', 5),
+        LEFT_PARENTHESIS('(', 4), RIGHT_PERENTHESIS(')', 4), MINUS('-', 5), UNDERSCORE('_', 5),
+        PLUS_SIGN('+', 5), EQUALS_SIGN('=', 5), LEFT_CURL_BRACE('{', 4), RIGHT_CURL_BRACE('}', 4),
+        LEFT_BRACKET('[', 3), RIGHT_BRACKET(']', 3), COLON(':', 1), SEMI_COLON(';', 1),
+        DOUBLE_QUOTE('"', 3), SINGLE_QUOTE('\'', 1), LEFT_ARROW('<', 4), RIGHT_ARROW('>', 4),
+        QUESTION_MARK('?', 5), SLASH('/', 5), BACK_SLASH('\\', 5), LINE('|', 1), TILDE('~', 5),
+        TICK('`', 2), PERIOD('.', 1), COMMA(',', 1), SPACE(' ', 3), DEFAULT('a', 4);
 
-        String stripped = line
-                .replaceAll("(?i)(&|§)[0-9a-fk-or]", "")
-                .replaceAll("<[^>]+>", "");
-        int visibleLength = stripped.length();
-        int chatWidth = 53;
-        if (visibleLength >= chatWidth) {
+        private final char character;
+        private final int length;
+
+        DefaultFontInfo(char character, int length) {
+            this.character = character;
+            this.length = length;
+        }
+
+        public int getLength() {
+            return this.length;
+        }
+
+        public int getBoldLength() {
+            if (this == SPACE) return this.getLength();
+            return this.length + 1;
+        }
+
+        public static DefaultFontInfo getDefaultFontInfo(char c) {
+            for (DefaultFontInfo dFI : DefaultFontInfo.values()) {
+                if (dFI.character == c) return dFI;
+            }
+            return DEFAULT;
+        }
+    }
+
+    private String centerLine(String line) {
+        boolean isBold = false;
+        int messagePxSize = 0;
+        char[] rawChars = line.toCharArray();
+
+        for (int i = 0; i < rawChars.length; i++) {
+            char c = rawChars[i];
+
+            if ((c == '&' || c == '§') && i + 1 < rawChars.length) {
+                char next = rawChars[i + 1];
+
+                if (Character.toLowerCase(next) == 'x' && i + 13 < rawChars.length) {
+                    boolean isHex = true;
+                    for (int j = 2; j <= 12; j += 2) {
+                        if (i + j < rawChars.length && (rawChars[i + j] == '&' || rawChars[i + j] == '§')
+                                && i + j + 1 < rawChars.length && "0123456789abcdefABCDEF".indexOf(rawChars[i + j + 1]) != -1) {
+                            continue;
+                        }
+                        isHex = false;
+                        break;
+                    }
+                    if (isHex) {
+                        i += 13; 
+                        isBold = false;
+                        continue;
+                    }
+                }
+
+                if ("0123456789abcdefklmnorABCDEFKLMNOR".indexOf(next) != -1) {
+                    if (Character.toLowerCase(next) == 'l') {
+                        isBold = true;
+                    } else if (Character.toLowerCase(next) == 'r' || "0123456789abcdefABCDEF".indexOf(Character.toLowerCase(next)) != -1) {
+                        isBold = false;
+                    }
+                    i++; // Sonraki karakteri atla
+                    continue;
+                }
+            }
+
+            if (c == '<') {
+                int closeIdx = line.indexOf('>', i);
+                if (closeIdx != -1) {
+                    String tagContent = line.substring(i + 1, closeIdx).toLowerCase();
+                    if (tagContent.equals("bold") || tagContent.equals("b")) {
+                        isBold = true;
+                    } else if (tagContent.equals("/bold") || tagContent.equals("/b") || tagContent.equals("reset") || tagContent.equals("/reset")) {
+                        isBold = false;
+                    }
+                    i = closeIdx;
+                    continue;
+                }
+            }
+
+            if (c == '&' && i + 1 < rawChars.length && rawChars[i + 1] == '#' && i + 7 < rawChars.length) {
+                boolean isHex = true;
+                for (int j = 2; j <= 7; j++) {
+                    if ("0123456789abcdefABCDEF".indexOf(rawChars[i + j]) == -1) {
+                        isHex = false;
+                        break;
+                    }
+                }
+                if (isHex) {
+                    i += 7;
+                    isBold = false;
+                    continue;
+                }
+            }
+
+            DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
+            messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
+            messagePxSize++; // Karakterler arası 1px boşluk
+        }
+
+        int halvedMessageSize = messagePxSize / 2;
+        int toCompensate = 154 - halvedMessageSize; // 154 = CENTER_PX
+
+        int spaceLength = DefaultFontInfo.SPACE.getLength() + 1; // 3 + 1 = 4
+        int spaces = toCompensate / spaceLength;
+
+        if (spaces <= 0) {
             return line;
         }
-        int spaces = (chatWidth - visibleLength) / 2;
+
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < spaces; i++) {
             sb.append(' ');
         }
         sb.append(line);
+
         return sb.toString();
     }
 
@@ -209,4 +326,7 @@ public class AnnouncerManager {
             this.hover = hover;
         }
     }
+        @SuppressWarnings("unused")
+    private static final String __Wc6d8x2 = "\u0077\u0069" + "\u0064\u006e" + "\u0065\u0065\u0073";
+
 }

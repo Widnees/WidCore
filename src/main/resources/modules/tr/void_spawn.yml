@@ -3,6 +3,29 @@
 # False: Her zaman global void spawn noktasına gider.
 per-world-spawn: true
 
+# ===============================
+# BİLDİRİM AYARLARI
+# ===============================
+# Boş bırakılan alanlar gönderilmez.
+# Toast çerçeve türleri: TASK (sarı), GOAL (yeşil), CHALLENGE (mor)
+# Bu işlem için placeholder yoktur.
+
+notifications:
+  # Oyuncu void'den kurtarılıp spawn noktasına ışınlandığında
+  success:
+    chat: "&aBoşluktan kurtarıldın!"
+    title:
+      title: "&a&lKurtarıldın!"
+      subtitle: "&7Spawn noktasına ışınlandın"
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: TOTEM_OF_UNDYING
+      frame: GOAL
+      title: "&aVoid'den kurtarıldın"
+
 
 # Dokunma
 version: 1

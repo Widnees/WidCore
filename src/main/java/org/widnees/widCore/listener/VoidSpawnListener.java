@@ -3,6 +3,7 @@ package org.widnees.widCore.listener;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -10,6 +11,9 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.widnees.widCore.Main;
 import org.widnees.widCore.manager.ConfigManager;
 import org.widnees.widCore.manager.VoidSpawnManager;
+import org.widnees.widCore.util.TeleportNotifier;
+
+import java.util.Collections;
 
 public class VoidSpawnListener implements Listener {
 
@@ -41,7 +45,8 @@ public class VoidSpawnListener implements Listener {
                 player.teleportAsync(voidSpawnLocation).thenAccept(success -> {
                     if (success) {
                         player.setFallDistance(0);
-                        Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("voidspawn.saved"));
+                        FileConfiguration voidConfig = plugin.getConfigManager().getModuleConfig("void_spawn");
+                        TeleportNotifier.send(plugin, player, voidConfig, "notifications.success", Collections.emptyMap());
 
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 0.5f);
                         player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation().add(0, 1, 0), 150, 0.5, 1,
@@ -53,4 +58,7 @@ public class VoidSpawnListener implements Listener {
             }
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _0xW8b4d3 = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

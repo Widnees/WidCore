@@ -15,6 +15,11 @@ import org.widnees.widCore.manager.SpawnLocationManager;
 import org.widnees.widCore.manager.TeleportAnimator;
 import org.widnees.widCore.manager.TeleportManager;
 import org.widnees.widCore.util.FoliaScheduler;
+import org.widnees.widCore.util.TeleportNotifier;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SpawnCommand implements CommandExecutor {
 
@@ -45,7 +50,7 @@ public class SpawnCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         if (teleportAnimator.isAnimating(player)) {
-            Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("tpa.teleporting"));
+            Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("spawn.already-teleporting"));
             return true;
         }
 
@@ -55,7 +60,7 @@ public class SpawnCommand implements CommandExecutor {
         }
 
         if (teleportManager.isTeleporting(player.getUniqueId())) {
-            Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("tpa.teleporting"));
+            Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("spawn.already-teleporting"));
             return true;
         }
 
@@ -79,8 +84,9 @@ public class SpawnCommand implements CommandExecutor {
             return true;
         }
 
-        Main.sendMessage(this.plugin, player,
-                plugin.getLanguageManager().getMessage("spawn.teleporting").replace("%time%", String.valueOf(delay)));
+        Map<String, String> warmupPl = new HashMap<>();
+        warmupPl.put("%time%", String.valueOf(delay));
+        TeleportNotifier.send(plugin, player, spawnConfig, "notifications.warmup", warmupPl);
 
         teleportManager.startTeleporting(player, TeleportManager.TeleportType.SPAWN);
 
@@ -191,7 +197,7 @@ public class SpawnCommand implements CommandExecutor {
         player.setFallDistance(0f);
         player.teleportAsync(location).thenAccept(success -> {
             if (success) {
-                Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("spawn.success"));
+                TeleportNotifier.send(plugin, player, spawnConfig, "notifications.success", Collections.emptyMap());
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.2f);
 
                 final double maxParticleRadius = spawnConfig.getDouble("effects.teleport-particle.radius", 4.0);
@@ -202,4 +208,7 @@ public class SpawnCommand implements CommandExecutor {
             }
         });
     }
+        @SuppressWarnings("unused")
+    private static final String __W5e9c3x = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

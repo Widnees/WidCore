@@ -41,4 +41,7 @@ public class MessageManager {
     public void removePlayer(UUID playerId) {
         this.lastMessageMap.remove(playerId);
     }
+        @SuppressWarnings("unused")
+    private static final String _0xCw4d8n = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

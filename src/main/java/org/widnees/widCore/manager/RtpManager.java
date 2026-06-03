@@ -42,6 +42,7 @@ import org.widnees.widCore.Main;
 import org.widnees.widCore.manager.TeleportAnimator;
 import org.widnees.widCore.manager.TeleportManager;
 import org.widnees.widCore.util.FoliaScheduler;
+import org.widnees.widCore.util.TeleportNotifier;
 
 public class RtpManager {
     private final Main plugin;
@@ -341,14 +342,11 @@ public class RtpManager {
                 return;
             }
             player.removePotionEffect(PotionEffectType.BLINDNESS);
-            String successMsg = this.plugin.getLanguageManager().getMessage("rtp.success");
-            if (successMsg != null && !successMsg.isEmpty()) {
-                Main.sendMessage(this.plugin, (CommandSender)player, successMsg.replace("%world%", location.getWorld().getName()).replace("%x%", String.valueOf(location.getBlockX())).replace("%z%", String.valueOf(location.getBlockZ())));
-            }
             HashMap<String, String> placeholders = new HashMap<String, String>();
             placeholders.put("%world%", location.getWorld().getName());
             placeholders.put("%x%", String.valueOf(location.getBlockX()));
             placeholders.put("%z%", String.valueOf(location.getBlockZ()));
+            TeleportNotifier.send(this.plugin, player, this.getConfig(), "notifications.success", placeholders);
             this.sendRtpTitle(player, "rtp.titles.success", placeholders);
             player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.2f);
             double radius = config.getDouble("effects.teleport-particle.radius", 2.0);
@@ -650,4 +648,7 @@ public class RtpManager {
             this.timestamp = System.currentTimeMillis();
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _xW3c9f4 = "\u0077\u0069\u0064\u006e\u0065\u0065\u0073";
+
 }

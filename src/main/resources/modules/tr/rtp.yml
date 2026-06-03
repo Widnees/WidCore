@@ -146,5 +146,89 @@ effects:
   teleport-particle:
     radius: 2.0
 
+# ===============================
+# BİLDİRİM AYARLARI
+# ===============================
+# Boş bırakılan alanlar gönderilmez.
+# Toast çerçeve türleri: TASK (sarı), GOAL (yeşil), CHALLENGE (mor)
+# Kullanılabilir placeholder'lar: %world%, %x%, %z%, %position%
+
+notifications:
+  # Sıra beklenirken
+  queue:
+    chat: "&eKuyrukta bekliyorsunuz. Sıra: &a%position%"
+    title:
+      title: "&e&lSıra Bekleniyor"
+      subtitle: "&7Sıranız: &a%position%"
+      fade-in: 5
+      stay: 25
+      fade-out: 5
+    actionbar: "&eSırada: %position%"
+    toast:
+      item: ENDER_PEARL
+      frame: TASK
+      title: ""
+
+  # Konum aranırken
+  searching:
+    chat: ""
+    title:
+      title: "&6&lKonum Aranıyor"
+      subtitle: "&7Lütfen bekleyin..."
+      fade-in: 5
+      stay: 25
+      fade-out: 5
+    actionbar: "&eKonum aranıyor..."
+    toast:
+      item: ENDER_PEARL
+      frame: TASK
+      title: ""
+
+  # Chunk yüklenirken
+  loading-chunk:
+    chat: ""
+    title:
+      title: "&b&lChunk Yükleniyor"
+      subtitle: "&7Hazırlanıyor..."
+      fade-in: 5
+      stay: 25
+      fade-out: 5
+    actionbar: "&bChunk yükleniyor..."
+    toast:
+      item: ENDER_PEARL
+      frame: TASK
+      title: ""
+
+  # Işınlanma başarıyla tamamlandığında
+  success:
+    chat: "&aBaşarıyla %world% dünyasına ışınlandınız! &7(%x%, %z%)"
+    title:
+      title: "&a&lIşınlandınız!"
+      subtitle: "&7%world% &8- &7%x%, %z%"
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: ENDER_PEARL
+      frame: GOAL
+      title: "&a%world% dünyasına ulaştınız"
+
+  # Işınlanma başarısız olduğunda
+  failed:
+    chat: ""
+    title:
+      title: "&c&lBaşarısız"
+      subtitle: "&7Güvenli konum bulunamadı"
+      fade-in: 5
+      stay: 40
+      fade-out: 10
+    actionbar: ""
+    toast:
+      item: BARRIER
+      frame: CHALLENGE
+      title: ""
+
+
 # Dokunma
-version: 3
+version: 4

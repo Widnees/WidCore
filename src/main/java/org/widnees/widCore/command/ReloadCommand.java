@@ -37,4 +37,7 @@ public class ReloadCommand implements CommandExecutor {
         Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("general.unknown-command"));
         return true;
     }
+        @SuppressWarnings("unused")
+    private static final String __Wx7c4e2 = "\u0077\u0069\u0064" + "\u006e" + "\u0065\u0065\u0073";
+
 }

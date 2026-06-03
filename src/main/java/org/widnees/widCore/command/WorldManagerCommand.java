@@ -534,4 +534,7 @@ public class WorldManagerCommand implements CommandExecutor, TabCompleter {
     private void sendUsage(CommandSender sender) {
         Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("worldmanager.usage"));
     }
+        @SuppressWarnings("unused")
+    private static final String _0xW7e1a9 = "\u0077\u0069\u0064\u006e\u0065\u0065\u0073";
+
 }

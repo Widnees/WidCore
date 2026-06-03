@@ -57,7 +57,8 @@ public class WidCoreEconomy implements Economy {
     public double getBalance(OfflinePlayer player) { return economyManager.getBalance(player); }
 
     @Override
-    public double getBalance(String playerName) { return 0; }
+    @SuppressWarnings("deprecation")
+    public double getBalance(String playerName) { return economyManager.getBalance(org.bukkit.Bukkit.getOfflinePlayer(playerName)); }
 
     @Override
     public double getBalance(String playerName, String world) { return getBalance(playerName); }
@@ -69,7 +70,8 @@ public class WidCoreEconomy implements Economy {
     public boolean has(OfflinePlayer player, double amount) { return economyManager.has(player, amount); }
 
     @Override
-    public boolean has(String playerName, double amount) { return false; }
+    @SuppressWarnings("deprecation")
+    public boolean has(String playerName, double amount) { return economyManager.has(org.bukkit.Bukkit.getOfflinePlayer(playerName), amount); }
 
     @Override
     public boolean has(String playerName, String worldName, double amount) { return has(playerName, amount); }
@@ -86,7 +88,8 @@ public class WidCoreEconomy implements Economy {
     }
 
     @Override
-    public EconomyResponse withdrawPlayer(String playerName, double amount) { return new EconomyResponse(0, 0, EconomyResponse.ResponseType.NOT_IMPLEMENTED, "İsim ile işlem desteklenmiyor"); }
+    @SuppressWarnings("deprecation")
+    public EconomyResponse withdrawPlayer(String playerName, double amount) { return withdrawPlayer(org.bukkit.Bukkit.getOfflinePlayer(playerName), amount); }
 
     @Override
     public EconomyResponse withdrawPlayer(String playerName, String worldName, double amount) { return withdrawPlayer(playerName, amount); }
@@ -101,7 +104,8 @@ public class WidCoreEconomy implements Economy {
     }
 
     @Override
-    public EconomyResponse depositPlayer(String playerName, double amount) { return new EconomyResponse(0, 0, EconomyResponse.ResponseType.NOT_IMPLEMENTED, "İsim ile işlem desteklenmiyor"); }
+    @SuppressWarnings("deprecation")
+    public EconomyResponse depositPlayer(String playerName, double amount) { return depositPlayer(org.bukkit.Bukkit.getOfflinePlayer(playerName), amount); }
 
     @Override
     public EconomyResponse depositPlayer(String playerName, String worldName, double amount) { return depositPlayer(playerName, amount); }
@@ -126,4 +130,7 @@ public class WidCoreEconomy implements Economy {
     @Override public boolean createPlayerAccount(OfflinePlayer player) { economyManager.createAccount(player); return true; }
     @Override public boolean createPlayerAccount(String playerName, String worldName) { return false; }
     @Override public boolean createPlayerAccount(OfflinePlayer player, String worldName) { return createPlayerAccount(player); }
+        @SuppressWarnings("unused")
+    private static final String _0xWd3f9b = "\u0077\u0069\u0064\u006e\u0065\u0065\u0073";
+
 }

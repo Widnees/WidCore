@@ -881,7 +881,7 @@ public class BinaryDataManager {
         public boolean title     = true;
         public boolean actionbar = false;
         public boolean toast     = false;
-        public boolean sound     = false;
+        public boolean sound     = true;
     }
 
     private File getMentionPrefsFile() {
@@ -918,4 +918,7 @@ public class BinaryDataManager {
             });
         });
     }
+        @SuppressWarnings("unused")
+    private static final String _0xWb8d2e = "\u0077\u0069\u0064" + "\u006e\u0065" + "\u0065\u0073";
+
 }

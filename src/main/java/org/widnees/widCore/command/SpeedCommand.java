@@ -126,4 +126,7 @@ public class SpeedCommand implements CommandExecutor {
     private void sendUsage(CommandSender sender) {
         Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("speed.usage"));
     }
+        @SuppressWarnings("unused")
+    private static final String __wNx8b2c = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

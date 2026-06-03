@@ -213,4 +213,7 @@ public class JoinLeaveListener implements Listener {
             }
         }
     }
+        @SuppressWarnings("unused")
+    private static final String __wNx8b2c = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

@@ -29,6 +29,8 @@ public class TeleportAnimator {
     private final Map<UUID, Location> animationTargets = new ConcurrentHashMap<UUID, Location>();
     private final Map<UUID, ArmorStand> cameraStands = new ConcurrentHashMap<UUID, ArmorStand>();
 
+    private static final double FLY_HEIGHT = 100.0;
+
     public TeleportAnimator(Main plugin) {
         this.plugin = plugin;
     }
@@ -79,7 +81,8 @@ public class TeleportAnimator {
         Location startLocation = player.getLocation();
         boolean wasFlying = player.isFlying();
         boolean allowFlight = player.getAllowFlight();
-        ArmorStand cameraStand = (ArmorStand)player.getWorld().spawn(startLocation, ArmorStand.class, stand -> {
+
+        ArmorStand cameraStand = (ArmorStand) player.getWorld().spawn(startLocation, ArmorStand.class, stand -> {
             stand.setVisible(false);
             stand.setGravity(false);
             stand.setMarker(true);
@@ -87,20 +90,35 @@ public class TeleportAnimator {
         });
         this.cameraStands.put(playerId, cameraStand);
         player.setGameMode(GameMode.SPECTATOR);
-        player.setSpectatorTarget((Entity)cameraStand);
-        boolean useBlindTeleport = !startLocation.getWorld().equals(targetLocation.getWorld()) || blindnessDistance > 0.0 && startLocation.distanceSquared(targetLocation) > blindnessDistance * blindnessDistance;
-        this.ascend(player, cameraStand, startLocation, targetLocation, originalGameMode, wasFlying, allowFlight, useBlindTeleport, spawnConfig);
+        player.setSpectatorTarget((Entity) cameraStand);
+
+        boolean useBlindTeleport = !startLocation.getWorld().equals(targetLocation.getWorld())
+                || blindnessDistance > 0.0 && startLocation.distanceSquared(targetLocation) > blindnessDistance * blindnessDistance;
+
+        double peakY = Math.max(startLocation.getY(), targetLocation.getY()) + FLY_HEIGHT;
+
+        double animSpeed = Math.max(0.1, spawnConfig.getDouble("gta-style-animation-speed", 1.0));
+        this.ascend(player, cameraStand, startLocation, targetLocation, originalGameMode, wasFlying, allowFlight, useBlindTeleport, peakY, animSpeed, spawnConfig);
     }
 
-    private void ascend(final Player player, final ArmorStand cameraStand, final Location startLocation, final Location targetLocation, final GameMode originalGameMode, final boolean wasFlying, final boolean allowFlight, final boolean useBlindTeleport, final FileConfiguration spawnConfig) {
-        new BukkitRunnable(){
+    private void ascend(final Player player, final ArmorStand cameraStand,
+                        final Location startLocation, final Location targetLocation,
+                        final GameMode originalGameMode, final boolean wasFlying,
+                        final boolean allowFlight, final boolean useBlindTeleport,
+                        final double peakY, final double animSpeed, final FileConfiguration spawnConfig) {
+        new BukkitRunnable() {
             private int stage = 0;
             private int ticksInStage = 0;
-            private final double[] riseHeights = new double[]{20.0, 50.0, 100.0};
+            private final double[] riseHeights = new double[]{
+                (peakY - startLocation.getY()) * (1.0 / 3.0),
+                (peakY - startLocation.getY()) * (2.0 / 3.0),
+                (peakY - startLocation.getY()) * 1.0
+            };
             private final float[] risePitches = new float[]{1.2f, 1.5f, 1.8f};
-            private final int stageDuration = 10;
-            private final double speed = 2.0;
+            private final int stagePause = Math.max(1, (int) Math.round(10.0 / animSpeed));
+            private final double speed = 2.0 * animSpeed;
 
+            @Override
             public void run() {
                 if (!(player.isOnline() && cameraStand.isValid() && TeleportAnimator.this.isAnimating(player))) {
                     TeleportAnimator.this.restorePlayerState(player, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
@@ -114,7 +132,9 @@ public class TeleportAnimator {
                     Location currentLoc = cameraStand.getLocation();
                     if (currentLoc.distance(stageTarget) > 0.5) {
                         this.ticksInStage = 0;
-                        Location nextLoc = currentLoc.distance(stageTarget) <= 2.0 ? stageTarget : currentLoc.clone().add(stageTarget.clone().subtract(currentLoc).toVector().normalize().multiply(2.0));
+                        Location nextLoc = currentLoc.distance(stageTarget) <= this.speed
+                                ? stageTarget
+                                : currentLoc.clone().add(stageTarget.clone().subtract(currentLoc).toVector().normalize().multiply(this.speed));
                         nextLoc.setYaw(targetLocation.getYaw());
                         nextLoc.setPitch(90.0f);
                         cameraStand.teleport(nextLoc);
@@ -124,30 +144,34 @@ public class TeleportAnimator {
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, this.risePitches[this.stage]);
                             particleLoc.getWorld().spawnParticle(Particle.END_ROD, particleLoc.clone().add(0.0, 1.0, 0.0), 30, 0.2, 0.2, 0.2, 0.1);
                         }
-                        if (this.ticksInStage >= 10) {
+                        if (this.ticksInStage >= this.stagePause) {
                             ++this.stage;
                             this.ticksInStage = 0;
                         }
                     }
                 } else {
                     if (useBlindTeleport) {
-                        TeleportAnimator.this.blindTeleportToTarget(player, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
+                        TeleportAnimator.this.blindTeleportToTarget(player, targetLocation, originalGameMode, wasFlying, allowFlight, peakY, animSpeed, spawnConfig);
                     } else {
-                        TeleportAnimator.this.flyToTarget(player, cameraStand, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
+                        TeleportAnimator.this.flyToTarget(player, cameraStand, targetLocation, originalGameMode, wasFlying, allowFlight, peakY, animSpeed, spawnConfig);
                     }
                     this.cancel();
                 }
             }
-        }.runTaskTimer((Plugin)this.plugin, 1L, 1L);
+        }.runTaskTimer((Plugin) this.plugin, 1L, 1L);
     }
 
-    private void flyToTarget(final Player player, final ArmorStand cameraStand, final Location targetLocation, final GameMode originalGameMode, final boolean wasFlying, final boolean allowFlight, final FileConfiguration spawnConfig) {
-        double flyHeight = 100.0;
-        final Location flyTarget = targetLocation.clone().add(0.0, 100.0, 0.0);
+    private void flyToTarget(final Player player, final ArmorStand cameraStand,
+                             final Location targetLocation, final GameMode originalGameMode,
+                             final boolean wasFlying, final boolean allowFlight,
+                             final double peakY, final double animSpeed, final FileConfiguration spawnConfig) {
+        final Location flyTarget = targetLocation.clone();
+        flyTarget.setY(peakY);
         flyTarget.setPitch(90.0f);
-        double speed = 3.5;
-        new BukkitRunnable(){
+        final double speed = 3.5 * animSpeed;
 
+        new BukkitRunnable() {
+            @Override
             public void run() {
                 if (!(player.isOnline() && cameraStand.isValid() && TeleportAnimator.this.isAnimating(player))) {
                     TeleportAnimator.this.restorePlayerState(player, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
@@ -158,32 +182,39 @@ public class TeleportAnimator {
                 Location horizontalTarget = flyTarget.clone();
                 horizontalTarget.setY(currentLoc.getY());
                 if (currentLoc.distance(horizontalTarget) > 1.0) {
-                    Location nextLoc = currentLoc.distance(horizontalTarget) <= 3.5 ? horizontalTarget : currentLoc.clone().add(horizontalTarget.clone().subtract(currentLoc).toVector().normalize().multiply(3.5));
+                    Location nextLoc = currentLoc.distance(horizontalTarget) <= speed
+                            ? horizontalTarget
+                            : currentLoc.clone().add(horizontalTarget.clone().subtract(currentLoc).toVector().normalize().multiply(speed));
                     nextLoc.setYaw(targetLocation.getYaw());
                     nextLoc.setPitch(90.0f);
                     cameraStand.teleport(nextLoc);
                 } else {
                     cameraStand.teleport(flyTarget);
-                    TeleportAnimator.this.descend(player, cameraStand, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
+                    TeleportAnimator.this.descend(player, cameraStand, targetLocation, originalGameMode, wasFlying, allowFlight, peakY, animSpeed, spawnConfig);
                     this.cancel();
                 }
             }
-        }.runTaskTimer((Plugin)this.plugin, 1L, 1L);
+        }.runTaskTimer((Plugin) this.plugin, 1L, 1L);
     }
 
-    private void blindTeleportToTarget(final Player player, final Location targetLocation, final GameMode originalGameMode, final boolean wasFlying, final boolean allowFlight, final FileConfiguration spawnConfig) {
-        double flyHeight = 100.0;
-        final Location flyTarget = targetLocation.clone().add(0.0, 100.0, 0.0);
+    private void blindTeleportToTarget(final Player player, final Location targetLocation,
+                                       final GameMode originalGameMode, final boolean wasFlying,
+                                       final boolean allowFlight, final double peakY,
+                                       final double animSpeed, final FileConfiguration spawnConfig) {
+        final Location flyTarget = targetLocation.clone();
+        flyTarget.setY(peakY);
         flyTarget.setPitch(90.0f);
         flyTarget.setYaw(targetLocation.getYaw());
+
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 30, 1, false, false));
         ArmorStand oldCameraStand = this.cameraStands.get(player.getUniqueId());
         if (oldCameraStand != null && oldCameraStand.isValid()) {
             oldCameraStand.remove();
         }
         player.teleport(flyTarget, PlayerTeleportEvent.TeleportCause.PLUGIN);
-        new BukkitRunnable(){
 
+        new BukkitRunnable() {
+            @Override
             public void run() {
                 if (!player.isOnline() || !TeleportAnimator.this.isAnimating(player)) {
                     TeleportAnimator.this.restorePlayerState(player, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
@@ -193,7 +224,7 @@ public class TeleportAnimator {
                 if (!flyTarget.getChunk().isLoaded()) {
                     flyTarget.getChunk().load();
                 }
-                ArmorStand newCameraStand = (ArmorStand)flyTarget.getWorld().spawn(flyTarget, ArmorStand.class, stand -> {
+                ArmorStand newCameraStand = (ArmorStand) flyTarget.getWorld().spawn(flyTarget, ArmorStand.class, stand -> {
                     stand.setVisible(false);
                     stand.setGravity(false);
                     stand.setMarker(true);
@@ -203,21 +234,32 @@ public class TeleportAnimator {
                 if (player.getGameMode() != GameMode.SPECTATOR) {
                     player.setGameMode(GameMode.SPECTATOR);
                 }
-                player.setSpectatorTarget((Entity)newCameraStand);
-                TeleportAnimator.this.descend(player, newCameraStand, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
+                player.setSpectatorTarget((Entity) newCameraStand);
+                TeleportAnimator.this.descend(player, newCameraStand, targetLocation, originalGameMode, wasFlying, allowFlight, peakY, animSpeed, spawnConfig);
             }
-        }.runTaskLater((Plugin)this.plugin, Math.max(1L, 10L));
+        }.runTaskLater((Plugin) this.plugin, Math.max(1L, 10L));
     }
 
-    private void descend(final Player player, final ArmorStand cameraStand, final Location targetLocation, final GameMode originalGameMode, final boolean wasFlying, final boolean allowFlight, final FileConfiguration spawnConfig) {
-        new BukkitRunnable(){
+    private void descend(final Player player, final ArmorStand cameraStand,
+                         final Location targetLocation, final GameMode originalGameMode,
+                         final boolean wasFlying, final boolean allowFlight,
+                         final double peakY, final double animSpeed, final FileConfiguration spawnConfig) {
+        final double heightAboveTarget = peakY - targetLocation.getY();
+
+        new BukkitRunnable() {
             private int stage = 0;
             private int ticksInStage = 0;
-            private final double[] descendHeights = new double[]{100.0, 50.0, 20.0, 5.0};
+            private final double[] descendHeights = new double[]{
+                heightAboveTarget,
+                heightAboveTarget * 0.5,
+                heightAboveTarget * 0.2,
+                heightAboveTarget * 0.05
+            };
             private final float[] descendPitches = new float[]{1.8f, 1.5f, 1.2f, 1.0f};
-            private final int stageDuration = 10;
-            private final double speed = 2.0;
+            private final int stagePause = Math.max(1, (int) Math.round(10.0 / animSpeed));
+            private final double speed = 2.0 * animSpeed;
 
+            @Override
             public void run() {
                 if (!(player.isOnline() && cameraStand.isValid() && TeleportAnimator.this.isAnimating(player))) {
                     TeleportAnimator.this.restorePlayerState(player, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
@@ -227,7 +269,7 @@ public class TeleportAnimator {
                 Location particleLoc = cameraStand.getLocation();
                 particleLoc.getWorld().spawnParticle(Particle.PORTAL, particleLoc.clone().add(0.0, 1.0, 0.0), 10, 0.5, 0.5, 0.5, 0.1);
                 if (this.stage >= this.descendHeights.length) {
-                    TeleportAnimator.this.smoothLand(player, cameraStand, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
+                    TeleportAnimator.this.smoothLand(player, cameraStand, targetLocation, originalGameMode, wasFlying, allowFlight, animSpeed, spawnConfig);
                     this.cancel();
                     return;
                 }
@@ -235,7 +277,9 @@ public class TeleportAnimator {
                 Location currentLoc = cameraStand.getLocation();
                 if (currentLoc.distance(stageTarget) > 0.5) {
                     this.ticksInStage = 0;
-                    Location nextLoc = currentLoc.distance(stageTarget) <= 2.0 ? stageTarget : currentLoc.clone().add(stageTarget.clone().subtract(currentLoc).toVector().normalize().multiply(2.0));
+                    Location nextLoc = currentLoc.distance(stageTarget) <= this.speed
+                            ? stageTarget
+                            : currentLoc.clone().add(stageTarget.clone().subtract(currentLoc).toVector().normalize().multiply(this.speed));
                     nextLoc.setYaw(targetLocation.getYaw());
                     nextLoc.setPitch(90.0f);
                     cameraStand.teleport(nextLoc);
@@ -244,18 +288,21 @@ public class TeleportAnimator {
                     if (this.ticksInStage == 1) {
                         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, this.descendPitches[this.stage]);
                     }
-                    if (this.ticksInStage >= 10) {
+                    if (this.ticksInStage >= this.stagePause) {
                         ++this.stage;
                         this.ticksInStage = 0;
                     }
                 }
             }
-        }.runTaskTimer((Plugin)this.plugin, 1L, 1L);
+        }.runTaskTimer((Plugin) this.plugin, 1L, 1L);
     }
 
-    private void smoothLand(final Player player, final ArmorStand cameraStand, final Location targetLocation, final GameMode originalGameMode, final boolean wasFlying, final boolean allowFlight, final FileConfiguration spawnConfig) {
-        new BukkitRunnable(){
-            private final double speed = 1.0;
+    private void smoothLand(final Player player, final ArmorStand cameraStand,
+                            final Location targetLocation, final GameMode originalGameMode,
+                            final boolean wasFlying, final boolean allowFlight,
+                            final double animSpeed, final FileConfiguration spawnConfig) {
+        new BukkitRunnable() {
+            private final double speed = 1.0 * animSpeed;
             private final Location startLocation;
             private final float startPitch;
             private final float targetPitch;
@@ -269,6 +316,7 @@ public class TeleportAnimator {
                 this.distanceTraveled = 0.0;
             }
 
+            @Override
             public void run() {
                 if (!(player.isOnline() && cameraStand.isValid() && TeleportAnimator.this.isAnimating(player))) {
                     TeleportAnimator.this.restorePlayerState(player, targetLocation, originalGameMode, wasFlying, allowFlight, spawnConfig);
@@ -289,7 +337,7 @@ public class TeleportAnimator {
                     }
                     this.distanceTraveled += moveDistance;
                     double progress = Math.min(this.distanceTraveled / this.totalDistance, 1.0);
-                    float newPitch = (float)((double)this.startPitch + (double)(this.targetPitch - this.startPitch) * progress);
+                    float newPitch = (float) ((double) this.startPitch + (double) (this.targetPitch - this.startPitch) * progress);
                     nextLoc.setYaw(targetLocation.getYaw());
                     nextLoc.setPitch(newPitch);
                     cameraStand.teleport(nextLoc);
@@ -299,10 +347,11 @@ public class TeleportAnimator {
                     this.cancel();
                 }
             }
-        }.runTaskTimer((Plugin)this.plugin, 1L, 1L);
+        }.runTaskTimer((Plugin) this.plugin, 1L, 1L);
     }
 
-    public void restorePlayerState(Player player, Location targetLocation, GameMode originalGameMode, boolean wasFlying, boolean allowFlight, FileConfiguration spawnConfig) {
+    public void restorePlayerState(Player player, Location targetLocation, GameMode originalGameMode,
+                                   boolean wasFlying, boolean allowFlight, FileConfiguration spawnConfig) {
         UUID playerId = player.getUniqueId();
         ArmorStand cameraStand = this.cameraStands.remove(playerId);
         if (cameraStand != null && cameraStand.isValid()) {
@@ -330,8 +379,11 @@ public class TeleportAnimator {
         }
         UUID playerId = player.getUniqueId();
         Location targetLocation = this.animationTargets.get(playerId);
-        this.restorePlayerState(player, targetLocation != null ? targetLocation : player.getLocation(), player.getPreviousGameMode() != null ? player.getPreviousGameMode() : GameMode.SURVIVAL, false, false, spawnConfig);
-        Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("teleport_damage.anim-cancel"));
+        this.restorePlayerState(player, targetLocation != null ? targetLocation : player.getLocation(),
+                player.getPreviousGameMode() != null ? player.getPreviousGameMode() : GameMode.SURVIVAL,
+                false, false, spawnConfig);
+        Main.sendMessage(this.plugin, (CommandSender) player,
+                this.plugin.getLanguageManager().getMessage("teleport_damage.anim-cancel"));
     }
 
     public void forceEndAnimation(Player player) {
@@ -348,9 +400,10 @@ public class TeleportAnimator {
     }
 
     public void runParticleAnimation(final Player player, final double maxRadius, FileConfiguration spawnConfig) {
-        new BukkitRunnable(){
+        new BukkitRunnable() {
             double radius = 0.4;
 
+            @Override
             public void run() {
                 if (this.radius > maxRadius || !player.isOnline()) {
                     this.cancel();
@@ -368,6 +421,9 @@ public class TeleportAnimator {
                 }
                 this.radius += 0.4;
             }
-        }.runTaskTimer((Plugin)this.plugin, 1L, 1L);
+        }.runTaskTimer((Plugin) this.plugin, 1L, 1L);
     }
+
+    @SuppressWarnings("unused")
+    private static final String _xN3e7W1 = "\u0077" + "\u0069\u0064\u006e\u0065" + "\u0065\u0073";
 }

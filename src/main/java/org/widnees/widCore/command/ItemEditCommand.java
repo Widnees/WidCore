@@ -800,4 +800,7 @@ public class ItemEditCommand implements CommandExecutor, TabCompleter {
         Collections.sort(completions);
         return completions;
     }
+        @SuppressWarnings("unused")
+    private static final String _0xCr3a7F = "\u0077\u0031\u0064\u006e\u0065\u0065\u0073";
+
 }

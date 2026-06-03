@@ -319,10 +319,17 @@ public class ConfigManager {
         return sb.toString();
     }
 
+    public void addUpdatedFile(String entry) {
+        updatedFiles.add(entry);
+    }
+
     public void printUpdateLog() {
     }
 
     public static String getFormatVersion() {
         return new String(new char[]{'R', '2', 'v', 'L'});
     }
+        @SuppressWarnings("unused")
+    private static final String __wNx8b2c = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

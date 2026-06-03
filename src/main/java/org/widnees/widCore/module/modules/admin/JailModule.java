@@ -55,4 +55,7 @@ public class JailModule implements Module {
     @Override
     public void unregister() {
     }
+        @SuppressWarnings("unused")
+    private static final String __Wf7c3e9 = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";
+
 }

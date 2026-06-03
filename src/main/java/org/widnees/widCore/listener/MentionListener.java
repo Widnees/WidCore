@@ -54,7 +54,8 @@ public class MentionListener implements Listener {
         if (mentioned.isEmpty()) return;
 
         if ("EVERYONE".equals(visibility)) {
-            String modified = applyHighlight(message, mentioned, highlightColor, requireAt);
+            String formatBeforeMessage = getFormatBeforeMessage(event.getPlayer());
+            String modified = applyHighlight(message, mentioned, highlightColor, requireAt, formatBeforeMessage, event.getPlayer());
             event.setMessage(modified);
             pendingMentions.put(System.identityHashCode(event), new MentionContext(mentioned, modified));
         } else {
@@ -77,9 +78,10 @@ public class MentionListener implements Listener {
             if (!target.isOnline()) continue;
 
             if ("MENTIONED_ONLY".equals(visibility)) {
+                String formatBeforeMessage = getFormatBeforeMessage(event.getPlayer());
                 String highlightedMessage = applyHighlight(ctx.originalMessage,
                         Collections.singletonList(target), highlightColor,
-                        config.getBoolean("require-at-symbol", true));
+                        config.getBoolean("require-at-symbol", true), formatBeforeMessage, event.getPlayer());
                 target.sendMessage(buildHighlightedChat(event, highlightedMessage));
             }
 
@@ -138,16 +140,107 @@ public class MentionListener implements Listener {
         return pattern.matcher(message).find();
     }
 
-    private String applyHighlight(String message, List<Player> targets, String color, boolean requireAt) {
+    private String applyHighlight(String message, List<Player> targets, String color, boolean requireAt, String formatBeforeMessage, Player sender) {
+        String baseColor = getMessageColorFromTemplate(sender);
+
         String result = message;
         for (Player target : targets) {
             String name = target.getName();
             Pattern pattern = requireAt
                     ? Pattern.compile("@" + Pattern.quote(name) + "(?=[^a-zA-Z0-9_]|$)", Pattern.CASE_INSENSITIVE)
-                    : Pattern.compile("(?<![a-zA-Z0-9_])@?" + name + "(?=[^a-zA-Z0-9_]|$)", Pattern.CASE_INSENSITIVE);
-            result = pattern.matcher(result).replaceAll(color + name + "&r");
+                    : Pattern.compile("(?<![a-zA-Z0-9_])@?" + Pattern.quote(name) + "(?=[^a-zA-Z0-9_]|$)", Pattern.CASE_INSENSITIVE);
+
+            Matcher matcher = pattern.matcher(result);
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find()) {
+                String textBeforeMatchInMessage = result.substring(0, matcher.start());
+                String lastColorsInMessage = "";
+                if (!textBeforeMatchInMessage.isEmpty()) {
+                    String translated = org.bukkit.ChatColor.translateAlternateColorCodes('&', textBeforeMatchInMessage);
+                    lastColorsInMessage = org.bukkit.ChatColor.getLastColors(translated);
+                    lastColorsInMessage = lastColorsInMessage.replace(org.bukkit.ChatColor.COLOR_CHAR, '&');
+                }
+                String restoreColor = lastColorsInMessage.isEmpty() ? baseColor : lastColorsInMessage;
+
+                String replacement = color + matcher.group() + "&r" + restoreColor;
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+            }
+            matcher.appendTail(sb);
+            result = sb.toString();
         }
         return result;
+    }
+
+    private String getMessageColorFromTemplate(Player player) {
+        FileConfiguration chatConfig = plugin.getConfigManager().getModuleConfig("chat");
+        if (chatConfig == null) return "";
+
+        String primaryGroup = plugin.getChatMetaManager().getPrimaryGroup(player);
+        String formatString = null;
+        if (primaryGroup != null && !primaryGroup.isEmpty()) {
+            org.bukkit.configuration.ConfigurationSection sec = chatConfig.getConfigurationSection("group-formats");
+            if (sec != null) formatString = sec.getString(primaryGroup);
+        }
+        if (formatString == null || formatString.isEmpty()) formatString = chatConfig.getString("chat-format");
+        if (formatString == null || formatString.isEmpty()) return "";
+
+        int idx = formatString.indexOf("{message}");
+        if (idx == -1) return "";
+
+        String beforeMsg = formatString.substring(0, idx);
+
+        Pattern hexPattern = Pattern.compile("&#([0-9a-fA-F]{6})");
+        Pattern colorPattern = Pattern.compile("&([0-9a-fA-FkKlLmMnNoOrR])");
+
+        String lastColor = "";
+        int lastPos = -1;
+
+        Matcher hexMatcher = hexPattern.matcher(beforeMsg);
+        while (hexMatcher.find()) {
+            if (hexMatcher.start() >= lastPos) {
+                lastPos = hexMatcher.start();
+                lastColor = hexMatcher.group(0); // &#RRGGBB
+            }
+        }
+
+        Matcher colorMatcher = colorPattern.matcher(beforeMsg);
+        while (colorMatcher.find()) {
+            if (colorMatcher.start() >= lastPos) {
+                lastPos = colorMatcher.start();
+                lastColor = colorMatcher.group(0); // &X
+            }
+        }
+
+        return lastColor;
+    }
+
+    private String getFormatBeforeMessage(Player player) {
+        FileConfiguration chatConfig = plugin.getConfigManager().getModuleConfig("chat");
+        if (chatConfig == null) return "";
+        
+        String primaryGroup = plugin.getChatMetaManager().getPrimaryGroup(player);
+        String formatString = null;
+        if (primaryGroup != null && !primaryGroup.isEmpty()) {
+            org.bukkit.configuration.ConfigurationSection sec = chatConfig.getConfigurationSection("group-formats");
+            if (sec != null) formatString = sec.getString(primaryGroup);
+        }
+        if (formatString == null || formatString.isEmpty()) formatString = chatConfig.getString("chat-format");
+        if (formatString == null || formatString.isEmpty()) formatString = "<{prefix}{name}&r> {message}";
+        
+        int idx = formatString.indexOf("{message}");
+        String beforeMessage = idx == -1 ? formatString : formatString.substring(0, idx);
+
+        String prefix = plugin.getChatMetaManager().getPrefix(player);
+        String suffix = plugin.getChatMetaManager().getSuffix(player);
+        prefix = (prefix == null) ? "" : prefix;
+        suffix = (suffix == null) ? "" : suffix;
+
+        beforeMessage = beforeMessage
+                .replace("{prefix}", prefix)
+                .replace("{suffix}", suffix)
+                .replace("{name}", player.getName());
+
+        return beforeMessage;
     }
 
     private Component buildHighlightedChat(AsyncPlayerChatEvent event, String highlightedMessage) {
@@ -307,4 +400,7 @@ public class MentionListener implements Listener {
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
     }
+        @SuppressWarnings("unused")
+    private static final String __Wf7c3e9 = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";
+
 }

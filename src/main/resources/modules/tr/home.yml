@@ -11,6 +11,9 @@ teleport-animation: 'gta_style'
 # daha uzaktaysanız körlük efekti uygulanır.
 gta-style-blindness-distance: 100.0
 
+# GTA style animasyon hız çarpanı. 1.0 = normal, 1.5 = %50 daha hızlı, 2.0 = iki kat hız
+gta-style-animation-speed: 1.0
+
 # Işınlanma bekleme süresi (saniye)
 teleport-delay-seconds: 3
 
@@ -42,5 +45,44 @@ menu:
   # Home menüsünde ev konumunu (dünya, x, y, z) göster
   show-location: true
 
+# ===============================
+# BİLDİRİM AYARLARI
+# ===============================
+# Boş bırakılan alanlar gönderilmez.
+# Toast çerçeve türleri: TASK (sarı), GOAL (yeşil), CHALLENGE (mor)
+# Kullanılabilir placeholder'lar: %home%, %time%
+
+notifications:
+  # Bekleme süresi başladığında
+  warmup:
+    chat: "&a%time% saniye içinde '%home%' evine ışınlanacaksınız."
+    title:
+      title: ""
+      subtitle: ""
+      fade-in: 10
+      stay: 40
+      fade-out: 10
+    actionbar: ""
+    toast:
+      item: RED_BED
+      frame: TASK
+      title: ""
+
+  # Işınlanma başarıyla tamamlandığında
+  success:
+    chat: "&aBaşarıyla '%home%' evine ışınlandınız."
+    title:
+      title: "&a&lIşınlandınız!"
+      subtitle: "&7%home%"
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: RED_BED
+      frame: GOAL
+      title: "&a%home% &7evine ulaştınız"
+
+
 # Dokunma
-version: 4
+version: 5

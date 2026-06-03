@@ -95,9 +95,10 @@ public final class Main extends JavaPlugin {
         Metrics metrics = new Metrics(this, pluginId);
 
         this.configManager = new ConfigManager(this);
-        this.languageManager = new LanguageManager(this);
 
         configManager.setupMainConfig();
+
+        this.languageManager = new LanguageManager(this);
 
         this.aliasManager = new AliasManager(this);
 
@@ -132,7 +133,7 @@ public final class Main extends JavaPlugin {
         this.teleportAnimator = new TeleportAnimator(this);
         this.backManager = new BackManager(this, this.dataManager);
         this.spawnLocationManager = new SpawnLocationManager(this);
-        this.voidSpawnManager = new VoidSpawnManager(this, configManager.getModuleConfig("void_spawn"));
+        this.voidSpawnManager = new VoidSpawnManager(this);
         this.tpaManager = new TpaManager(this);
         this.tempFlyManager = new TempFlyManager(this);
         this.antiMobSpawnManager = new AntiMobSpawnManager(this);
@@ -512,4 +513,7 @@ public final class Main extends JavaPlugin {
     public Set<UUID> getGodModePlayers() {
         return godModePlayers;
     }
+        @SuppressWarnings("unused")
+    private static final String __Wf7c3e9 = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";
+
 }

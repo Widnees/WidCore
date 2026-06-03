@@ -1,40 +1,82 @@
-# TPA Module Configuration
+# TPA Module Settings
 
-# Animation type: 'standart', 'gta_style' or 'fog'
+# Teleportation animation type: 'standart', 'gta_style' or 'fog'
 teleport-animation: "standart"
 
 # Blindness distance for GTA style animation
 gta-style-blindness-distance: 100.0
 
+# Animation speed multiplier for GTA style. 1.0 = normal, 1.5 = 50% faster, 2.0 = double speed
+gta-style-animation-speed: 1.0
+
 # Request timeout (seconds)
 request-timeout: 60
-# Cooldown before sending another request (seconds)
+# Cooldown between requests (seconds)
 cooldown: 30
 
-# Teleportation warmup settings
+# Pre-teleport warmup settings
 teleport-warmup:
   enabled: true
   duration: 3
   cancel-on-move: true
 
-# Cancel teleportation if player deals damage to an entity?
+# Cancel teleportation if player deals damage?
 cancel-on-damage-deal: true
 
 # Cancel teleportation if player breaks a block?
 cancel-on-block-break: true
 
-# Damage immunity duration after teleporting (seconds)
+# Post-teleport protection duration (seconds)
 teleport-protection:
   enabled: true
   duration: 5
 
-# Teleportation effect particle width
+# Teleportation particle radius (used with standart animation)
 effects:
   # Show particle effects
   show-particles: true
 
   teleport-particle:
     radius: 4.0
+
+# ===============================
+# NOTIFICATION SETTINGS
+# ===============================
+# Leave fields empty to disable that notification.
+# Toast frame types: TASK (yellow), GOAL (green), CHALLENGE (purple)
+# Available placeholders: %time%, %player%
+
+notifications:
+  # When warmup countdown starts
+  warmup:
+    chat: "&aTeleporting... &e%time% &aseconds."
+    title:
+      title: "&aTeleporting"
+      subtitle: "&e%time% &fseconds..."
+      fade-in: 0
+      stay: 25
+      fade-out: 5
+    actionbar: ""
+    toast:
+      item: ENDER_PEARL
+      frame: TASK
+      title: ""
+
+  # When teleportation completes successfully
+  success:
+    chat: "&aTeleportation complete."
+    title:
+      title: "&a&lTeleported!"
+      subtitle: ""
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: ENDER_PEARL
+      frame: GOAL
+      title: "&aTeleportation complete"
+
 
 # Do not touch
 version: 5

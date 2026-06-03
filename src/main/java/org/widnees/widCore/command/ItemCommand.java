@@ -94,4 +94,7 @@ public class ItemCommand implements CommandExecutor {
 
         return true;
     }
+        @SuppressWarnings("unused")
+    private static final String _xCr7w3n = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";
+
 }

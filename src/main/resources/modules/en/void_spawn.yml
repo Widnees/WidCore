@@ -1,7 +1,30 @@
 # Should each world have its own void spawn point?
-# True: Player goes to the spawn of the world they fell from (if set).
-# False: Always goes to the global void spawn point.
+# True: Player is teleported to the spawn of the world they fell in (if set).
+# False: Always teleport to the global void spawn point.
 per-world-spawn: true
+
+# ===============================
+# NOTIFICATION SETTINGS
+# ===============================
+# Leave fields empty to disable that notification.
+# Toast frame types: TASK (yellow), GOAL (green), CHALLENGE (purple)
+# No placeholders available for this action.
+
+notifications:
+  # When player is rescued from the void and teleported to spawn
+  success:
+    chat: "&aYou were saved from the void!"
+    title:
+      title: "&a&lSaved!"
+      subtitle: "&7Teleported to spawn"
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: TOTEM_OF_UNDYING
+      frame: GOAL
+      title: "&aSaved from the void"
 
 
 # Do not touch

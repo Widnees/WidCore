@@ -23,6 +23,10 @@ import org.widnees.widCore.manager.HomeManager;
 import org.widnees.widCore.manager.TeleportManager;
 import org.widnees.widCore.manager.TextParser;
 import org.widnees.widCore.util.FoliaScheduler;
+import org.widnees.widCore.util.TeleportNotifier;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.*;
 
@@ -306,9 +310,11 @@ public class HomeListener implements Listener {
                     }
 
                     homeManager.teleportWithDelay(player, location, homeName,
-                            () -> Main.sendMessage(plugin, player,
-                                    plugin.getLanguageManager().getMessage("home.success")
-                                            .replace("%home%", homeName)),
+                            () -> {
+                                Map<String, String> pl = new HashMap<>();
+                                pl.put("%home%", homeName);
+                                TeleportNotifier.send(plugin, player, homeManager.getHomeConfig(), "notifications.success", pl);
+                            },
                             null);
                 });
             }
@@ -441,4 +447,7 @@ public class HomeListener implements Listener {
                     plugin.getLanguageManager().getMessage("home.cancelled"));
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _0xCw4d8n = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

@@ -6,6 +6,9 @@ teleport-animation: "standart"
 # GTA stili animasyonda körlük mesafesi
 gta-style-blindness-distance: 100.0
 
+# GTA style animasyon hız çarpanı. 1.0 = normal, 1.5 = %50 daha hızlı, 2.0 = iki kat hız
+gta-style-animation-speed: 1.0
+
 # İstek zaman aşımı (saniye)
 request-timeout: 60
 # Tekrar istek gönderme bekleme süresi (saniye)
@@ -36,5 +39,44 @@ effects:
   teleport-particle:
     radius: 4.0
 
+# ===============================
+# BİLDİRİM AYARLARI
+# ===============================
+# Boş bırakılan alanlar gönderilmez.
+# Toast çerçeve türleri: TASK (sarı), GOAL (yeşil), CHALLENGE (mor)
+# Kullanılabilir placeholder'lar: %time%, %player%
+
+notifications:
+  # Bekleme süresi başladığında (warmup)
+  warmup:
+    chat: "&aIşınlanma başlıyor... &e%time% &asn."
+    title:
+      title: "&aIşınlanma"
+      subtitle: "&e%time% &fsaniye..."
+      fade-in: 0
+      stay: 25
+      fade-out: 5
+    actionbar: ""
+    toast:
+      item: ENDER_PEARL
+      frame: TASK
+      title: ""
+
+  # Işınlanma başarıyla tamamlandığında
+  success:
+    chat: "&aIşınlanma tamamlandı."
+    title:
+      title: "&a&lIşınlandınız!"
+      subtitle: ""
+      fade-in: 10
+      stay: 50
+      fade-out: 20
+    actionbar: ""
+    toast:
+      item: ENDER_PEARL
+      frame: GOAL
+      title: "&aIşınlanma tamamlandı"
+
+
 # Dokunma
-version: 4
+version: 5

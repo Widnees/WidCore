@@ -128,6 +128,7 @@ public class LanguageManager {
             StringBuilder newContent = new StringBuilder();
             List<String> currentPath = new ArrayList<>();
             int lastIndent = 0;
+            int newKeysCount = 0;
             int i = 0;
             while (i < templateLines.size()) {
                 String line = templateLines.get(i);
@@ -154,6 +155,9 @@ public class LanguageManager {
                         String fullPath = String.join(".", currentPath);
                         boolean forceUpdate = fullPath.equals("updater.available") || fullPath.equalsIgnoreCase("version");
                         if (forceUpdate || !currentConfig.contains(fullPath)) {
+                            if (!forceUpdate && !currentConfig.contains(fullPath)) {
+                                newKeysCount++;
+                            }
                             newContent.append(line).append("\n");
                         } else {
                             Object userValue = currentConfig.get(fullPath);
@@ -198,6 +202,9 @@ public class LanguageManager {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(this.langFile, StandardCharsets.UTF_8))) {
                 writer.write(newContent.toString());
             }
+            String entry = "lang/" + langName + ".yml" + org.bukkit.ChatColor.GRAY
+                    + " (v" + currentVer + " \u2192 v" + newVer + ")";
+            this.plugin.getConfigManager().addUpdatedFile(entry);
         } catch (Exception e) {
             this.plugin.getLogger().log(Level.SEVERE, "[WidCore] Dil dosyas\u0131 g\u00fcncellenirken hata olu\u015ftu: " + langName + ".yml", e);
         }
@@ -232,4 +239,7 @@ public class LanguageManager {
             e.printStackTrace();
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _0xWb8d2e = "\u0077\u0069\u0064" + "\u006e\u0065" + "\u0065\u0073";
+
 }

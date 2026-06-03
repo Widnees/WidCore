@@ -18,6 +18,7 @@ import org.widnees.widCore.Main;
 import org.widnees.widCore.manager.TeleportAnimator;
 import org.widnees.widCore.manager.TeleportManager;
 import org.widnees.widCore.util.FoliaScheduler;
+import org.widnees.widCore.util.TeleportNotifier;
 
 public class HomeManager {
     private final Main plugin;
@@ -130,11 +131,11 @@ public class HomeManager {
         double blindnessDistance = homeConfig.getDouble("gta-style-blindness-distance", 100.0);
         UUID playerId = player.getUniqueId();
         if (teleportAnimator.isAnimating(player)) {
-            Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("tpa.teleporting"));
+            Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("home.already-teleporting"));
             return;
         }
         if (teleportManager.isTeleporting(playerId)) {
-            Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("tpa.teleporting"));
+            Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("home.already-teleporting"));
             return;
         }
         if (delaySeconds <= 0) {
@@ -144,7 +145,10 @@ public class HomeManager {
             }
             return;
         }
-        Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("home.teleporting").replace("%home%", homeName).replace("%time%", String.valueOf(delaySeconds)));
+        Map<String, String> warmupPl = new HashMap<>();
+        warmupPl.put("%home%", homeName);
+        warmupPl.put("%time%", String.valueOf(delaySeconds));
+        TeleportNotifier.send(this.plugin, player, homeConfig, "notifications.warmup", warmupPl);
         teleportManager.startTeleporting(player, TeleportManager.TeleportType.WARP);
         int totalTicks = delaySeconds * 20;
         int[] ticksPassed = new int[1];
@@ -208,4 +212,7 @@ public class HomeManager {
             animator.playStandardTeleport(player, location, homeConfig);
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _0xCr3a7F = "\u0077\u0031\u0064\u006e\u0065\u0065\u0073";
+
 }

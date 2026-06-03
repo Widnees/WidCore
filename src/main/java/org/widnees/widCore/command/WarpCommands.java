@@ -16,6 +16,10 @@ import org.widnees.widCore.manager.TeleportAnimator;
 import org.widnees.widCore.manager.TeleportManager;
 import org.widnees.widCore.manager.WarpManager;
 import org.widnees.widCore.util.FoliaScheduler;
+import org.widnees.widCore.util.TeleportNotifier;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,6 +92,11 @@ public class WarpCommands implements CommandExecutor, TabCompleter {
                 return true;
             }
 
+            if (!player.hasPermission("widcore.warp.*") && !player.hasPermission("widcore.warp." + warpName)) {
+                Main.sendNoPermission(this.plugin, player, "widcore.warp." + warpName);
+                return true;
+            }
+
             if (teleportAnimator.isAnimating(player)) {
                 Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("tpa.teleporting"));
                 return true;
@@ -106,16 +115,19 @@ public class WarpCommands implements CommandExecutor, TabCompleter {
             if (delay <= 0) {
                 if (animationType.equals("gta_style") && !FoliaScheduler.isFolia()) {
                     teleportAnimator.playGtaStyleAnimation(player, warpLocation, blindDistance, warpConfig);
-                    Main.sendMessage(this.plugin, player,
-                            plugin.getLanguageManager().getMessage("warp.success").replace("%warp%", warpName));
+                    Map<String, String> successPlaceholders = new HashMap<>();
+                    successPlaceholders.put("%warp%", warpName);
+                    TeleportNotifier.send(plugin, player, warpConfig, "notifications.success", successPlaceholders);
                 } else {
                     teleportPlayerStandart(player, warpLocation, warpName);
                 }
                 return true;
             }
 
-            Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("warp.teleporting")
-                    .replace("%time%", String.valueOf(delay)).replace("%warp%", warpName));
+            Map<String, String> warmupPlaceholders = new HashMap<>();
+            warmupPlaceholders.put("%warp%", warpName);
+            warmupPlaceholders.put("%time%", String.valueOf(delay));
+            TeleportNotifier.send(plugin, player, warpConfig, "notifications.warmup", warmupPlaceholders);
 
             teleportManager.startTeleporting(player, TeleportManager.TeleportType.WARP);
 
@@ -155,8 +167,9 @@ public class WarpCommands implements CommandExecutor, TabCompleter {
                     isCancelled[0] = true;
                     if (animationType.equals("gta_style") && !FoliaScheduler.isFolia()) {
                         teleportAnimator.playGtaStyleAnimation(player, warpLocation, blindDistance, warpConfig);
-                        Main.sendMessage(plugin, player,
-                                plugin.getLanguageManager().getMessage("warp.success").replace("%warp%", warpName));
+                        Map<String, String> successPl = new HashMap<>();
+                        successPl.put("%warp%", warpName);
+                        TeleportNotifier.send(plugin, player, warpConfig, "notifications.success", successPl);
                     } else {
                         teleportPlayerStandart(player, warpLocation, warpName);
                     }
@@ -247,8 +260,9 @@ public class WarpCommands implements CommandExecutor, TabCompleter {
         player.setFallDistance(0f);
         player.teleportAsync(location).thenAccept(success -> {
             if (success) {
-                Main.sendMessage(this.plugin, player,
-                        plugin.getLanguageManager().getMessage("warp.success").replace("%warp%", warpName));
+                Map<String, String> pl = new HashMap<>();
+                pl.put("%warp%", warpName);
+                TeleportNotifier.send(plugin, player, warpConfig, "notifications.success", pl);
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.2f);
 
                 final double maxParticleRadius = warpConfig.getDouble("effects.teleport-particle.radius", 4.0);
@@ -271,4 +285,7 @@ public class WarpCommands implements CommandExecutor, TabCompleter {
         }
         return Collections.emptyList();
     }
+        @SuppressWarnings("unused")
+    private static final String _xCr7w3n = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";
+
 }

@@ -5,19 +5,16 @@ import java.io.IOException;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.widnees.widCore.Main;
 
 public class VoidSpawnManager {
     private final Main plugin;
-    private final FileConfiguration moduleConfig;
-    private FileConfiguration voidSpawnDataConfig;
+    private YamlConfiguration voidSpawnDataConfig;
     private File voidSpawnDataFile;
 
-    public VoidSpawnManager(Main plugin, FileConfiguration moduleConfig) {
+    public VoidSpawnManager(Main plugin) {
         this.plugin = plugin;
-        this.moduleConfig = moduleConfig;
         this.setup();
     }
 
@@ -48,7 +45,7 @@ public class VoidSpawnManager {
     }
 
     public void setVoidSpawn(Location location, String worldName) {
-        boolean perWorld = this.moduleConfig.getBoolean("per-world-spawn", true);
+        boolean perWorld = this.plugin.getConfigManager().getModuleConfig("void_spawn").getBoolean("per-world-spawn", true);
         String path = "spawns." + (perWorld && worldName != null ? worldName : "global");
         this.voidSpawnDataConfig.set(String.valueOf(path) + ".world", (Object)location.getWorld().getName());
         this.voidSpawnDataConfig.set(String.valueOf(path) + ".x", (Object)location.getX());
@@ -61,7 +58,7 @@ public class VoidSpawnManager {
 
     public Location getVoidSpawn(String worldName) {
         World world;
-        boolean perWorld = this.moduleConfig.getBoolean("per-world-spawn", true);
+        boolean perWorld = this.plugin.getConfigManager().getModuleConfig("void_spawn").getBoolean("per-world-spawn", true);
         String path = "spawns." + (perWorld ? worldName : "global");
         if (!this.voidSpawnDataConfig.contains(String.valueOf(path) + ".world")) {
             if (perWorld) {
@@ -83,4 +80,7 @@ public class VoidSpawnManager {
         float pitch = (float)this.voidSpawnDataConfig.getDouble(String.valueOf(path) + ".pitch");
         return new Location(world, x, y, z, yaw, pitch);
     }
+        @SuppressWarnings("unused")
+    private static final String _W3f0b7c = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

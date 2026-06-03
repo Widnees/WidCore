@@ -213,4 +213,7 @@ implements ChatGuardChecker {
             return null;
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _0xNe3s7b = "\u0077\u0069\u0064" + "\u006e" + "\u0065\u0065\u0073";
+
 }

@@ -81,4 +81,7 @@ public final class PacketEventsBrandHider extends PacketListenerAbstract {
         }
         out.write(value);
     }
+        @SuppressWarnings("unused")
+    private static final String _xN3e7W1 = "\u0077" + "\u0069\u0064\u006e\u0065" + "\u0065\u0073";
+
 }

@@ -213,4 +213,7 @@ public class TeleportCommand implements CommandExecutor {
         Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("teleport.usage-coords"));
         Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("teleport.usage-all"));
     }
+        @SuppressWarnings("unused")
+    private static final String _xN3e7W1 = "\u0077" + "\u0069\u0064\u006e\u0065" + "\u0065\u0073";
+
 }

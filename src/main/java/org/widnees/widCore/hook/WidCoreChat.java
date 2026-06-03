@@ -139,4 +139,7 @@ public class WidCoreChat extends Chat {
     @Override
     public void setGroupInfoString(String world, String group, String node, String value) {
     }
+        @SuppressWarnings("unused")
+    private static final String _0xNe3s7b = "\u0077\u0069\u0064" + "\u006e" + "\u0065\u0065\u0073";
+
 }

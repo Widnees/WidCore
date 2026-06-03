@@ -90,4 +90,7 @@ public class SpawnLocationManager {
     public void reloadConfig() {
         this.spawnConfig = YamlConfiguration.loadConfiguration((File)this.spawnFile);
     }
+        @SuppressWarnings("unused")
+    private static final String __wNx8b2c = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
+
 }

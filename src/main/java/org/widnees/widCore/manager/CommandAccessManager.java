@@ -241,4 +241,7 @@ public class CommandAccessManager {
             return list.stream().map(s -> s == null ? "" : s.toLowerCase(Locale.ROOT)).collect(Collectors.toList());
         }
     }
+        @SuppressWarnings("unused")
+    private static final String _xW3c9f4 = "\u0077\u0069\u0064\u006e\u0065\u0065\u0073";
+
 }

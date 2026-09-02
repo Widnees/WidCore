@@ -21,10 +21,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * In-memory index of every known player name. Loaded once asynchronously so
- * tab-complete never calls {@code Bukkit.getOfflinePlayers()} on the main thread.
- */
 public class PlayerNameCache implements Listener {
 
     private final Main plugin;
@@ -44,10 +40,6 @@ public class PlayerNameCache implements Listener {
         this.stopped = true;
     }
 
-    /**
-     * Resolve a known player without a Mojang name lookup.
-     * Returns {@code null} when the name is not in the cache (never played / still loading).
-     */
     public OfflinePlayer resolveKnown(String name) {
         if (name == null || name.isEmpty()) {
             return null;
@@ -77,11 +69,6 @@ public class PlayerNameCache implements Listener {
         return uuidToName.get(uuid);
     }
 
-    /**
-     * Tab-complete against cached names. Never touches disk.
-     *
-     * @param includeOffline {@code true} for invsee/ec/irp; {@code false} for online-only commands
-     */
     public List<String> complete(CommandSender sender, String prefix, boolean includeOffline) {
         List<String> source;
         if (includeOffline) {
@@ -163,9 +150,6 @@ public class PlayerNameCache implements Listener {
         }
     }
 
-    /**
-     * @return {@code true} when the mapping changed
-     */
     private boolean put(UUID uuid, String name) {
         String previous = uuidToName.put(uuid, name);
         if (previous != null && !previous.equalsIgnoreCase(name)) {

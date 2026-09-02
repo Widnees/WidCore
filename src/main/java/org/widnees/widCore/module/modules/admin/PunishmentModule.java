@@ -88,7 +88,6 @@ public class PunishmentModule implements Module {
             moduleManager.registerCommand(this, "kickip", kickIpDesc, kickIpUsage, "widcore.kickip", null, punishmentCommand);
         }
 
-        // IP mute commands — require mute feature
         if (plugin.getConfig().getBoolean("features.punishment_mute", false)) {
             String muteIpDesc = plugin.getLanguageManager().getMessage("punishment.command.muteip.description");
             String muteIpUsage = plugin.getLanguageManager().getMessage("punishment.command.muteip.usage");

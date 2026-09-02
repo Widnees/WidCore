@@ -237,7 +237,7 @@ public class AnnouncerManager {
                         break;
                     }
                     if (isHex) {
-                        i += 13; 
+                        i += 13;
                         isBold = false;
                         continue;
                     }
@@ -249,7 +249,7 @@ public class AnnouncerManager {
                     } else if (Character.toLowerCase(next) == 'r' || "0123456789abcdefABCDEF".indexOf(Character.toLowerCase(next)) != -1) {
                         isBold = false;
                     }
-                    i++; // Sonraki karakteri atla
+                    i++;
                     continue;
                 }
             }
@@ -285,13 +285,13 @@ public class AnnouncerManager {
 
             DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
             messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
-            messagePxSize++; // Karakterler arası 1px boşluk
+            messagePxSize++;
         }
 
         int halvedMessageSize = messagePxSize / 2;
-        int toCompensate = 154 - halvedMessageSize; // 154 = CENTER_PX
+        int toCompensate = 154 - halvedMessageSize;
 
-        int spaceLength = DefaultFontInfo.SPACE.getLength() + 1; // 3 + 1 = 4
+        int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
         int spaces = toCompensate / spaceLength;
 
         if (spaces <= 0) {

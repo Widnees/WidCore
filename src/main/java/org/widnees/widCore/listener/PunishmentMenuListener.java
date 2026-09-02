@@ -27,9 +27,7 @@ public class PunishmentMenuListener implements Listener {
     private final Main plugin;
     private final PunishmentMenuManager menuManager;
 
-    // UUID -> isBanList (true = ban, false = mute)
     private final Map<UUID, Boolean> awaitingInput = new ConcurrentHashMap<>();
-    // UUID -> countdown task id
     private final Map<UUID, Integer> countdownTasks = new ConcurrentHashMap<>();
 
     public PunishmentMenuListener(Main plugin, PunishmentMenuManager menuManager) {
@@ -60,7 +58,6 @@ public class PunishmentMenuListener implements Listener {
 
         switch (clickedSlot) {
             case 45:
-                // Search button - close menu and enter chat input mode
                 player.closeInventory();
                 startSearchInput(player, isBanList);
                 break;
@@ -80,7 +77,6 @@ public class PunishmentMenuListener implements Listener {
                 menuManager.setReopening(player.getUniqueId(), false);
                 break;
             case 53:
-                // Filter button - cycle to next filter
                 FilterType nextFilter = menuManager.nextFilter(currentFilter);
                 menuManager.setReopening(player.getUniqueId(), true);
                 menuManager.openPunishmentListMenu(player, 1, isBanList, nextFilter);
@@ -96,7 +92,6 @@ public class PunishmentMenuListener implements Listener {
             if (event.getPlayer() instanceof Player) {
                 Player player = (Player) event.getPlayer();
                 UUID uuid = player.getUniqueId();
-                // Skip clear if: player is reopening menu (filter/page change), or entering search mode
                 if (!awaitingInput.containsKey(uuid) && !menuManager.isReopening(uuid)) {
                     menuManager.clearState(uuid);
                 }
@@ -117,17 +112,14 @@ public class PunishmentMenuListener implements Listener {
         String cancelCommand = plugin.getLanguageManager().getMessage("punishment_menu.search-cancel-command");
         String message = event.getMessage().trim();
 
-        // Cancel countdown task
         cancelCountdown(uuid);
         awaitingInput.remove(uuid);
 
-        // Clear title
         Bukkit.getScheduler().runTask(plugin, () -> {
             player.clearTitle();
         });
 
         if (message.equalsIgnoreCase(cancelCommand)) {
-            // Cancelled
             String cancelMsg = plugin.getLanguageManager().getMessage("punishment_menu.search-cancelled");
             Bukkit.getScheduler().runTask(plugin, () -> {
                 player.sendMessage(TextParser.colorize(cancelMsg));
@@ -136,7 +128,6 @@ public class PunishmentMenuListener implements Listener {
             return;
         }
 
-        // Set search and reopen menu on main thread
         String searchName = message;
         Bukkit.getScheduler().runTask(plugin, () -> {
             menuManager.setCurrentSearch(uuid, searchName);
@@ -151,7 +142,6 @@ public class PunishmentMenuListener implements Listener {
         String cancelCommand = plugin.getLanguageManager().getMessage("punishment_menu.search-cancel-command");
         String titleText = plugin.getLanguageManager().getMessage("punishment_menu.search-title");
 
-        // Start countdown
         int[] seconds = {10};
         int taskId = new BukkitRunnable() {
             @Override
@@ -161,7 +151,6 @@ public class PunishmentMenuListener implements Listener {
                     return;
                 }
                 if (seconds[0] <= 0) {
-                    // Timeout
                     awaitingInput.remove(uuid);
                     countdownTasks.remove(uuid);
                     player.clearTitle();
@@ -198,10 +187,6 @@ public class PunishmentMenuListener implements Listener {
         }
     }
 
-    /**
-     * Called on plugin disable/reload. Cancels all pending search countdowns
-     * and clears the awaiting-input state so no player is left chat-blocked.
-     */
     public void shutdown() {
         for (UUID uuid : new java.util.HashSet<>(countdownTasks.keySet())) {
             cancelCountdown(uuid);

@@ -43,7 +43,6 @@ public class CommandAccessManager {
         this.groups.clear();
         ConfigurationSection groupSec = this.config.getConfigurationSection("groups");
 
-        // First pass: collect raw string lists and priority for every group
         Map<String, List<String>> rawCmd = new LinkedHashMap<>();
         Map<String, List<String>> rawTab = new LinkedHashMap<>();
         Map<String, Integer> rawPriority = new LinkedHashMap<>();
@@ -62,7 +61,6 @@ public class CommandAccessManager {
             }
         }
 
-        // Second pass: resolve {group:xxx} references, then build GroupRules
         for (String groupName : rawCmd.keySet()) {
             List<String> cmd = CommandAccessManager.resolveGroupRefs(groupName, rawCmd, true, new HashSet<>());
             List<String> tab = CommandAccessManager.resolveGroupRefs(groupName, rawTab, false, new HashSet<>());
@@ -78,22 +76,11 @@ public class CommandAccessManager {
         this.groups.putIfAbsent("default", new GroupRules("default"));
     }
 
-    /**
-     * Resolves a group's raw list, expanding any {@code {group:xxx}} entries
-     * by substituting the matching group's list from {@code allRaw}.
-     * {@code visited} prevents infinite loops from circular references.
-     *
-     * @param groupName the group whose list is being resolved
-     * @param allRaw    map of raw (unresolved) lists for all groups
-     * @param isCmd     unused distinction kept for future use; resolution logic is symmetric
-     * @param visited   groups already being expanded in the current call chain
-     */
     private static List<String> resolveGroupRefs(String groupName,
                                                   Map<String, List<String>> allRaw,
                                                   boolean isCmd,
                                                   Set<String> visited) {
         if (visited.contains(groupName)) {
-            // Circular reference – skip to avoid infinite loop
             return new ArrayList<>();
         }
         visited.add(groupName);
@@ -104,12 +91,10 @@ public class CommandAccessManager {
             if (trimmed.startsWith("{group:") && trimmed.endsWith("}")) {
                 String refName = trimmed.substring(7, trimmed.length() - 1).trim();
                 if (!refName.isEmpty() && allRaw.containsKey(refName)) {
-                    // Recurse with a copy of visited so sibling refs aren't blocked
                     List<String> refResolved = CommandAccessManager.resolveGroupRefs(
                             refName, allRaw, isCmd, new HashSet<>(visited));
                     resolved.addAll(refResolved);
                 }
-                // If the referenced group doesn't exist, silently skip
             } else {
                 resolved.add(entry);
             }

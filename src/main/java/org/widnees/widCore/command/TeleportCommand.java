@@ -189,7 +189,6 @@ public class TeleportCommand implements CommandExecutor {
             if (visible != null) {
                 return visible;
             }
-            // Partial match only among players visible to the viewer
             String lowerCaseName = partialName.toLowerCase();
             List<Player> matches = new ArrayList<>();
             for (Player onlinePlayer : plugin.getVanishManager().getVisiblePlayers(viewer)) {

@@ -13,25 +13,8 @@ import org.widnees.widCore.manager.CommandAccessManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Intercepts the Brigadier DECLARE_COMMANDS packet and removes commands
- * that should not be visible to the player.
- *
- * Strategy:
- * - Namespace commands (containing ":") are ALWAYS removed — they are plugin
- *   implementation details that should never be exposed to players.
- * - Allow-list filtering (which commands each group can see) is handled by
- *   TabCompleteGuardListener via PlayerCommandSendEvent for Bukkit-registered
- *   commands. This listener extends that coverage to Brigadier-only commands.
- *
- * IMPORTANT: Re-encoding a WrapperPlayServerDeclareCommands packet is expensive
- * and may cause issues on some server versions. We are conservative: we only
- * modify the packet when namespace commands are present, and we do full
- * allow-list filtering for Brigadier-only commands (those not in Bukkit's map).
- */
 public final class PacketEventsBrigadierHider extends PacketListenerAbstract {
 
-    // Node type flag bits (lower 2 bits): 0=root, 1=literal, 2=argument
     private static final int NODE_TYPE_LITERAL = 1;
 
     private final CommandAccessManager access;
@@ -86,7 +69,6 @@ public final class PacketEventsBrigadierHider extends PacketListenerAbstract {
                 }
                 Node child = nodes.get(childIdx);
                 int nodeType = child.getFlags() & 0x03;
-                // Only filter literal nodes; argument/root nodes stay untouched
                 if (nodeType != NODE_TYPE_LITERAL) {
                     filteredChildren.add(childIdx);
                     continue;
@@ -96,12 +78,10 @@ public final class PacketEventsBrigadierHider extends PacketListenerAbstract {
                     filteredChildren.add(childIdx);
                     continue;
                 }
-                // Always remove namespace commands (e.g. "minecraft:gamemode")
                 if (name.contains(":")) {
                     changed = true;
                     continue;
                 }
-                // Allow-list: hide commands not visible to this player
                 if (!access.isRootVisible(fp, name)) {
                     changed = true;
                     continue;
@@ -114,7 +94,6 @@ public final class PacketEventsBrigadierHider extends PacketListenerAbstract {
                 event.markForReEncode(true);
             }
         } catch (Exception e) {
-            // Never break packet flow — tab-complete is non-critical
         }
     }
 

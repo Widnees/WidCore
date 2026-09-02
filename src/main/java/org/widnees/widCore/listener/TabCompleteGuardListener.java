@@ -24,10 +24,6 @@ public class TabCompleteGuardListener implements Listener {
     }
 
 
-    /**
-     * Legacy command list filter (Bukkit/Spigot command map).
-     * Removes namespace commands and commands not visible to the player.
-     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerCommandSend(PlayerCommandSendEvent event) {
         Player player = event.getPlayer();
@@ -35,7 +31,6 @@ public class TabCompleteGuardListener implements Listener {
 
         Set<String> allowed = new HashSet<>(event.getCommands());
         for (String cmd : event.getCommands()) {
-            // Namespace'li komutları (pluginadi:komut) her zaman gizle
             if (cmd.contains(":")) {
                 allowed.remove(cmd);
                 continue;
@@ -57,7 +52,6 @@ public class TabCompleteGuardListener implements Listener {
 
         Player player = event.getSender() instanceof Player ? (Player) event.getSender() : null;
 
-        // Always hide vanished names (even for plugin-hider bypass), unless viewer has vanish.see
         filterVanishedPlayerCompletions(event, player);
 
         if (access.hasBypass(player)) return;

@@ -197,7 +197,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
                         FoliaScheduler.runTaskLater(mainPlugin, () ->
                                 sendPlayerInfoUpdateListed(observer, fakeUuid, false), 2L);
                     }, 2L);
-                    return; 
+                    return;
                 }
             }
         } catch (Exception e) {
@@ -546,10 +546,6 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
         }
     }
 
-    /**
-     * Ender Dragon model faces opposite of player yaw (+180°).
-     * Other entities use player yaw as-is.
-     */
     private static float getAdjustedYaw(float yaw, DisguiseManager.DisguiseData data) {
         if (data != null
                 && data.getType() == DisguiseManager.DisguiseType.ENTITY

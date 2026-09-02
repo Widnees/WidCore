@@ -108,7 +108,6 @@ public class VanishListener implements Listener {
         Player player = event.getPlayer();
 
         if (vanishManager.isVanished(player)) {
-            // Re-apply SuperVanish-compatible metadata after reconnect
             vanishManager.applyVanishMetadata(player, true);
             sendSelfInvisibilityPacket(player, true);
 

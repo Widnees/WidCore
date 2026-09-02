@@ -11,20 +11,6 @@ import java.io.File;
 import java.util.UUID;
 import java.util.logging.Level;
 
-/**
- * EssentialsX warps klasöründeki YAML dosyalarından warp konumlarını okur
- * ve WidCore WarpManager'a aktarır.
- *
- * Kaynak format (dosya adı: <warp-adı>.yml):
- *   world: <uuid veya isim>
- *   world-name: world
- *   x: 100.0
- *   y: 64.0
- *   z: 200.0
- *   yaw: 0.0
- *   pitch: 0.0
- *   name: <warp-adı>
- */
 public class EssentialsWarpMigrator implements MigrateHandler {
 
     private final Main plugin;
@@ -66,13 +52,11 @@ public class EssentialsWarpMigrator implements MigrateHandler {
                 continue;
             }
 
-            // Warp adı: önce yml içindeki "name" alanı, yoksa dosya adından al
             String warpName = yml.getString("name");
             if (warpName == null || warpName.isEmpty()) {
                 warpName = fileName.replace(".yml", "");
             }
 
-            // Dünya: önce world-name, yoksa world alanını dene
             World world = null;
             String worldName = yml.getString("world-name");
             if (worldName != null) {

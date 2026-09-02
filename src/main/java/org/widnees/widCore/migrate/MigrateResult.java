@@ -3,9 +3,6 @@ package org.widnees.widCore.migrate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Bir migrate işleminin sonucunu tutan basit veri sınıfı.
- */
 public class MigrateResult {
 
     private int success = 0;

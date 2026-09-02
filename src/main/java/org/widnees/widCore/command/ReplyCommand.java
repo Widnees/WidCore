@@ -51,7 +51,6 @@ public class ReplyCommand implements CommandExecutor {
             return true;
         }
 
-        // Vanished targets appear offline to players without vanish.see
         if (plugin.getVanishManager() != null
                 && plugin.getVanishManager().isHiddenFrom(target, sender)) {
             Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("reply.target-offline"));

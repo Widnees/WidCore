@@ -133,7 +133,6 @@ public class MenuManager {
     }
 
     public void openBackupPreviewMenu(Player viewer, InventoryBackup backup, boolean isEnderChest) {
-        // Lazy-load inventory blobs only when preview is opened (not for list menu).
         if (backup != null && !backup.isContentsLoaded()) {
             OfflinePlayer target = this.viewingTarget.get(viewer.getUniqueId());
             UUID targetUuid = target != null ? target.getUniqueId() : null;
@@ -142,7 +141,6 @@ public class MenuManager {
                 if (loaded == null) {
                     return;
                 }
-                // Keep list entry updated with hydrated backup if present.
                 List<InventoryBackup> list = this.loadedBackups.get(viewer.getUniqueId());
                 if (list != null) {
                     for (int i = 0; i < list.size(); i++) {

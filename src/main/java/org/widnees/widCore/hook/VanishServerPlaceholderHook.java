@@ -20,13 +20,6 @@ import org.widnees.widCore.manager.VanishManager;
 import java.util.Locale;
 import java.util.UUID;
 
-/**
- * Makes PlaceholderAPI {@code %server_online%} / {@code %server_online_<world>%}
- * exclude vanished players.
- * <p>
- * Only wraps the built-in {@code server} expansion. Other expansions (e.g. WidAC)
- * are left completely untouched so their placeholders keep working.
- */
 public final class VanishServerPlaceholderHook {
 
     private static final String SERVER_IDENTIFIER = "server";
@@ -40,9 +33,6 @@ public final class VanishServerPlaceholderHook {
         this.plugin = plugin;
     }
 
-    /**
-     * Soft-register: no-op when PlaceholderAPI is missing.
-     */
     public static @Nullable VanishServerPlaceholderHook tryRegister(Main plugin) {
         Plugin papi = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         if (papi == null || !papi.isEnabled()) {
@@ -70,7 +60,6 @@ public final class VanishServerPlaceholderHook {
                 if (expansion instanceof VanishAwareServerExpansion) {
                     return;
                 }
-                // Only re-wrap when the built-in server expansion (re)registers
                 String id = expansion.getIdentifier();
                 if (id != null && SERVER_IDENTIFIER.equalsIgnoreCase(id)) {
                     Bukkit.getScheduler().runTask(plugin, () -> wrapServerExpansion());
@@ -114,7 +103,6 @@ public final class VanishServerPlaceholderHook {
         try {
             PlaceholderHook current = PlaceholderAPI.getPlaceholders().get(SERVER_IDENTIFIER);
 
-            // Already our wrapper
             if (current instanceof VanishAwareServerExpansion) {
                 wrapper = (VanishAwareServerExpansion) current;
                 return;
@@ -125,7 +113,6 @@ public final class VanishServerPlaceholderHook {
                 original = (PlaceholderExpansion) current;
             }
 
-            // Drop previous wrapper if any
             if (wrapper != null) {
                 try {
                     wrapper.unregister();
@@ -160,7 +147,6 @@ public final class VanishServerPlaceholderHook {
         }
     }
 
-    // ── count helpers ────────────────────────────────────────────────────────
 
     static int countVanishedOnline(Main plugin) {
         int vanishedOnline = 0;
@@ -197,7 +183,6 @@ public final class VanishServerPlaceholderHook {
         return count;
     }
 
-    // ── wrapper expansion (server only) ──────────────────────────────────────
 
     private static final class VanishAwareServerExpansion extends PlaceholderExpansion {
 
@@ -253,7 +238,6 @@ public final class VanishServerPlaceholderHook {
             String key = params.toLowerCase(Locale.ROOT);
             VanishManager vanish = plugin.getVanishManager();
 
-            // Vanish-aware online counts
             if (key.equals("online")) {
                 return String.valueOf(vanish != null
                         ? vanish.getOnlineCountExcludingVanished()
@@ -269,11 +253,9 @@ public final class VanishServerPlaceholderHook {
                 }
             }
 
-            // Everything else: full delegation to the original server expansion
             if (original == null) {
                 return null;
             }
-            // Prefer onRequest (modern expansions); fall back to onPlaceholderRequest
             String result = original.onRequest(player, params);
             if (result != null) {
                 return result;

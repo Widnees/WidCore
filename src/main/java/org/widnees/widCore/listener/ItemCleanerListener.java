@@ -46,21 +46,16 @@ public class ItemCleanerListener implements Listener {
     public void onItemSpawn(ItemSpawnEvent event) {
         final Item item = event.getEntity();
 
-        // Already-fake at spawn (some plugins). Vanilla /give calls makeFakeItem()
-        // AFTER this event, so the delayed task below is the real guard.
         if (itemCleanerManager.isGiveAnimationItem(item)) {
             return;
         }
 
-        // Capture delay now: vanilla /give still has the default delay here and
-        // only raises it to Short.MAX_VALUE after the event returns.
         final int spawnPickupDelay = item.getPickupDelay();
 
         FoliaScheduler.runAtEntityLater(plugin, item, () -> {
             if (item == null || !item.isValid()) {
                 return;
             }
-            // Delay jumped to never-pickup after spawn = vanilla /give visual copy.
             if (spawnPickupDelay < Short.MAX_VALUE && item.getPickupDelay() >= Short.MAX_VALUE) {
                 return;
             }

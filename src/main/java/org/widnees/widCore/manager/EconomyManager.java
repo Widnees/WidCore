@@ -49,11 +49,8 @@ public class EconomyManager {
                     }
                 }
             }, this.plugin);
-            // Periodically re-register for the first ~30 seconds after startup so that
-            // plugins which load their economy late (EssentialsX, CMI, etc.) cannot
-            // permanently override WidCore as the active Vault Economy provider.
             final int[] attempts = {0};
-            final int maxAttempts = 30; // 30 × 20 ticks = ~30 seconds
+            final int maxAttempts = 30;
             final Object[] taskHolder = {null};
             taskHolder[0] = FoliaScheduler.runTaskTimer((Plugin) this.plugin, () -> {
                 attempts[0]++;
@@ -94,9 +91,6 @@ public class EconomyManager {
     }
 
     private void loadEconomy() {
-        // Register Vault immediately so other plugins that check for an economy
-        // provider during their own onEnable() find one right away. The balance
-        // map will be populated shortly after by the async callback below.
         this.setupVault();
         this.plugin.getDataManager().loadEconomy(loadedData -> {
             this.balances.clear();
@@ -145,10 +139,6 @@ public class EconomyManager {
 
     public void shutdown() {
         this.saveEconomy();
-        // Unregister from Vault so stale provider instances don't linger after
-        // a PlugMan reload — otherwise the old WidCoreEconomy object remains
-        // registered and PAPI reads from it (with no balances) instead of the
-        // newly registered instance.
         if (this.vaultImpl != null && Bukkit.getPluginManager().isPluginEnabled("Vault")) {
             Bukkit.getServicesManager().unregister(Economy.class, this.vaultImpl);
         }

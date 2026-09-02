@@ -13,21 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-/**
- * EssentialsX playerdata klasöründeki YAML dosyalarından home bilgilerini okur
- * ve WidCore BinaryDataManager (setPlayerHomes) üzerinden kaydeder.
- *
- * Kaynak format (dosya adı: <uuid>.yml):
- *   homes:
- *     home:
- *       world: 596a9e4c-...  # world UUID — world-name ile birlikte gelebilir
- *       world-name: world
- *       x: 100.0
- *       y: 64.0
- *       z: 200.0
- *       yaw: 0.0
- *       pitch: 0.0
- */
 public class EssentialsHomeMigrator implements MigrateHandler {
 
     private final Main plugin;
@@ -85,7 +70,6 @@ public class EssentialsHomeMigrator implements MigrateHandler {
                 ConfigurationSection homeData = homesSection.getConfigurationSection(homeName);
                 if (homeData == null) continue;
 
-                // Önce world-name, yoksa world alanını dene (UUID string veya isim olabilir)
                 World world = null;
                 String worldName = homeData.getString("world-name");
                 if (worldName != null) {
@@ -94,7 +78,6 @@ public class EssentialsHomeMigrator implements MigrateHandler {
                 if (world == null) {
                     String worldField = homeData.getString("world");
                     if (worldField != null) {
-                        // UUID formatında mı?
                         try {
                             UUID worldUuid = UUID.fromString(worldField);
                             world = Bukkit.getWorld(worldUuid);
@@ -105,7 +88,6 @@ public class EssentialsHomeMigrator implements MigrateHandler {
                 }
 
                 if (world == null) {
-                    // Dünya yüklü değil — log ve atla
                     String missing = worldName != null ? worldName : homeData.getString("world", "?");
                     result.addSkipped();
                     result.addMessage("§eHome '" + homeName + "' atlandı (" + fileName + "): dünya bulunamadı → " + missing);

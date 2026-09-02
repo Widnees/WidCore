@@ -80,15 +80,12 @@ public class DisguiseListener implements Listener {
 
         String rawMessage = ChatFormatListener.stripPlayerColorCodes(event.getMessage());
 
-        // Disguised message: use the same format as ChatFormatListener but with disguised name
         String disguisedFormatString = ChatFormatListener.getFormatForPlayer(plugin, player);
         String disguisedFormatApplied = ChatFormatListener.applyChatPlaceholders(
                 plugin, player, disguisedFormatString, rawMessage);
-        // Replace the real player name with the disguised name in the resolved format
         disguisedFormatApplied = disguisedFormatApplied.replace(realName, disguisedName);
         Component disguisedComponent = TextParser.parse(disguisedFormatApplied);
 
-        // Real message: for the impersonated player who gets to see the real sender's name
         String realFormatString = ChatFormatListener.getFormatForPlayer(plugin, player);
         String realFormatApplied = ChatFormatListener.applyChatPlaceholders(
                 plugin, player, realFormatString, rawMessage);

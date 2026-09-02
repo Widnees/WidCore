@@ -7,10 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * MariaDB/MySQL dump (.sql) dosyasından INSERT INTO satırlarını parse eden sınıf.
- * bit(1): '\0' = false, raw 0x01 byte = true
- */
 public final class LitebansDumpParser {
 
     static final UUID CONSOLE_UUID =

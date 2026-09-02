@@ -70,9 +70,7 @@ public class MentionListener implements Listener {
         MentionContext ctx = pendingMentions.remove(key);
         if (ctx == null || ctx.mentioned.isEmpty()) return;
 
-        // If the event was cancelled by a mute plugin (not by ChatFormatListener), skip mention delivery
         if (event.isCancelled() && !ChatFormatListener.FORMAT_CANCELLED_EVENTS.remove(key)) return;
-        // If it was a format-cancel, remove from set (already done above via remove())
         ChatFormatListener.FORMAT_CANCELLED_EVENTS.remove(key);
 
         String visibility = config.getString("highlight-visibility", "MENTIONED_ONLY").toUpperCase();
@@ -208,7 +206,7 @@ public class MentionListener implements Listener {
         while (hexMatcher.find()) {
             if (hexMatcher.start() >= lastPos) {
                 lastPos = hexMatcher.start();
-                lastColor = hexMatcher.group(0); // &#RRGGBB
+                lastColor = hexMatcher.group(0);
             }
         }
 
@@ -216,7 +214,7 @@ public class MentionListener implements Listener {
         while (colorMatcher.find()) {
             if (colorMatcher.start() >= lastPos) {
                 lastPos = colorMatcher.start();
-                lastColor = colorMatcher.group(0); // &X
+                lastColor = colorMatcher.group(0);
             }
         }
 
@@ -226,7 +224,7 @@ public class MentionListener implements Listener {
     private String getFormatBeforeMessage(Player player) {
         FileConfiguration chatConfig = plugin.getConfigManager().getModuleConfig("chat");
         if (chatConfig == null) return "";
-        
+
         String primaryGroup = plugin.getChatMetaManager().getPrimaryGroup(player);
         String formatString = null;
         if (primaryGroup != null && !primaryGroup.isEmpty()) {
@@ -235,7 +233,7 @@ public class MentionListener implements Listener {
         }
         if (formatString == null || formatString.isEmpty()) formatString = chatConfig.getString("chat-format");
         if (formatString == null || formatString.isEmpty()) formatString = "<{prefix}{name}&r> {message}";
-        
+
         int idx = formatString.indexOf("{message}");
         String beforeMessage = idx == -1 ? formatString : formatString.substring(0, idx);
 

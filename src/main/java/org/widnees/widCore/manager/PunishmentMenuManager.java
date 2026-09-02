@@ -33,7 +33,6 @@ public class PunishmentMenuManager {
     private final Map<UUID, Integer> currentPage = new HashMap<UUID, Integer>();
     private final Map<UUID, FilterType> currentFilter = new HashMap<UUID, FilterType>();
     private final Map<UUID, String> currentSearch = new HashMap<UUID, String>();
-    // Players currently in the process of reopening the menu — close event should not clear state
     private final java.util.Set<UUID> reopening = java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
     public PunishmentMenuManager(Main plugin, PunishmentManager punishmentManager) {
@@ -49,7 +48,6 @@ public class PunishmentMenuManager {
         this.currentSearch.remove(uuid);
     }
 
-    /** @deprecated use clearState */
     public void clearPage(UUID uuid) {
         clearState(uuid);
     }
@@ -96,24 +94,21 @@ public class PunishmentMenuManager {
 
         String title = isBanList ? BAN_LIST_TITLE : MUTE_LIST_TITLE;
 
-        // Apply search filter
         String searchName = getCurrentSearch(viewer.getUniqueId());
 
         ArrayList<Map.Entry<UUID, BinaryDataManager.PunishmentEntry>> sortedList = new ArrayList<>();
         for (java.util.AbstractMap.SimpleEntry<UUID, BinaryDataManager.PunishmentEntry> e : allEntries) {
-            // Search filter
             if (searchName != null) {
                 OfflinePlayer op = Bukkit.getOfflinePlayer(e.getKey());
                 String name = op.getName();
                 if (name == null || !name.equalsIgnoreCase(searchName)) continue;
             }
 
-            // Status filter
             if (filter != FilterType.ALL) {
                 BinaryDataManager.PunishmentEntry entry = e.getValue();
                 boolean isActive;
                 if (entry.expiry == -1L) {
-                    isActive = true; // permanent = active
+                    isActive = true;
                 } else {
                     isActive = System.currentTimeMillis() < entry.expiry;
                 }
@@ -124,7 +119,6 @@ public class PunishmentMenuManager {
             sortedList.add(e);
         }
 
-        // already sorted by timestamp desc from the manager; keep as-is
 
         int itemsPerPage = 28;
         int totalPages = Math.max(1, (int) Math.ceil((double) sortedList.size() / (double) itemsPerPage));
@@ -147,7 +141,6 @@ public class PunishmentMenuManager {
             ++i;
         }
 
-        // Navigation buttons
         if (page > 1) {
             menu.setItem(48, this.createCustomMenuItem(Material.ARROW, this.plugin.getLanguageManager().getMessage("punishment_menu.prev")));
         }
@@ -156,10 +149,8 @@ public class PunishmentMenuManager {
         }
         menu.setItem(49, this.createCustomMenuItem(Material.BARRIER, this.plugin.getLanguageManager().getMessage("punishment_menu.close")));
 
-        // Search button (slot 45)
         menu.setItem(45, this.createSearchButton(searchName));
 
-        // Filter button (slot 53)
         menu.setItem(53, this.createFilterButton(filter));
 
         this.fillBorders(menu);
@@ -190,7 +181,6 @@ public class PunishmentMenuManager {
             meta.setDisplayName(TextParser.colorize(
                     this.plugin.getLanguageManager().getMessage("punishment_menu.filter-button")));
 
-            // Selected = aqua (&b), unselected = white (&f)
             String selectedColor = "&b";
             String normalColor = "&f";
 
@@ -238,7 +228,6 @@ public class PunishmentMenuManager {
             OfflinePlayer punisher = Bukkit.getOfflinePlayer((UUID) entry.punisherUUID);
             punisherName = punisher != null && punisher.getName() != null ? punisher.getName() : unknown;
         }
-        // Determine if active
         boolean isActive;
         if (entry.expiry == -1L) {
             isActive = true;
@@ -254,7 +243,6 @@ public class PunishmentMenuManager {
         lore.add(TextParser.colorize(this.plugin.getLanguageManager().getMessage("punishment_menu.item-date").replace("%date%", this.dateFormat.format(new Date(entry.timestamp)))));
 
         if (isActive) {
-            // Show remaining time for active punishments
             String expiryString = entry.expiry == -1L
                     ? this.plugin.getLanguageManager().getMessage("punishment_menu.permanent")
                     : ((remaining = entry.expiry - System.currentTimeMillis()) > 0L
@@ -262,10 +250,8 @@ public class PunishmentMenuManager {
                             : this.plugin.getLanguageManager().getMessage("punishment_menu.expired"));
             lore.add(TextParser.colorize(this.plugin.getLanguageManager().getMessage("punishment_menu.item-duration").replace("%duration%", expiryString)));
         } else {
-            // Show end date for expired punishments
             String endDateStr = this.dateFormat.format(new Date(entry.expiry));
             lore.add(TextParser.colorize(this.plugin.getLanguageManager().getMessage("punishment_menu.item-end-date").replace("%date%", endDateStr)));
-            // Show who removed it
             String removedBy = entry.removedBy != null
                     ? entry.removedBy
                     : this.plugin.getLanguageManager().getMessage("punishment_menu.removed-by-expired");

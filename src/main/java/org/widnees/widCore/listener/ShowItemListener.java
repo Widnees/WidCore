@@ -32,7 +32,6 @@ public class ShowItemListener implements Listener {
     private final Main plugin;
     private final ShowItemManager showItemManager;
     private static final String INTERNAL_COMMAND_PREFIX = "/widcore-show-item-internal";
-    // Unique token that cannot appear in normal chat; used to splice Component into formatted chat
     private static final String MESSAGE_PLACEHOLDER = "⟦WIDCORE_SHOWITEM_MSG⟧";
 
     private static final Map<String, ShowItemCallback> pendingCallbacks = new ConcurrentHashMap<>();
@@ -85,7 +84,6 @@ public class ShowItemListener implements Listener {
         if (!hasPermI && !hasPermInv && !hasPermEc)
             return;
 
-        // Build show-item message body first (color codes stripped like normal chat)
         String strippedMsg = ChatFormatListener.stripPlayerColorCodes(msg);
         Component messageComp = TextParser.parse(strippedMsg);
 
@@ -93,13 +91,9 @@ public class ShowItemListener implements Listener {
             ItemStack item = player.getInventory().getItemInMainHand();
             Component itemNameComp = getItemNameComponent(item);
 
-            // Replace %item% with a unique token, then splice the item name Component in
-            // so the surrounding color codes (&8[ &b ... &8]) are preserved correctly.
             String itemFormatStr = plugin.getLanguageManager().getMessage("showitem.chat.item-format")
                     .replace("%item%", "⟦ITEM_NAME⟧");
 
-            // Use the real Minecraft item tooltip (icon + enchants + lore) as hover,
-            // falling back to plain text only when the hand is empty.
             HoverEvent<?> itemHover = (item != null && item.getType() != Material.AIR)
                     ? item.asHoverEvent()
                     : HoverEvent.showText(TextParser.parse(
@@ -137,14 +131,11 @@ public class ShowItemListener implements Listener {
                     .replaceText(TextReplacementConfig.builder().matchLiteral("[ec]").replacement(ecComp).build());
         }
 
-        // Use the same chat format as ChatFormatListener (group-formats, ChatMetaManager, PAPI)
         String formatString = ChatFormatListener.getFormatForPlayer(plugin, player);
         if (formatString == null) {
             formatString = "&7{prefix} &f{name} &8» &f{message}";
         }
 
-        // Insert a unique placeholder for {message} so we can splice the Component in
-        // while keeping the format's message color applied around it.
         formatString = ChatFormatListener.applyChatPlaceholders(plugin, player, formatString, MESSAGE_PLACEHOLDER);
 
         Component finalMessage = TextParser.parse(formatString)

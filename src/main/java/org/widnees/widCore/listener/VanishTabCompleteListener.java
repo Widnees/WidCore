@@ -14,11 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-/**
- * Always filters vanished player names out of tab-completions for players
- * who cannot see vanished staff. Registered by VanishModule so it works even
- * when the plugin-hider module (TabCompleteGuardListener) is disabled.
- */
 public class VanishTabCompleteListener implements Listener {
 
     private final Main plugin;

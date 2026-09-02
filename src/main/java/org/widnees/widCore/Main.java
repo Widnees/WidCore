@@ -131,7 +131,7 @@ public final class Main extends JavaPlugin {
         this.showItemManager = new ShowItemManager(this);
         this.itemCleanerManager = new ItemCleanerManager(this);
         this.worldDataManager = new WorldDataManager(this);
-        this.worldDataManager.loadWorldsEarly(); 
+        this.worldDataManager.loadWorldsEarly();
         this.messageManager = new MessageManager(this);
         this.trollManager = new TrollManager();
         this.itemEffectManager = new ItemEffectManager(this);
@@ -173,13 +173,12 @@ public final class Main extends JavaPlugin {
 
         this.helpMenuManager = new HelpMenuManager(this, this.moduleManager, "widcore");
 
-        // Migrate sistemi
         this.migrateManager = new MigrateManager(this);
         this.migrateManager.registerHandler(new EssentialsEconomyMigrator(this));
         this.migrateManager.registerHandler(new EssentialsHomeMigrator(this));
         this.migrateManager.registerHandler(new org.widnees.widCore.migrate.EssentialsWarpMigrator(this));
         this.migrateManager.registerHandler(new org.widnees.widCore.migrate.LitebansPunishmentMigrator(this));
-        
+
 
         WidCoreCommand widCoreCommand = new WidCoreCommand(this);
         getCommand("widcore").setExecutor(widCoreCommand);
@@ -187,7 +186,6 @@ public final class Main extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new UpdateListener(this), this);
 
-        // DiscordSRV hook — cancel edilmiş chat event'lerini Discord'a iletir
         if (getServer().getPluginManager().getPlugin("DiscordSRV") != null) {
             try {
                 getServer().getPluginManager().registerEvents(
@@ -198,7 +196,6 @@ public final class Main extends JavaPlugin {
             }
         }
 
-        // PlaceholderAPI: %server_online% vanish oyuncularını saymaz
         try {
             this.vanishServerPlaceholderHook =
                 org.widnees.widCore.hook.VanishServerPlaceholderHook.tryRegister(this);
@@ -213,34 +210,25 @@ public final class Main extends JavaPlugin {
     }
 
 
-    /**
-     * Stops all active in-progress operations (animations, open menus, RTP, troll tasks, etc.).
-     * Called both during onDisable and reloadPlugin so players are never left in a broken state.
-     */
     private void shutdownActiveProcesses() {
-        // 1. Stop teleport animations — must come first so players are restored before inventories close
         if (this.teleportAnimator != null) {
             this.teleportAnimator.shutdownAllAnimations();
         }
 
-        // 2. Close all open inventories so their InventoryCloseEvent listeners fire and clean up state
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (player.getOpenInventory() != null) {
                 player.closeInventory();
             }
         }
 
-        // 3. Cancel PunishmentMenuListener chat-await tasks
         if (this.punishmentMenuListenerInstance != null) {
             this.punishmentMenuListenerInstance.shutdown();
         }
 
-        // 4. Cancel RTP queue and cleanup walk speeds / potion effects
         if (this.rtpManager != null) {
             this.rtpManager.shutdown();
         }
 
-        // 5. Cancel TrollManager mob-look tasks
         if (this.trollManager != null) {
             for (UUID uid : new java.util.HashSet<>(this.trollManager.getAllMobLookTrolledPlayers())) {
                 this.trollManager.removeMobLookTask(uid);
@@ -532,7 +520,6 @@ public final class Main extends JavaPlugin {
     }
 
     public void reloadPlugin() {
-        // Stop all active processes before reloading so players are not left in broken states
         shutdownActiveProcesses();
 
         moduleManager.unregisterModules();
@@ -553,7 +540,6 @@ public final class Main extends JavaPlugin {
 
         this.helpMenuManager = new HelpMenuManager(this, this.moduleManager, "widcore");
 
-        // Force update commands for all players so the new command visibility rules apply immediately
         for (org.bukkit.entity.Player p : getServer().getOnlinePlayers()) {
             p.updateCommands();
         }

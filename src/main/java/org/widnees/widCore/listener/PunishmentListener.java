@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.widnees.widCore.Main;
-import org.widnees.widCore.manager.ConfigManager; 
+import org.widnees.widCore.manager.ConfigManager;
 import org.widnees.widCore.manager.PunishmentManager;
 import org.widnees.widCore.manager.TextParser;
 
@@ -30,7 +30,6 @@ public class PunishmentListener implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        // Check direct mute
         if (punishmentManager.isMuted(uuid)) {
             event.setCancelled(true);
             long expiry = punishmentManager.getMuteExpiry(uuid);
@@ -51,7 +50,6 @@ public class PunishmentListener implements Listener {
             return;
         }
 
-        // Check IP mute
         String ip = punishmentManager.getPlayerIP(player);
         if (ip != null && punishmentManager.isIPMuted(ip)) {
             event.setCancelled(true);
@@ -72,7 +70,6 @@ public class PunishmentListener implements Listener {
         UUID uuid = player.getUniqueId();
         org.bukkit.configuration.file.FileConfiguration banConfig = punishmentManager.getBanConfig();
 
-        // Always record IP first so unbanip/unmuteip by name works even for offline players
         String ip = event.getAddress().getHostAddress();
         punishmentManager.setLastKnownIp(uuid, ip);
 
@@ -99,7 +96,6 @@ public class PunishmentListener implements Listener {
             return;
         }
 
-        // Check IP ban
         if (punishmentManager.isIPBanned(ip)) {
             org.widnees.widCore.database.BinaryDataManager.PunishmentEntry ipEntry = punishmentManager.getIPBanEntry(ip);
             String ipReason = ipEntry != null ? ipEntry.reason : "-";
@@ -129,7 +125,6 @@ public class PunishmentListener implements Listener {
         if (entry == null) return "Console";
         UUID punisherUUID = entry.punisherUUID;
         if (punisherUUID == null) return "Console";
-        // Console UUID is 00000000-0000-0000-0000-000000000000
         if (punisherUUID.equals(java.util.UUID.fromString("00000000-0000-0000-0000-000000000000"))) {
             return "Console";
         }
@@ -152,7 +147,7 @@ public class PunishmentListener implements Listener {
                 .replace("%ban-date%",  banDate)
                 .replace("%expiry%",    expiry)
                 .replace("%duration%",  remaining.isEmpty() ? plugin.getLanguageManager().getMessage("punishment.permanent") : remaining)
-                .replace("%player%",    punisher); // legacy compat
+                .replace("%player%",    punisher);
     }
         @SuppressWarnings("unused")
     private static final String _xCr7w3n = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";

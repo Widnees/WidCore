@@ -65,7 +65,6 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // kick requires the player to be online
         if (commandKey.equals("kick")) {
             Player onlineTarget = Bukkit.getPlayer(args[0]);
             if (onlineTarget == null) {
@@ -87,10 +86,8 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // ban and mute support offline players (duration optional)
         OfflinePlayer target = Bukkit.getPlayer(args[0]);
         if (target == null) {
-            // Try offline lookup
             OfflinePlayer offline = Bukkit.getOfflinePlayer(args[0]);
             if (offline != null && (offline.hasPlayedBefore() || offline.isOnline())) {
                 target = offline;
@@ -187,9 +184,6 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             actionPast = plugin.getLanguageManager().getMessage("punishment.type-mute");
         }
 
-        // First try an exact (case-sensitive) lookup inside the punishment maps.
-        // Bukkit.getOfflinePlayer(String) is case-insensitive and can return the
-        // wrong player when two accounts differ only in letter case (e.g. "Syro" vs "syro").
         java.util.UUID exactUUID = commandName.equals("unban")
                 ? punishmentManager.getBannedUUIDByExactName(args[0])
                 : punishmentManager.getMutedUUIDByExactName(args[0]);
@@ -214,7 +208,6 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
         }
 
         if (success) {
-            // Broadcast
             FileConfiguration config = commandName.equals("unban")
                     ? punishmentManager.getBanConfig()
                     : punishmentManager.getMuteConfig();
@@ -229,7 +222,6 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
                     TextParser.broadcast(broadcastMsg);
                 }
             }
-            // Sender feedback
             Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.remove-success")
                     .replace("%player%", target.getName() != null ? target.getName() : args[0])
                     .replace("%type%", actionPast));
@@ -240,14 +232,8 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /**
-     * Checks if the sender's group has a max-duration entry in the config.
-     * Returns -1 if the group is NOT listed (unlimited).
-     * Returns the parsed duration in ms if the group IS listed.
-     */
     private long getGroupMaxDuration(CommandSender sender, org.bukkit.configuration.file.FileConfiguration config) {
         if (!(sender instanceof Player)) {
-            // Console → unlimited
             return -1L;
         }
         Player player = (Player) sender;
@@ -260,37 +246,27 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             if (g != null && !g.isEmpty()) primaryGroup = g.toLowerCase();
         }
 
-        // Check if the player's actual group is explicitly listed
         if (section.contains(primaryGroup)) {
             String maxStr = section.getString(primaryGroup);
             if (maxStr == null) return -1L;
             return punishmentManager.parseDuration(maxStr);
         }
 
-        // Fall back to 'default' entry if it exists
         if (section.contains("default")) {
             String maxStr = section.getString("default");
             if (maxStr == null) return -1L;
             return punishmentManager.parseDuration(maxStr);
         }
 
-        // Group not listed at all → unlimited
         return -1L;
     }
 
-    /**
-     * /ban <oyuncu> [süre] [sebep]
-     * - Süre yoksa veya 2. arg geçerli süre değilse → kalıcı ban
-     *   Grup listede varsa kalıcı ban da engellenir; listede yoksa widcore.ban.permanent gerekli
-     * - Süre varsa → geçici ban, grubun max süresini aşamaz
-     */
     private void handleBanWithOptionalDuration(CommandSender sender, OfflinePlayer target, String[] args) {
         long maxDuration = getGroupMaxDuration(sender, punishmentManager.getBanConfig());
 
         if (args.length >= 2) {
             long duration = punishmentManager.parseDuration(args[1]);
             if (duration > 0) {
-                // Grup max süre kontrolü (listede varsa ve aşılıyorsa engelle)
                 if (maxDuration > 0 && duration > maxDuration) {
                     String maxStr = punishmentManager.formatDuration(maxDuration);
                     Main.sendMessage(this.plugin, sender,
@@ -306,11 +282,7 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        // Kalıcı ban:
-        // - Grup listede varsa (maxDuration > 0): kalıcı ban tamamen engellenir
-        // - Grup listede yoksa (maxDuration == -1): widcore.ban.permanent gerekli
         if (maxDuration > 0) {
-            // Grup listede, kalıcı ban engellendi — max süreyi söyle
             String maxStr = punishmentManager.formatDuration(maxDuration);
             Main.sendMessage(this.plugin, sender,
                     plugin.getLanguageManager().getMessage("punishment.usage.ban-duration-exceeded")
@@ -327,19 +299,12 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
         punishmentManager.banPlayer(target, sender, reason);
     }
 
-    /**
-     * /mute <oyuncu> [süre] [sebep]
-     * - Süre yoksa veya 2. arg geçerli süre değilse → kalıcı mute
-     *   Grup listede varsa kalıcı mute da engellenir; listede yoksa widcore.mute.permanent gerekli
-     * - Süre varsa → geçici mute, grubun max süresini aşamaz
-     */
     private void handleMuteWithOptionalDuration(CommandSender sender, OfflinePlayer target, String[] args) {
         long maxDuration = getGroupMaxDuration(sender, punishmentManager.getMuteConfig());
 
         if (args.length >= 2) {
             long duration = punishmentManager.parseDuration(args[1]);
             if (duration > 0) {
-                // Grup max süre kontrolü
                 if (maxDuration > 0 && duration > maxDuration) {
                     String maxStr = punishmentManager.formatDuration(maxDuration);
                     Main.sendMessage(this.plugin, sender,
@@ -355,9 +320,6 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        // Kalıcı mute:
-        // - Grup listede varsa (maxDuration > 0): kalıcı mute tamamen engellenir
-        // - Grup listede yoksa (maxDuration == -1): widcore.mute.permanent gerekli
         if (maxDuration > 0) {
             String maxStr = punishmentManager.formatDuration(maxDuration);
             Main.sendMessage(this.plugin, sender,
@@ -410,7 +372,6 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
         String ip;
 
         if (commandKey.equals("unmuteip")) {
-            // unmuteip: accept raw IP or player name (resolve from muted IPs)
             if (input.matches("^(\\d{1,3}\\.){3}\\d{1,3}$")) {
                 ip = input;
             } else {
@@ -422,14 +383,11 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
                 }
             }
         } else if (commandKey.equals("unbanip")) {
-            // unbanip: accept raw IP or player name (resolve from banned IPs)
             if (input.matches("^(\\d{1,3}\\.){3}\\d{1,3}$") || input.contains(":")) {
                 ip = input;
             } else {
-                // First try online players
                 ip = punishmentManager.getBannedIPByPlayerName(input);
                 if (ip == null) {
-                    // Fall back to last-known IP (covers offline players who were IP-banned)
                     String resolved = punishmentManager.resolveIpForPlayerName(input);
                     if (resolved != null && punishmentManager.isIPBanned(resolved)) {
                         ip = resolved;
@@ -442,12 +400,9 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
                 }
             }
         } else {
-            // muteip, kickip, banip, tempbanip, tempmuteip: accept player name or raw IP
-            // tempbanip/tempmuteip also support offline players via lastKnownIp
             if (input.matches("^(\\d{1,3}\\.){3}\\d{1,3}$")) {
                 ip = input;
             } else if (commandKey.equals("tempbanip") || commandKey.equals("tempmuteip")) {
-                // Try online first, then last-known IP for offline
                 ip = punishmentManager.resolveIpForPlayerName(input);
                 if (ip == null) {
                     Main.sendMessage(this.plugin, sender,
@@ -503,7 +458,6 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
                 }
                 boolean success = punishmentManager.unmuteIP(ip, sender.getName());
                 if (success) {
-                    // Broadcast
                     if (muteConfig.getBoolean("broadcast", true)) {
                         String broadcastMsg = muteConfig.getString("messages.unmuteip-broadcast", "");
                         if (broadcastMsg != null && !broadcastMsg.isEmpty()) {
@@ -561,7 +515,6 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
                 }
                 boolean success = punishmentManager.unbanIP(ip, sender.getName());
                 if (success) {
-                    // Broadcast
                     if (banConfig.getBoolean("broadcast", true)) {
                         String broadcastMsg = banConfig.getString("messages.unbanip-broadcast", "");
                         if (broadcastMsg != null && !broadcastMsg.isEmpty()) {

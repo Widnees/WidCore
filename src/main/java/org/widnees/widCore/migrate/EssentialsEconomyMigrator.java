@@ -13,22 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-/**
- * Economy migrate handler.
- *
- * Aynı klasörde iki format otomatik algılanır:
- *
- * 1) EssentialsX playerdata — dosya adı <uuid>.yml:
- *      money: '1500.50'
- *
- * 2) WidCore eski economy.dat — Java Serialization ile yazılmış HashMap<UUID, Double>
- *      (dosya adı .dat ile bitmeli)
- *
- * Kullanım:
- *   /widcore migrate economy          → migrate/economy/ klasörünü tarar
- *   /widcore migrate economy userdata → migrate/userdata/ klasörünü tarar
- *   /widcore migrate economy --dryrun
- */
 public class EssentialsEconomyMigrator implements MigrateHandler {
 
     private final Main plugin;
@@ -65,7 +49,6 @@ public class EssentialsEconomyMigrator implements MigrateHandler {
             } else if (name.endsWith(".yml")) {
                 migrateYml(file, economyManager, dryRun, result);
             }
-            // diğer uzantılar sessizce atlanır
         }
 
         if (!dryRun && result.getSuccess() > 0) {
@@ -75,7 +58,6 @@ public class EssentialsEconomyMigrator implements MigrateHandler {
         return result;
     }
 
-    // ── EssentialsX .yml ────────────────────────────────────────────────────────
 
     private void migrateYml(File file, EconomyManager economyManager, boolean dryRun, MigrateResult result) {
         String fileName = file.getName();
@@ -121,7 +103,6 @@ public class EssentialsEconomyMigrator implements MigrateHandler {
         result.addSuccess();
     }
 
-    // ── WidCore eski economy.dat ─────────────────────────────────────────────────
 
     private void migrateDat(File file, EconomyManager economyManager, boolean dryRun, MigrateResult result) {
         plugin.getLogger().info("[Migrate] economy.dat okunuyor: " + file.getName());

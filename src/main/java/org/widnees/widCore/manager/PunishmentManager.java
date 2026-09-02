@@ -30,15 +30,10 @@ public class PunishmentManager {
     private Map<UUID, BinaryDataManager.PunishmentEntry> bans = new ConcurrentHashMap<UUID, BinaryDataManager.PunishmentEntry>();
     private Map<UUID, BinaryDataManager.PunishmentEntry> freezes = new ConcurrentHashMap<UUID, BinaryDataManager.PunishmentEntry>();
     private Map<UUID, BinaryDataManager.JailEntry> jails = new ConcurrentHashMap<UUID, BinaryDataManager.JailEntry>();
-    /** Past ban entries per player — newest first within each list */
     private Map<UUID, List<BinaryDataManager.PunishmentEntry>> banHistory = new ConcurrentHashMap<>();
-    /** Past mute entries per player — newest first within each list */
     private Map<UUID, List<BinaryDataManager.PunishmentEntry>> muteHistory = new ConcurrentHashMap<>();
-    /** IP-based mutes: key = IP address string */
     private Map<String, BinaryDataManager.PunishmentEntry> mutedIPs = new ConcurrentHashMap<>();
-    /** IP-based bans: key = IP address string */
     private Map<String, BinaryDataManager.PunishmentEntry> bannedIPs = new ConcurrentHashMap<>();
-    /** Last known IP per UUID — persisted so offline players can be ip-banned/muted */
     private Map<UUID, String> lastKnownIps = new ConcurrentHashMap<>();
     private FileConfiguration kickConfig;
     private FileConfiguration banConfig;
@@ -57,10 +52,6 @@ public class PunishmentManager {
         this.muteConfig = this.plugin.getConfigManager().getModuleConfig("punishment/mute");
     }
 
-    /**
-     * Reads the punishment config file directly from disk (bypasses cache).
-     * Used for webhook settings so that changes take effect without plugin restart.
-     */
     private FileConfiguration readConfigFromDisk(String modulePath) {
         String lang = this.plugin.getConfig().getString("lang", "en").toLowerCase();
         File modulesFolder = new File(this.plugin.getDataFolder(), "modules");
@@ -133,7 +124,6 @@ public class PunishmentManager {
                     targetName, punisherName, reason, durationStr);
             TextParser.broadcast(msg);
         }
-        // Kick if online
         Player online = Bukkit.getPlayer(target.getUniqueId());
         if (online != null) {
             online.kickPlayer(this.getFormattedScreenFromConfig(this.banConfig, "messages.ban-screen", reason, durationStr, punisherName, banDate, expiryStr));
@@ -165,7 +155,6 @@ public class PunishmentManager {
                     targetName, punisherName, reason, durationStr);
             TextParser.broadcast(msg);
         }
-        // Kick if online
         Player online = Bukkit.getPlayer(target.getUniqueId());
         if (online != null) {
             online.kickPlayer(this.getFormattedScreenFromConfig(this.banConfig, "messages.ban-screen", reason, durationStr, punisherName, banDate, expiryStr));
@@ -174,10 +163,6 @@ public class PunishmentManager {
         sendWebhookFromSection(fresh, "ban-webhook", targetName, punisherName, reason, durationStr);
     }
 
-    /**
-     * Reads a config value that can be either a String or a List<String>.
-     * If list format, joins with "\n". Replaces common placeholders.
-     */
     private String getConfigMessage(FileConfiguration config, String key, String defaultMsg,
             String target, String player, String reason, String duration) {
         List<String> lines = config.getStringList(key);
@@ -243,7 +228,6 @@ public class PunishmentManager {
                     targetName, sender.getName(), reason, durationStr);
             TextParser.broadcast(msg);
         }
-        // Notify if online (no plugin prefix — player-message is sent raw)
         Player online = Bukkit.getPlayer(target.getUniqueId());
         if (online != null) {
             String muteMsg = getConfigMessage(this.muteConfig, "messages.player-message",
@@ -274,7 +258,6 @@ public class PunishmentManager {
                     targetName, sender.getName(), reason, durationStr);
             TextParser.broadcast(msg);
         }
-        // Notify if online (no plugin prefix — player-message is sent raw)
         Player online = Bukkit.getPlayer(target.getUniqueId());
         if (online != null) {
             String muteMsg = getConfigMessage(this.muteConfig, "messages.player-message",
@@ -296,7 +279,6 @@ public class PunishmentManager {
         if (existing != null && isBanned(uuid)) {
             String targetName = Bukkit.getOfflinePlayer(uuid).getName();
             if (targetName == null) targetName = uuid.toString();
-            // Mark as expired (keep record for history) instead of deleting
             BinaryDataManager.PunishmentEntry expired = new BinaryDataManager.PunishmentEntry(
                     System.currentTimeMillis() - 1L, existing.reason, existing.punisherUUID, existing.timestamp);
             expired.removedBy = punisherName;
@@ -318,7 +300,6 @@ public class PunishmentManager {
         if (existing != null && isMuted(uuid)) {
             String targetName = Bukkit.getOfflinePlayer(uuid).getName();
             if (targetName == null) targetName = uuid.toString();
-            // Mark as expired (keep record for history) instead of deleting
             BinaryDataManager.PunishmentEntry expired = new BinaryDataManager.PunishmentEntry(
                     System.currentTimeMillis() - 1L, existing.reason, existing.punisherUUID, existing.timestamp);
             expired.removedBy = punisherName;
@@ -388,7 +369,6 @@ public class PunishmentManager {
         if (expiry == -1L) {
             return true;
         }
-        // Keep expired entries in map for history — just return false
         return System.currentTimeMillis() < expiry;
     }
 
@@ -400,7 +380,6 @@ public class PunishmentManager {
         if (expiry == -1L) {
             return true;
         }
-        // Keep expired entries in map for history — just return false
         return System.currentTimeMillis() < expiry;
     }
 
@@ -444,12 +423,6 @@ public class PunishmentManager {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Searches the bans map for a UUID whose offline player name matches the given name exactly (case-sensitive)
-     * AND whose ban is still active.
-     * This prevents case-insensitive Bukkit.getOfflinePlayer() from returning the wrong player
-     * when two players have names differing only in case (e.g. "Syro" vs "syro").
-     */
     public UUID getBannedUUIDByExactName(String name) {
         for (UUID uuid : this.bans.keySet()) {
             if (!isBanned(uuid)) continue;
@@ -461,10 +434,6 @@ public class PunishmentManager {
         return null;
     }
 
-    /**
-     * Searches the mutes map for a UUID whose offline player name matches the given name exactly (case-sensitive)
-     * AND whose mute is still active.
-     */
     public UUID getMutedUUIDByExactName(String name) {
         for (UUID uuid : this.mutes.keySet()) {
             if (!isMuted(uuid)) continue;
@@ -570,35 +539,23 @@ public class PunishmentManager {
         return fmt.format(java.time.Instant.ofEpochMilli(millis));
     }
 
-    // ─── History helpers ────────────────────────────────────────────────────────
 
-    /**
-     * Moves the current ban entry (if any) into banHistory before overwriting.
-     */
     private void archiveBan(UUID uuid) {
         BinaryDataManager.PunishmentEntry existing = this.bans.get(uuid);
         if (existing == null) return;
         List<BinaryDataManager.PunishmentEntry> list =
                 this.banHistory.computeIfAbsent(uuid, k -> new java.util.concurrent.CopyOnWriteArrayList<>());
-        list.add(0, existing);  // newest first
+        list.add(0, existing);
     }
 
-    /**
-     * Moves the current mute entry (if any) into muteHistory before overwriting.
-     */
     private void archiveMute(UUID uuid) {
         BinaryDataManager.PunishmentEntry existing = this.mutes.get(uuid);
         if (existing == null) return;
         List<BinaryDataManager.PunishmentEntry> list =
                 this.muteHistory.computeIfAbsent(uuid, k -> new java.util.concurrent.CopyOnWriteArrayList<>());
-        list.add(0, existing);  // newest first
+        list.add(0, existing);
     }
 
-    /**
-     * Returns a flat list of (UUID → PunishmentEntry) pairs that includes the
-     * current entry in {@code bans} AND all historical entries from {@code banHistory}.
-     * Sorted by timestamp descending across all players.
-     */
     public java.util.List<java.util.AbstractMap.SimpleEntry<UUID, BinaryDataManager.PunishmentEntry>> getAllBanEntriesWithHistory() {
         java.util.List<java.util.AbstractMap.SimpleEntry<UUID, BinaryDataManager.PunishmentEntry>> result = new java.util.ArrayList<>();
         for (Map.Entry<UUID, BinaryDataManager.PunishmentEntry> e : this.bans.entrySet()) {
@@ -613,10 +570,6 @@ public class PunishmentManager {
         return result;
     }
 
-    /**
-     * Returns a flat list of (UUID → PunishmentEntry) pairs that includes the
-     * current entry in {@code mutes} AND all historical entries from {@code muteHistory}.
-     */
     public java.util.List<java.util.AbstractMap.SimpleEntry<UUID, BinaryDataManager.PunishmentEntry>> getAllMuteEntriesWithHistory() {
         java.util.List<java.util.AbstractMap.SimpleEntry<UUID, BinaryDataManager.PunishmentEntry>> result = new java.util.ArrayList<>();
         for (Map.Entry<UUID, BinaryDataManager.PunishmentEntry> e : this.mutes.entrySet()) {
@@ -631,11 +584,7 @@ public class PunishmentManager {
         return result;
     }
 
-    // ─── IP Mute / Kick ─────────────────────────────────────────────────────────
 
-    /**
-     * Mutes all online players with the given IP and records the IP for future logins.
-     */
     public void muteIP(String ip, CommandSender sender, String reason) {
         UUID punisherUUID = sender instanceof Player ? ((Player) sender).getUniqueId() : CONSOLE_UUID;
         BinaryDataManager.PunishmentEntry entry = new BinaryDataManager.PunishmentEntry(
@@ -643,7 +592,6 @@ public class PunishmentManager {
         this.mutedIPs.put(ip, entry);
         this.savePunishments();
 
-        // Apply mute to all currently-online players with this IP
         for (Player online : Bukkit.getOnlinePlayers()) {
             String addr = getPlayerIP(online);
             if (ip.equals(addr) && !isMuted(online.getUniqueId())) {
@@ -660,9 +608,6 @@ public class PunishmentManager {
         this.savePunishments();
     }
 
-    /**
-     * Removes the IP mute for the given IP address.
-     */
     public boolean unmuteIP(String ip, String punisherName) {
         BinaryDataManager.PunishmentEntry existing = this.mutedIPs.get(ip);
         if (existing != null && isIPMuted(ip)) {
@@ -676,9 +621,6 @@ public class PunishmentManager {
         return false;
     }
 
-    /**
-     * Returns true if the given IP address is actively muted.
-     */
     public boolean isIPMuted(String ip) {
         if (ip == null) return false;
         BinaryDataManager.PunishmentEntry entry = this.mutedIPs.get(ip);
@@ -687,30 +629,18 @@ public class PunishmentManager {
         return System.currentTimeMillis() < entry.expiry;
     }
 
-    /**
-     * Returns the IP address of a player, or null if not available.
-     */
     public String getPlayerIP(Player player) {
         if (player.getAddress() == null) return null;
         return player.getAddress().getAddress().getHostAddress();
     }
 
-    /**
-     * Returns a list of currently muted IP addresses.
-     */
     public List<String> getMutedIPs() {
         return this.mutedIPs.keySet().stream()
                 .filter(ip -> isIPMuted(ip))
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Returns the muted IP address associated with the given player name.
-     * Checks online players first, then falls back to all muted IPs.
-     * Returns null if no muted IP is found for that player.
-     */
     public String getMutedIPByPlayerName(String playerName) {
-        // Check online players first
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.getName().equalsIgnoreCase(playerName)) {
                 String addr = getPlayerIP(online);
@@ -723,9 +653,6 @@ public class PunishmentManager {
         return null;
     }
 
-    /**
-     * Returns a list of online player names whose current IP is muted.
-     */
     public List<String> getMutedIPPlayerNames() {
         return Bukkit.getOnlinePlayers().stream()
                 .filter(p -> {
@@ -736,11 +663,7 @@ public class PunishmentManager {
                 .collect(Collectors.toList());
     }
 
-    // ─── IP Ban ─────────────────────────────────────────────────────────────────
 
-    /**
-     * Bans all online players from the given IP and records the IP for future connections.
-     */
     public BinaryDataManager.PunishmentEntry getIPBanEntry(String ip) {
         return this.bannedIPs.get(ip);
     }
@@ -761,9 +684,6 @@ public class PunishmentManager {
         this.savePunishments();
     }
 
-    /**
-     * Removes the IP ban for the given IP address.
-     */
     public boolean unbanIP(String ip, String punisherName) {
         BinaryDataManager.PunishmentEntry existing = this.bannedIPs.get(ip);
         if (existing != null && isIPBanned(ip)) {
@@ -777,9 +697,6 @@ public class PunishmentManager {
         return false;
     }
 
-    /**
-     * Returns true if the given IP address is actively banned.
-     */
     public boolean isIPBanned(String ip) {
         if (ip == null) return false;
         BinaryDataManager.PunishmentEntry entry = this.bannedIPs.get(ip);
@@ -788,10 +705,6 @@ public class PunishmentManager {
         return System.currentTimeMillis() < entry.expiry;
     }
 
-    /**
-     * Returns the banned IP address associated with the given player name.
-     * Checks online players first.
-     */
     public String getBannedIPByPlayerName(String playerName) {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.getName().equalsIgnoreCase(playerName)) {
@@ -805,9 +718,6 @@ public class PunishmentManager {
         return null;
     }
 
-    /**
-     * Returns a list of online player names whose current IP is banned.
-     */
     public List<String> getBannedIPPlayerNames() {
         return Bukkit.getOnlinePlayers().stream()
                 .filter(p -> {
@@ -818,10 +728,6 @@ public class PunishmentManager {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Kicks all online players whose IP matches the given IP address.
-     * Returns the count of kicked players.
-     */
     public int kickPlayersWithIP(String ip, CommandSender sender, String reason) {
         int count = 0;
         for (Player online : new java.util.ArrayList<>(Bukkit.getOnlinePlayers())) {
@@ -840,11 +746,7 @@ public class PunishmentManager {
         return count;
     }
 
-    // ─── Temp IP Ban / Mute ─────────────────────────────────────────────────────
 
-    /**
-     * Temporarily bans the given IP address for the specified duration.
-     */
     public void tempBanIP(String ip, CommandSender sender, long duration, String reason) {
         UUID punisherUUID = sender instanceof Player ? ((Player) sender).getUniqueId() : CONSOLE_UUID;
         long expiry = System.currentTimeMillis() + duration;
@@ -862,9 +764,6 @@ public class PunishmentManager {
         this.savePunishments();
     }
 
-    /**
-     * Temporarily mutes the given IP address for the specified duration.
-     */
     public void tempMuteIP(String ip, CommandSender sender, long duration, String reason) {
         UUID punisherUUID = sender instanceof Player ? ((Player) sender).getUniqueId() : CONSOLE_UUID;
         long expiry = System.currentTimeMillis() + duration;
@@ -889,31 +788,17 @@ public class PunishmentManager {
         this.savePunishments();
     }
 
-    // ─── Last Known IP ───────────────────────────────────────────────────────────
 
-    /**
-     * Records the last known IP address for the given player UUID.
-     * Called on login.
-     */
     public void setLastKnownIp(UUID uuid, String ip) {
         if (ip != null) {
             this.lastKnownIps.put(uuid, ip);
         }
     }
 
-    /**
-     * Returns the last known IP address for the given player UUID, or null if unknown.
-     */
     public String getLastKnownIp(UUID uuid) {
         return this.lastKnownIps.get(uuid);
     }
 
-    /**
-     * Resolves an IP for the given player name:
-     * 1. If the player is online, returns their current IP.
-     * 2. Otherwise looks up lastKnownIps by UUID from Bukkit.getOfflinePlayer().
-     * Returns null if no IP can be found.
-     */
     public String resolveIpForPlayerName(String playerName) {
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.getName().equalsIgnoreCase(playerName)) {
@@ -927,16 +812,13 @@ public class PunishmentManager {
         return null;
     }
 
-    // ─── Migration import API ────────────────────────────────────────────────────
 
-    /** Migrate: aktif ban olarak ekler (mevcut varsa DOKUNMAZ). */
     public void importBan(UUID uuid, BinaryDataManager.PunishmentEntry entry) {
         if (!this.bans.containsKey(uuid)) {
             this.bans.put(uuid, entry);
         }
     }
 
-    /** Migrate: ban geçmişine ekler (aynı timestamp+reason varsa atlar). */
     public void importBanHistory(UUID uuid, BinaryDataManager.PunishmentEntry entry) {
         List<BinaryDataManager.PunishmentEntry> list =
                 this.banHistory.computeIfAbsent(uuid,
@@ -947,14 +829,12 @@ public class PunishmentManager {
         if (!dup) list.add(entry);
     }
 
-    /** Migrate: aktif mute olarak ekler (mevcut varsa DOKUNMAZ). */
     public void importMute(UUID uuid, BinaryDataManager.PunishmentEntry entry) {
         if (!this.mutes.containsKey(uuid)) {
             this.mutes.put(uuid, entry);
         }
     }
 
-    /** Migrate: mute geçmişine ekler (aynı timestamp+reason varsa atlar). */
     public void importMuteHistory(UUID uuid, BinaryDataManager.PunishmentEntry entry) {
         List<BinaryDataManager.PunishmentEntry> list =
                 this.muteHistory.computeIfAbsent(uuid,
@@ -965,7 +845,6 @@ public class PunishmentManager {
         if (!dup) list.add(entry);
     }
 
-    /** Migrate: IP ban ekler veya daha yeniyse günceller. */
     public void importIpBan(String ip, BinaryDataManager.PunishmentEntry entry) {
         BinaryDataManager.PunishmentEntry existing = this.bannedIPs.get(ip);
         if (existing == null || entry.timestamp > existing.timestamp) {
@@ -973,7 +852,6 @@ public class PunishmentManager {
         }
     }
 
-    /** Migrate: IP mute ekler veya daha yeniyse günceller. */
     public void importIpMute(String ip, BinaryDataManager.PunishmentEntry entry) {
         BinaryDataManager.PunishmentEntry existing = this.mutedIPs.get(ip);
         if (existing == null || entry.timestamp > existing.timestamp) {
@@ -981,12 +859,10 @@ public class PunishmentManager {
         }
     }
 
-    /** Migrate: lastKnownIp ekler (henüz yoksa). */
     public void importLastKnownIp(UUID uuid, String ip) {
         this.lastKnownIps.putIfAbsent(uuid, ip);
     }
 
-    // ─── Persistence ────────────────────────────────────────────────────────────
 
     public CompletableFuture<Void> savePunishments() {
         return this.plugin.getDataManager().savePunishments(
@@ -1007,7 +883,6 @@ public class PunishmentManager {
             this.bannedIPs.clear();
             this.lastKnownIps.clear();
             if (data != null) {
-                // Guard against old/corrupt data where values may not be PunishmentEntry
                 if (data.bans != null) {
                     data.bans.forEach((uuid, val) -> {
                         if (val instanceof BinaryDataManager.PunishmentEntry) {
@@ -1076,7 +951,6 @@ public class PunishmentManager {
         String title = config.getString(section + ".title", "Punishment");
         int color = config.getInt(section + ".color", 3447003);
 
-        // Build fields from config list
         java.util.List<?> rawFields = config.getList(section + ".fields");
 
         String resolvedTarget   = target   != null ? target   : "";
@@ -1144,10 +1018,8 @@ public class PunishmentManager {
             connection.setConnectTimeout(8000);
             connection.setReadTimeout(8000);
 
-            // ISO-8601 timestamp
             String timestamp = java.time.Instant.now().toString();
 
-            // Build fields JSON array
             StringBuilder fieldsJson = new StringBuilder("[");
             for (int i = 0; i < fields.size(); i++) {
                 String[] f = fields.get(i);

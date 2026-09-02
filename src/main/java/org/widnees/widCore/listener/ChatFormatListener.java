@@ -18,10 +18,6 @@ import org.widnees.widCore.util.VersionSupport;
 
 public class ChatFormatListener implements Listener {
 
-    /**
-     * Tracks event identity hashes that were cancelled by ChatFormatListener
-     * (not by a mute plugin). MentionListener uses this to distinguish the two cases.
-     */
     public static final java.util.Set<Integer> FORMAT_CANCELLED_EVENTS =
             java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
@@ -54,7 +50,6 @@ public class ChatFormatListener implements Listener {
         if (!ConfigManager.isConfigLoaded())
             return;
 
-        // ShowItemListener owns messages that contain show-item tags with permission
         if (plugin.getConfig().getBoolean("features.show-item", false) && hasActiveShowItemTags(event)) {
             return;
         }
@@ -79,9 +74,6 @@ public class ChatFormatListener implements Listener {
         Bukkit.getConsoleSender().sendMessage(chatComponent);
     }
 
-    /**
-     * Returns true if the message contains a show-item tag the sender is allowed to use.
-     */
     public static boolean hasActiveShowItemTags(AsyncPlayerChatEvent event) {
         String msg = event.getMessage();
         Player player = event.getPlayer();
@@ -97,9 +89,6 @@ public class ChatFormatListener implements Listener {
         return false;
     }
 
-    /**
-     * Resolves the chat format string for a player (group-formats first, then chat-format).
-     */
     public static String getFormatForPlayer(Main plugin, Player player) {
         FileConfiguration chatConfig = plugin.getConfigManager().getModuleConfig("chat");
         if (chatConfig == null) {
@@ -125,9 +114,6 @@ public class ChatFormatListener implements Listener {
                 : "<{prefix}{name}&r> {message}";
     }
 
-    /**
-     * Strips legacy color codes so players cannot inject colors into chat.
-     */
     public static String stripPlayerColorCodes(String rawMessage) {
         if (rawMessage == null) {
             return "";
@@ -138,9 +124,6 @@ public class ChatFormatListener implements Listener {
         return rawMessage;
     }
 
-    /**
-     * Applies prefix/suffix/name/message placeholders and PlaceholderAPI to a format string.
-     */
     public static String applyChatPlaceholders(Main plugin, Player player, String formatString, String message) {
         String prefix = plugin.getChatMetaManager().getPrefix(player);
         String suffix = plugin.getChatMetaManager().getSuffix(player);

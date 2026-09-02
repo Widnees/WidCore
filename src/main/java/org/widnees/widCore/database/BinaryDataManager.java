@@ -40,18 +40,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-/**
- * Multi-file SQLite data manager.
- * <pre>
- * database/
- *   economy.db
- *   punishments.db
- *   playerdata/<uuid>.db   (inv + homes + back + tempfly + mention)
- *   inventoryrollback/<uuid>.db
- * </pre>
- * Public nested types are kept for call-site compatibility.
- * Inventory rollback list queries load metadata only; item blobs are decoded lazily.
- */
 public class BinaryDataManager {
 
     private final Main plugin;
@@ -100,7 +88,6 @@ public class BinaryDataManager {
 
     private void loadSqliteDriver() {
         try {
-            // Provided at runtime by Paper library loader (plugin.yml libraries)
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
             plugin.getLogger().log(Level.SEVERE, "SQLite JDBC driver not found (is the Paper library download working?)", e);
@@ -112,7 +99,6 @@ public class BinaryDataManager {
         Connection c = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
         c.setAutoCommit(true);
         try (Statement st = c.createStatement()) {
-            // DELETE journal: only the .db file remains (no -wal/-shm sidecars).
             st.execute("PRAGMA journal_mode=DELETE");
             st.execute("PRAGMA synchronous=NORMAL");
             st.execute("PRAGMA foreign_keys=ON");
@@ -131,10 +117,6 @@ public class BinaryDataManager {
         }
     }
 
-    /**
-     * Recreate plugin data folders if they were deleted while the plugin is still loaded
-     * (e.g. admin wipes plugins/WidCore then PlugMan unload).
-     */
     private void ensureStorage() throws SQLException {
         try {
             File dataFolder = plugin.getDataFolder();
@@ -165,7 +147,6 @@ public class BinaryDataManager {
                         balance REAL NOT NULL DEFAULT 0
                     )
                     """);
-            // Internal migration flags (replaces former meta.db)
             st.execute("""
                     CREATE TABLE IF NOT EXISTS meta (
                         key TEXT PRIMARY KEY NOT NULL,
@@ -218,16 +199,11 @@ public class BinaryDataManager {
         }
     }
 
-    /**
-     * Returns a usable economy connection. If the DB file/folder was deleted while
-     * still open, closes the stale handle, recreates folders/file and reopens with schema.
-     */
     private Connection ensureEconomyConn() throws SQLException {
         synchronized (globalLock) {
             if (!isDbUnavailable(economyConn, economyFile)) {
                 return economyConn;
             }
-            // First open at plugin enable is quiet; recovery after wipe/move is logged.
             boolean recovering = economyConn != null || isStorageGone();
             closeConn(economyConn);
             economyConn = null;
@@ -241,9 +217,6 @@ public class BinaryDataManager {
         }
     }
 
-    /**
-     * Returns a usable punishments connection. Recreates missing DB file/folder as needed.
-     */
     private Connection ensurePunishmentsConn() throws SQLException {
         synchronized (globalLock) {
             if (!isDbUnavailable(punishmentsConn, punishmentsFile)) {
@@ -336,11 +309,9 @@ public class BinaryDataManager {
                     """);
             st.execute("CREATE INDEX IF NOT EXISTS idx_backups_reason_ts ON inventory_backups(reason, timestamp DESC)");
         }
-        // Migrate existing databases that predate the death_cause column.
         try (Statement st = c.createStatement()) {
             st.execute("ALTER TABLE inventory_backups ADD COLUMN death_cause TEXT");
         } catch (SQLException ignored) {
-            // Column already exists — safe to ignore.
         }
     }
 
@@ -391,10 +362,6 @@ public class BinaryDataManager {
         }
     }
 
-    /**
-     * True when plugins/WidCore (or database/) was deleted while the plugin is still loaded
-     * (common with PlugMan unload after wiping the folder).
-     */
     private boolean isStorageGone() {
         try {
             File dataFolder = plugin.getDataFolder();
@@ -407,12 +374,6 @@ public class BinaryDataManager {
         }
     }
 
-    /**
-     * True when the plugin data folder / DB file was deleted or moved while the connection
-     * is still open (e.g. admin deletes plugins/WidCore then PlugMan unload).
-     * Callers should reopen via ensureEconomyConn / ensurePunishmentsConn / playerDataConn
-     * and write the last in-memory state into a fresh DB file.
-     */
     private boolean isDbUnavailable(Connection c, File file) {
 
         if (isStorageGone()) {
@@ -428,7 +389,6 @@ public class BinaryDataManager {
         } catch (SQLException e) {
             return true;
         }
-        // Parent dir or file gone (folder wiped while plugin still loaded)
         File parent = file.getParentFile();
         if (parent != null && !parent.exists()) {
             return true;
@@ -442,7 +402,6 @@ public class BinaryDataManager {
     private boolean isDbMovedOrReadonly(Throwable t) {
         Throwable cur = t;
         while (cur != null) {
-            // SQLITE_READONLY = 8
             if (cur instanceof SQLException se && se.getErrorCode() == 8) {
                 return true;
             }
@@ -478,7 +437,6 @@ public class BinaryDataManager {
 
     private void logSaveFailure(String what, Exception e) {
         if (isDbMovedOrReadonly(e) || isStorageGone()) {
-            // Drop stale handles so the next save can reopen a fresh DB and write RAM state.
             invalidateConnectionsQuietly();
             plugin.getLogger().warning(what + " failed because database was missing/moved; will recreate on next save attempt if possible.");
             return;
@@ -487,7 +445,6 @@ public class BinaryDataManager {
     }
 
 
-    /** Best-effort close of open SQLite handles after the data folder disappeared. */
     private void invalidateConnectionsQuietly() {
         try {
             for (UUID uuid : new ArrayList<>(playerDataConns.keySet())) {
@@ -516,7 +473,6 @@ public class BinaryDataManager {
         closeConn(c);
     }
 
-    // -------------------- lifecycle --------------------
 
     public void close() {
         try {
@@ -581,14 +537,11 @@ public class BinaryDataManager {
 
 
 
-    // -------------------- migration --------------------
 
     private void migrateLegacyIfNeeded() {
-        // Import flag from obsolete meta.db if present (one-time)
         importMetaDbFlagIfPresent();
 
         if ("1".equals(queryMeta("structure_v2"))) {
-            // Clean leftover meta.db from older builds
             deleteQuietly(new File(databaseDir, "meta.db"));
             deleteQuietly(new File(databaseDir, "meta.db-wal"));
             deleteQuietly(new File(databaseDir, "meta.db-shm"));
@@ -602,7 +555,6 @@ public class BinaryDataManager {
             }
             migrateFromLegacyDatFiles();
             setMeta("structure_v2", "1");
-            // Remove obsolete single-file DB after successful migration
             deleteQuietly(widcoreDb);
             deleteQuietly(new File(databaseDir, "widcore.db-wal"));
             deleteQuietly(new File(databaseDir, "widcore.db-shm"));
@@ -615,7 +567,6 @@ public class BinaryDataManager {
         }
     }
 
-    /** One-time: move structure_v2 flag from old meta.db into economy.db, then drop meta.db. */
     private void importMetaDbFlagIfPresent() {
         File metaFile = new File(databaseDir, "meta.db");
         if (!metaFile.exists() || economyConn == null) {
@@ -636,7 +587,6 @@ public class BinaryDataManager {
                 }
             }
         } catch (Exception ignored) {
-            // empty / corrupt meta.db is fine
         } finally {
             closeConn(old);
         }
@@ -660,7 +610,6 @@ public class BinaryDataManager {
                 st.execute("PRAGMA busy_timeout=5000");
             }
 
-            // economy
             try (PreparedStatement ps = old.prepareStatement("SELECT uuid, balance FROM economy");
                  ResultSet rs = ps.executeQuery();
                  PreparedStatement ins = ensureEconomyConn().prepareStatement(
@@ -673,10 +622,8 @@ public class BinaryDataManager {
                 }
                 ins.executeBatch();
             } catch (SQLException e) {
-                // table may not exist
             }
 
-            // punishments
             try {
                 PunishmentData data = loadPunishmentsFromConnection(old);
                 savePunishmentsSync(data);
@@ -684,7 +631,6 @@ public class BinaryDataManager {
                 plugin.getLogger().log(Level.WARNING, "widcore punishments migrate failed", e);
             }
 
-            // player_data + homes + back + tempfly + mention from widcore
             Map<UUID, PlayerData> players = new HashMap<>();
             try (PreparedStatement ps = old.prepareStatement(
                     "SELECT uuid, inventory_storage, inventory_armor, offhand, ender_chest FROM player_data");
@@ -754,7 +700,6 @@ public class BinaryDataManager {
             } catch (SQLException ignored) {
             }
 
-            // merge uuid set and write playerdata files
             for (UUID uuid : players.keySet()) {
                 try {
                     savePlayerDataSync(uuid, players.get(uuid));
@@ -787,7 +732,6 @@ public class BinaryDataManager {
                 }
             }
 
-            // inventory_backups from widcore
             try (PreparedStatement ps = old.prepareStatement(
                     "SELECT uuid, reason, timestamp, inventory, ender_chest, total_xp, level, death_world, death_x, death_y, death_z FROM inventory_backups");
                  ResultSet rs = ps.executeQuery()) {
@@ -822,7 +766,6 @@ public class BinaryDataManager {
     }
 
     private void migrateFromLegacyDatFiles() {
-        // economy.dat
         File economyDat = new File(databaseDir, "economy.dat");
         if (economyDat.exists()) {
             try {
@@ -847,7 +790,6 @@ public class BinaryDataManager {
             }
         }
 
-        // punishments.dat
         File punFile = new File(databaseDir, "punishments.dat");
         if (punFile.exists()) {
             try {
@@ -860,7 +802,6 @@ public class BinaryDataManager {
             }
         }
 
-        // back_locations.dat
         File backFile = new File(databaseDir, "back_locations.dat");
         if (backFile.exists()) {
             try {
@@ -879,7 +820,6 @@ public class BinaryDataManager {
             }
         }
 
-        // tempfly.dat
         File tempFlyFile = new File(databaseDir, "tempfly.dat");
         if (tempFlyFile.exists()) {
             try {
@@ -898,7 +838,6 @@ public class BinaryDataManager {
             }
         }
 
-        // mention_prefs.dat
         File mentionFile = new File(databaseDir, "mention_prefs.dat");
         if (mentionFile.exists()) {
             try {
@@ -917,7 +856,6 @@ public class BinaryDataManager {
             }
         }
 
-        // playerdata/*.dat
         File legacyPlayerDir = new File(databaseDir, "playerdata");
         if (legacyPlayerDir.isDirectory()) {
             File[] files = legacyPlayerDir.listFiles((d, n) -> n.endsWith(".dat"));
@@ -937,7 +875,6 @@ public class BinaryDataManager {
             }
         }
 
-        // backups/<uuid>/<reason>/*.dat  (old tree) → inventoryrollback/<uuid>.db
         File backupsRoot = new File(databaseDir, "backups");
         if (backupsRoot.isDirectory()) {
             File[] uuidDirs = backupsRoot.listFiles(File::isDirectory);
@@ -1030,7 +967,6 @@ public class BinaryDataManager {
         }
     }
 
-    // -------------------- player data --------------------
 
     public void cachePlayerData(UUID uuid, PlayerData data) {
         if (data != null) {
@@ -1040,7 +976,6 @@ public class BinaryDataManager {
 
     public void uncachePlayerData(UUID uuid) {
         playerDataCache.remove(uuid);
-        // close per-uuid connections on uncache (typically quit)
         runDb(() -> {
             closePlayerDataConn(uuid);
             closeRollbackConn(uuid);
@@ -1116,7 +1051,6 @@ public class BinaryDataManager {
             try {
                 savePlayerDataSync(uuid, data);
             } catch (Exception e) {
-                // One retry after recreate: stale conn / wiped folder → reopen + write RAM state.
                 if (isDbMovedOrReadonly(e) || isStorageGone()) {
                     try {
                         invalidateConnectionsQuietly();
@@ -1310,7 +1244,6 @@ public class BinaryDataManager {
         }
     }
 
-    // -------------------- inventory backups (lazy) --------------------
 
     private boolean isInventoryEmpty(Player player) {
         for (ItemStack item : player.getInventory().getContents()) {
@@ -1406,10 +1339,6 @@ public class BinaryDataManager {
         }
     }
 
-    /**
-     * Metadata-only list load — does NOT deserialize inventory blobs.
-     * Call {@link #loadBackupContentsAsync(InventoryBackup, Consumer)} before preview/apply.
-     */
     public void getBackupsAsync(OfflinePlayer player, InventoryBackup.BackupReason reason,
             Consumer<List<InventoryBackup>> callback) {
         final UUID uuid = player.getUniqueId();
@@ -1447,7 +1376,6 @@ public class BinaryDataManager {
         }).thenAccept(list -> FoliaScheduler.runTask(plugin, () -> callback.accept(list)));
     }
 
-    /** Lazily decode inventory/enderchest blobs for a metadata-only backup. */
     public void loadBackupContentsAsync(InventoryBackup backup, Consumer<InventoryBackup> callback) {
         if (backup == null) {
             FoliaScheduler.runTask(plugin, () -> callback.accept(null));
@@ -1461,9 +1389,6 @@ public class BinaryDataManager {
             FoliaScheduler.runTask(plugin, () -> callback.accept(backup));
             return;
         }
-        // storageId alone is not enough — need uuid of viewing target from caller path.
-        // We store uuid in a thread-local via loadBackupContentsAsync(uuid, backup, cb).
-        // Fallback: scan open rollback conns is unsafe; require uuid overload.
         FoliaScheduler.runTask(plugin, () -> callback.accept(backup));
     }
 
@@ -1501,7 +1426,6 @@ public class BinaryDataManager {
         }).thenAccept(loaded -> FoliaScheduler.runTask(plugin, () -> callback.accept(loaded)));
     }
 
-    // -------------------- punishments --------------------
 
     public CompletableFuture<Void> savePunishments(Map<UUID, PunishmentEntry> bans, Map<UUID, PunishmentEntry> mutes,
             Map<UUID, PunishmentEntry> freezes, Map<UUID, JailEntry> jails) {
@@ -1770,12 +1694,10 @@ public class BinaryDataManager {
         }
     }
 
-    // -------------------- death locations / tempfly / mention / economy --------------------
 
     public CompletableFuture<Void> saveDeathLocations(Map<UUID, Location> locations) {
         return runDb(() -> {
             try {
-                // write each entry to its playerdata file (recreates DB/folder if wiped)
                 for (Map.Entry<UUID, Location> e : locations.entrySet()) {
                     Location loc = e.getValue();
                     if (loc == null || loc.getWorld() == null) {
@@ -2061,7 +1983,6 @@ public class BinaryDataManager {
     }
 
 
-    // -------------------- legacy binary readers (migration only) --------------------
 
     private PlayerData loadLegacyPlayerData(File file) {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
@@ -2156,7 +2077,6 @@ public class BinaryDataManager {
         return ItemBlobCodec.decodeSingleBase64(data);
     }
 
-    // -------------------- nested public types (API compatibility) --------------------
 
     public static class SerializableLocation implements Serializable {
         private static final long serialVersionUID = 1L;

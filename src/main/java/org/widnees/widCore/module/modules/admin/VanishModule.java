@@ -61,7 +61,6 @@ public class VanishModule implements Module {
         moduleManager.registerCommand(this, "vanish", desc, usage, "widcore.vanish", Arrays.asList("v"),
                 new VanishCommand(plugin));
         plugin.getServer().getPluginManager().registerEvents(new VanishListener(plugin), plugin);
-        // Independent of plugin-hider: always hide vanished names from tab-complete
         plugin.getServer().getPluginManager().registerEvents(new VanishTabCompleteListener(plugin), plugin);
     }
 

@@ -120,7 +120,6 @@ public class TextParser {
     public static void send(CommandSender sender, String message) {
         if (sender != null && message != null && !message.isEmpty()) {
             String colored = TextParser.colorize(message);
-            // Split on \n so multi-line messages display correctly on all server versions
             String[] lines = colored.split("\n", -1);
             for (String line : lines) {
                 sender.sendMessage(line);
@@ -128,10 +127,6 @@ public class TextParser {
         }
     }
 
-    /**
-     * Broadcasts a (potentially multi-line) message to all online players.
-     * Splits on newline characters so each line is sent as a separate message.
-     */
     public static void broadcast(String message) {
         if (message == null || message.isEmpty()) return;
         String colored = TextParser.colorize(message);
@@ -141,10 +136,6 @@ public class TextParser {
         }
     }
 
-    /**
-     * Reads a config key that can be either a String or a List<String>.
-     * If list, joins lines with "\n". Falls back to defaultValue if missing.
-     */
     public static String getConfigString(org.bukkit.configuration.file.FileConfiguration config, String key, String defaultValue) {
         if (config == null) return defaultValue;
         if (!config.contains(key)) return defaultValue;

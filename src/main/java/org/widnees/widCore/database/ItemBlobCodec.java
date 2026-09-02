@@ -11,10 +11,6 @@ import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * ItemStack[] <-> raw byte[] codec. Prefer raw BLOB storage over Base64.
- * Also supports decoding legacy Base64 strings during migration.
- */
 public final class ItemBlobCodec {
     private ItemBlobCodec() {
     }
@@ -67,7 +63,6 @@ public final class ItemBlobCodec {
         return items.length > 0 ? items[0] : null;
     }
 
-    /** Legacy Base64 string support for migration from .dat files. */
     public static ItemStack[] decodeBase64(String data) {
         if (data == null || data.isEmpty()) {
             return new ItemStack[0];

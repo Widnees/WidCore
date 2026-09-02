@@ -25,9 +25,6 @@ public class VanishManager {
         this.joinLeaveListener = joinLeaveListener;
     }
 
-    /**
-     * Viewer can see a vanished target (staff / self / console).
-     */
     public boolean canSee(CommandSender viewer, Player target) {
         if (viewer == null || target == null) {
             return false;
@@ -45,16 +42,10 @@ public class VanishManager {
         return viewerPlayer.isOp() || viewerPlayer.hasPermission("widcore.vanish.see");
     }
 
-    /**
-     * True when target is vanished and hidden from this viewer (offline-like).
-     */
     public boolean isHiddenFrom(Player target, CommandSender viewer) {
         return target != null && isVanished(target) && !canSee(viewer, target);
     }
 
-    /**
-     * Resolve online player by name; returns null if vanished and hidden from viewer.
-     */
     public Player getVisiblePlayer(String name, CommandSender viewer) {
         if (name == null || name.isEmpty()) {
             return null;
@@ -72,9 +63,6 @@ public class VanishManager {
         return target;
     }
 
-    /**
-     * Online players visible to the viewer (vanished staff still see vanished players).
-     */
     public Collection<? extends Player> getVisiblePlayers(CommandSender viewer) {
         List<Player> visible = new ArrayList<>();
         for (Player online : Bukkit.getOnlinePlayers()) {
@@ -85,10 +73,6 @@ public class VanishManager {
         return visible;
     }
 
-    /**
-     * Online player count excluding currently online vanished players.
-     * Used by PlaceholderAPI %server_online% override and MOTD adjustments.
-     */
     public int getOnlineCountExcludingVanished() {
         int online = Bukkit.getOnlinePlayers().size();
         int vanishedOnline = 0;
@@ -101,9 +85,6 @@ public class VanishManager {
         return Math.max(0, online - vanishedOnline);
     }
 
-    /**
-     * Online players in a world, excluding vanished (for %server_online_<world>%).
-     */
     public int getOnlineCountExcludingVanished(String worldName) {
         if (worldName == null) {
             return getOnlineCountExcludingVanished();
@@ -162,36 +143,25 @@ public class VanishManager {
         this.updateVanishedForEveryone();
     }
 
-    /**
-     * SuperVanish / PremiumVanish compatible metadata so plugins like TAB
-     * can detect vanish and exclude the player from %worldonline% / %staffonline%.
-     */
     public void applyVanishMetadata(Player player, boolean vanished) {
         if (player == null) {
             return;
         }
         if (vanished) {
             player.setMetadata("vanished", new FixedMetadataValue(plugin, true));
-            // PremiumVanish also uses this key in some versions
             player.setMetadata("PV_Vanished", new FixedMetadataValue(plugin, true));
         } else {
             player.removeMetadata("vanished", plugin);
             player.removeMetadata("PV_Vanished", plugin);
         }
-        // Hide from server player list / tab for non-staff (Paper API when available)
         applyPlayerListVisibility(player, !vanished);
     }
 
-    /**
-     * Paper: Player#setPlayerListOrder / setListed (1.19.3+) — hide from tab/list.
-     * Falls back silently on older Paper/Spigot.
-     */
     private void applyPlayerListVisibility(Player player, boolean listed) {
         try {
             java.lang.reflect.Method setListed = player.getClass().getMethod("setListed", boolean.class);
             setListed.invoke(player, listed);
         } catch (ReflectiveOperationException | RuntimeException ignored) {
-            // API not present on this server build
         }
     }
 
@@ -200,9 +170,6 @@ public class VanishManager {
         return player != null && this.plugin.getVanishedPlayers().contains(player.getUniqueId());
     }
 
-    /**
-     * Number of currently online vanished players.
-     */
     public int getVanishedCount() {
         int count = 0;
         for (UUID uuid : plugin.getVanishedPlayers()) {

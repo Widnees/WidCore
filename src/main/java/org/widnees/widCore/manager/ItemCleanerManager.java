@@ -104,31 +104,18 @@ public class ItemCleanerManager {
         if (item == null || !item.isValid() || this.trackedItems.contains(item)) {
             return;
         }
-        // Vanilla /give visual copies must never have their age reset.
         if (this.isGiveAnimationItem(item)) {
             return;
         }
         item.setTicksLived(1);
         item.getPersistentDataContainer().set(this.timeKey, PersistentDataType.INTEGER, initialLifespan);
         item.getPersistentDataContainer().set(this.deathDropKey, PersistentDataType.BYTE, ((byte)(fromDeath ? 1 : 0)));
-        // Clean legacy keys if present
         item.getPersistentDataContainer().remove(this.legacyTimeKey);
         item.getPersistentDataContainer().remove(this.legacyDeathDropKey);
         this.trackedItems.add(item);
         this.startItemTask(item);
     }
 
-    /**
-     * Vanilla {@code /give} spawns a visual-only item via {@code ItemEntity.makeFakeItem()}:
-     * pickup delay is {@link Short#MAX_VALUE} (players cannot pick it up, hoppers can)
-     * and age is set to {@code lifetime - 1} so it vanishes on the next tick.
-     * Calling {@code setTicksLived(1)} would keep that copy in the world.
-     * <p>
-     * Paper maps {@code Item.getTicksLived()} to {@code ItemEntity.age}, so a freshly
-     * spawned real drop is 0–2 while a give-animation copy is near its despawn
-     * threshold (default 5999, or {@code item-despawn-rate - 1} if customized).
-     * Pickup delay of 32767 does not decrement, so this remains valid 1 tick later.
-     */
     public boolean isGiveAnimationItem(Item item) {
         if (item == null) {
             return false;

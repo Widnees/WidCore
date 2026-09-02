@@ -5,17 +5,6 @@ import org.widnees.widCore.Main;
 import java.io.File;
 import java.util.*;
 
-/**
- * Migrate handler'larını kaydeden ve /widcore migrate komutuna hizmet eden yönetici.
- *
- * Klasör düzeni {@code src/main/resources/migrate} altından
- * {@code plugins/WidCore/migrate/} dizinine kopyalanır:
- *   migrate/MIGRATE.txt
- *   migrate/economy/
- *   migrate/home/
- *   migrate/warp/
- *   migrate/punishment/
- */
 public class MigrateManager {
 
     private static final String RESOURCE_ROOT = "migrate";
@@ -33,11 +22,6 @@ public class MigrateManager {
         extractFromResources();
     }
 
-    /**
-     * migrate/ ağacını JAR (resources) içinden data folder'a çıkarır.
-     * MIGRATE.txt her açılışta kaynaktan güncellenir.
-     * Tür klasörleri yalnızca yoksa {@code saveResource} ile oluşturulur.
-     */
     private void extractFromResources() {
         saveResourceFile(RESOURCE_ROOT + "/" + GUIDE_FILE, true);
 
@@ -78,15 +62,6 @@ public class MigrateManager {
         return Collections.unmodifiableSet(handlers.keySet());
     }
 
-    /**
-     * Belirtilen tür için migrate işlemini başlatır.
-     *
-     * @param type         Handler tipi ("economy", "home" …)
-     * @param relativePath migrate/ altında bakılacak alt klasör yolu.
-     *                     null verilirse tür adı klasör olarak kullanılır.
-     * @param dryRun       Gerçek kayıt yapma, sadece raporla
-     * @return Sonuç; handler veya klasör bulunamazsa null
-     */
     public MigrateResult run(String type, String relativePath, boolean dryRun) {
         MigrateHandler handler = handlers.get(type.toLowerCase());
         if (handler == null) return null;
@@ -97,15 +72,12 @@ public class MigrateManager {
 
         File sourceFolder = new File(migrateRoot, folderName);
         if (!sourceFolder.exists() || !sourceFolder.isDirectory()) {
-            return null;  // klasör yok sinyali
+            return null;
         }
 
         return handler.migrate(sourceFolder, dryRun);
     }
 
-    /**
-     * Her tür için migrate/ altındaki varsayılan klasörde kaç dosya olduğunu döner.
-     */
     public Map<String, Integer> listFileCounts() {
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (String type : handlers.keySet()) {
@@ -114,7 +86,7 @@ public class MigrateManager {
                 File[] files = dir.listFiles(f -> f.isFile() && isCountableFile(f.getName()));
                 counts.put(type, files != null ? files.length : 0);
             } else {
-                counts.put(type, -1); // klasör yok
+                counts.put(type, -1);
             }
         }
         return counts;

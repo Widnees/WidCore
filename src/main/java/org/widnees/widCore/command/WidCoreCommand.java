@@ -27,7 +27,6 @@ public class WidCoreCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // migrate alt komutu
         if (args.length > 0 && args[0].equalsIgnoreCase("migrate")) {
             if (!sender.hasPermission("widcore.migrate")) {
                 Main.sendNoPermission(this.plugin, sender, "widcore.migrate");
@@ -71,11 +70,11 @@ public class WidCoreCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("§cCommandAccessManager is null!");
                 return true;
             }
-            
+
             String resolved = cam.resolveGroup(target);
             boolean exec = cam.isExecutionAllowed(target, testCmd, java.util.Collections.emptyList());
             boolean tab = cam.isRootVisible(target, testCmd);
-            
+
             sender.sendMessage("§a[WidCore Debug] §7Player: §f" + target.getName());
             sender.sendMessage("§a[WidCore Debug] §7Resolved Group: §f" + resolved);
             sender.sendMessage("§a[WidCore Debug] §7Command: §f" + testCmd);

@@ -9,18 +9,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 
-/**
- * LiteBans MariaDB dump (.sql) → WidCore ceza sistemi migrator.
- *
- * Kolon sırası (bans/mutes):
- *   0=id, 1=uuid, 2=ip, 3=reason, 4=banned_by_uuid, 5=banned_by_name,
- *   6=removed_by_uuid, 7=removed_by_name, 8=removed_by_reason,
- *   9=removed_by_date, 10=time, 11=until,
- *   12=template, 13=server_scope, 14=server_origin,
- *   15=silent, 16=ipban, 17=ipban_wildcard, 18=active
- *
- * litebans_history: 0=id, 1=date, 2=name, 3=uuid, 4=ip
- */
 public class LitebansPunishmentMigrator implements MigrateHandler {
 
     private final Main plugin;

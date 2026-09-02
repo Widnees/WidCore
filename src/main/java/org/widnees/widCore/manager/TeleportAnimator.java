@@ -416,7 +416,6 @@ public class TeleportAnimator {
             return;
         }
         UUID playerId = player.getUniqueId();
-        // Discard success callback — cancellation must not send teleport-success messages
         this.completionCallbacks.remove(playerId);
         Location targetLocation = this.animationTargets.get(playerId);
         AnimationState state = this.animationStates.get(playerId);
@@ -434,15 +433,9 @@ public class TeleportAnimator {
         this.forceEndAnimation(player, spawnConfig);
     }
 
-    /**
-     * Called during plugin disable/reload. Instantly teleports all animating players to their
-     * target location without any animation, then cleans up ArmorStands and state.
-     */
     public void shutdownAllAnimations() {
-        // Copy to avoid ConcurrentModificationException
         Set<UUID> ids = new HashSet<>(this.animatingPlayers);
         for (UUID playerId : ids) {
-            // Clean up ArmorStand
             ArmorStand stand = this.cameraStands.remove(playerId);
             if (stand != null && stand.isValid()) {
                 stand.remove();
@@ -451,7 +444,6 @@ public class TeleportAnimator {
             Location target = this.animationTargets.get(playerId);
             AnimationState state = this.animationStates.get(playerId);
 
-            // Clear tracking maps (drop success callbacks — plugin is shutting down)
             this.animatingPlayers.remove(playerId);
             this.animationTargets.remove(playerId);
             this.animationStates.remove(playerId);
@@ -460,7 +452,6 @@ public class TeleportAnimator {
             Player player = org.bukkit.Bukkit.getPlayer(playerId);
             if (player == null || !player.isOnline()) continue;
 
-            // Restore player state
             player.removePotionEffect(PotionEffectType.BLINDNESS);
             if (player.getGameMode() == GameMode.SPECTATOR) {
                 player.setSpectatorTarget(null);
@@ -473,12 +464,10 @@ public class TeleportAnimator {
             }
             player.setFallDistance(0.0f);
 
-            // Directly teleport to target — no animation
             if (target != null) {
                 player.teleport(target, PlayerTeleportEvent.TeleportCause.PLUGIN);
             }
         }
-        // Clean up any orphaned ArmorStands
         for (ArmorStand orphan : this.cameraStands.values()) {
             if (orphan != null && orphan.isValid()) {
                 orphan.remove();

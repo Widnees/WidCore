@@ -209,7 +209,6 @@ public class InventoryRollbackListener implements Listener {
             Main.sendMessage(this.plugin, viewer, plugin.getLanguageManager().getMessage("menu.online-only"));
             return;
         }
-        // Ensure item blobs are loaded before restore (list queries are metadata-only).
         if (!backup.isContentsLoaded()) {
             dataManager.loadBackupContentsAsync(target.getUniqueId(), backup, loaded -> {
                 if (loaded != null) {

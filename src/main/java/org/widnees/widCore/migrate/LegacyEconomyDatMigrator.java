@@ -12,17 +12,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
-/**
- * WidCore'un eski economy.dat formatını okuyup yeni SQLite veritabanına aktarır.
- *
- * Kaynak format: Java Serialization ile yazılmış HashMap<UUID, Double>
- * (BinaryDataManager.saveEconomy()'nin eski .dat versiyonu)
- *
- * Kullanım:
- *   plugins/WidCore/migrate/economy-dat/economy.dat  (varsayılan)
- *   /widcore migrate economy-dat
- *   /widcore migrate economy-dat <alt-klasör>
- */
 public class LegacyEconomyDatMigrator implements MigrateHandler {
 
     private final Main plugin;
@@ -40,7 +29,6 @@ public class LegacyEconomyDatMigrator implements MigrateHandler {
     public MigrateResult migrate(File sourceFolder, boolean dryRun) {
         MigrateResult result = new MigrateResult();
 
-        // Klasördeki tüm .dat dosyalarını tara
         File[] datFiles = sourceFolder.listFiles((dir, name) -> name.endsWith(".dat"));
         if (datFiles == null || datFiles.length == 0) {
             result.addMessage("§eKlasörde işlenebilir .dat dosyası bulunamadı.");
@@ -77,12 +65,10 @@ public class LegacyEconomyDatMigrator implements MigrateHandler {
             int fileSuccess = 0;
 
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                // UUID anahtarı doğrula
                 if (!(entry.getKey() instanceof UUID)) {
                     result.addSkipped();
                     continue;
                 }
-                // Double değer doğrula
                 if (!(entry.getValue() instanceof Number)) {
                     result.addSkipped();
                     continue;
@@ -103,7 +89,6 @@ public class LegacyEconomyDatMigrator implements MigrateHandler {
                     + " → " + fileSuccess + " kayıt işlendi.");
         }
 
-        // Dryrun değilse kaydet
         if (!dryRun && result.getSuccess() > 0) {
             economyManager.saveEconomy();
         }
@@ -111,9 +96,6 @@ public class LegacyEconomyDatMigrator implements MigrateHandler {
         return result;
     }
 
-    /**
-     * Dosyayı Java Object Serialization ile okur.
-     */
     private Object readObject(File file) throws Exception {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             return ois.readObject();

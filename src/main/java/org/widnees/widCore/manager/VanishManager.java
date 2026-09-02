@@ -5,10 +5,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.widnees.widCore.Main;
 import org.widnees.widCore.listener.JoinLeaveListener;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class VanishManager {
     private final Main plugin;
@@ -19,10 +25,112 @@ public class VanishManager {
         this.joinLeaveListener = joinLeaveListener;
     }
 
+    /**
+     * Viewer can see a vanished target (staff / self / console).
+     */
+    public boolean canSee(CommandSender viewer, Player target) {
+        if (viewer == null || target == null) {
+            return false;
+        }
+        if (!(viewer instanceof Player)) {
+            return true;
+        }
+        Player viewerPlayer = (Player) viewer;
+        if (viewerPlayer.equals(target)) {
+            return true;
+        }
+        if (!isVanished(target)) {
+            return true;
+        }
+        return viewerPlayer.isOp() || viewerPlayer.hasPermission("widcore.vanish.see");
+    }
+
+    /**
+     * True when target is vanished and hidden from this viewer (offline-like).
+     */
+    public boolean isHiddenFrom(Player target, CommandSender viewer) {
+        return target != null && isVanished(target) && !canSee(viewer, target);
+    }
+
+    /**
+     * Resolve online player by name; returns null if vanished and hidden from viewer.
+     */
+    public Player getVisiblePlayer(String name, CommandSender viewer) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        Player target = Bukkit.getPlayerExact(name);
+        if (target == null) {
+            target = Bukkit.getPlayer(name);
+        }
+        if (target == null || !target.isOnline()) {
+            return null;
+        }
+        if (isHiddenFrom(target, viewer)) {
+            return null;
+        }
+        return target;
+    }
+
+    /**
+     * Online players visible to the viewer (vanished staff still see vanished players).
+     */
+    public Collection<? extends Player> getVisiblePlayers(CommandSender viewer) {
+        List<Player> visible = new ArrayList<>();
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (canSee(viewer, online)) {
+                visible.add(online);
+            }
+        }
+        return visible;
+    }
+
+    /**
+     * Online player count excluding currently online vanished players.
+     * Used by PlaceholderAPI %server_online% override and MOTD adjustments.
+     */
+    public int getOnlineCountExcludingVanished() {
+        int online = Bukkit.getOnlinePlayers().size();
+        int vanishedOnline = 0;
+        for (UUID uuid : plugin.getVanishedPlayers()) {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null && p.isOnline()) {
+                vanishedOnline++;
+            }
+        }
+        return Math.max(0, online - vanishedOnline);
+    }
+
+    /**
+     * Online players in a world, excluding vanished (for %server_online_<world>%).
+     */
+    public int getOnlineCountExcludingVanished(String worldName) {
+        if (worldName == null) {
+            return getOnlineCountExcludingVanished();
+        }
+        int count = 0;
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (online.getWorld() != null
+                    && online.getWorld().getName().equalsIgnoreCase(worldName)
+                    && !isVanished(online)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public List<String> getVisiblePlayerNames(CommandSender viewer) {
+        return getVisiblePlayers(viewer).stream()
+                .map(Player::getName)
+                .collect(Collectors.toList());
+    }
+
+
     public void setVanished(Player player, boolean vanished) {
         boolean fakeMessagesEnabled = this.plugin.getConfigManager().getModuleConfig("joinleave").getBoolean("fake-messages-on-vanish", true);
         if (vanished) {
             this.plugin.getVanishedPlayers().add(player.getUniqueId());
+            applyVanishMetadata(player, true);
 
             sendSelfInvisibilityPacket(player, true);
             Main.sendMessage(this.plugin, (CommandSender)player, this.plugin.getLanguageManager().getMessage("vanish.enabled"));
@@ -36,6 +144,7 @@ public class VanishManager {
             }
         } else {
             this.plugin.getVanishedPlayers().remove(player.getUniqueId());
+            applyVanishMetadata(player, false);
 
             sendSelfInvisibilityPacket(player, false);
 
@@ -53,9 +162,58 @@ public class VanishManager {
         this.updateVanishedForEveryone();
     }
 
-    public boolean isVanished(Player player) {
-        return this.plugin.getVanishedPlayers().contains(player.getUniqueId());
+    /**
+     * SuperVanish / PremiumVanish compatible metadata so plugins like TAB
+     * can detect vanish and exclude the player from %worldonline% / %staffonline%.
+     */
+    public void applyVanishMetadata(Player player, boolean vanished) {
+        if (player == null) {
+            return;
+        }
+        if (vanished) {
+            player.setMetadata("vanished", new FixedMetadataValue(plugin, true));
+            // PremiumVanish also uses this key in some versions
+            player.setMetadata("PV_Vanished", new FixedMetadataValue(plugin, true));
+        } else {
+            player.removeMetadata("vanished", plugin);
+            player.removeMetadata("PV_Vanished", plugin);
+        }
+        // Hide from server player list / tab for non-staff (Paper API when available)
+        applyPlayerListVisibility(player, !vanished);
     }
+
+    /**
+     * Paper: Player#setPlayerListOrder / setListed (1.19.3+) — hide from tab/list.
+     * Falls back silently on older Paper/Spigot.
+     */
+    private void applyPlayerListVisibility(Player player, boolean listed) {
+        try {
+            java.lang.reflect.Method setListed = player.getClass().getMethod("setListed", boolean.class);
+            setListed.invoke(player, listed);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            // API not present on this server build
+        }
+    }
+
+
+    public boolean isVanished(Player player) {
+        return player != null && this.plugin.getVanishedPlayers().contains(player.getUniqueId());
+    }
+
+    /**
+     * Number of currently online vanished players.
+     */
+    public int getVanishedCount() {
+        int count = 0;
+        for (UUID uuid : plugin.getVanishedPlayers()) {
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null && p.isOnline()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
 
     public void updateVanishedForEveryone() {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
@@ -135,6 +293,7 @@ public class VanishManager {
         for (UUID vanishedId : new java.util.HashSet<>(plugin.getVanishedPlayers())) {
             Player vanishedPlayer = Bukkit.getPlayer(vanishedId);
             if (vanishedPlayer != null) {
+                applyVanishMetadata(vanishedPlayer, false);
                 sendSelfInvisibilityPacket(vanishedPlayer, false);
 
                 for (Player observer : Bukkit.getOnlinePlayers()) {

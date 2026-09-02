@@ -1,12 +1,66 @@
-# Sunucuya duyurulacak susturma mesajı
-broadcast-message: "&c{target} &7adlı oyuncu &c{player} &7tarafından susturuldu. &8(&f{reason}&8)"
+# Kullanılabilir değişkenler: %target%, %player%, %reason%, %duration%
+messages:
+  # Sunucuya duyurulacak susturma mesajı
+  broadcast:
+    - "&8&m----------------------------"
+    - "&c %target% &7susturuldu!"
+    - "&7 Yetkili: &f%player%"
+    - "&7 Sebep: &f%reason%"
+    - "&7 Süre: &f%duration%"
+    - "&8&m----------------------------"
 
-# Susturulan oyuncuya gidecek özel mesaj
-player-message: "&c{player} &7tarafından susturuldunuz. Sebep: &f{reason} &7Süre: &f{duration}"
+  # Susturulan oyuncuya gidecek özel mesaj - %reason%, %duration%
+  player-message:
+    - "&8&m----------------------------"
+    - "&cSusturuldunuz!"
+    - "&7 Yetkili: &f%player%"
+    - "&7 Sebep: &f%reason%"
+    - "&7 Süre: &f%duration%"
+    - "&8&m----------------------------"
+
+  # Susturulmuş oyuncunun chat yazmaya çalışması - %duration%
+  mute-message: "&cSusturuldun! Kalan süre: &e%duration%"
+
+  # Süresiz susturma mesajı
+  mute-permanent: "&cSunucuda süresiz olarak susturuldun."
+
+  # /muteip başarı mesajı - %player%, %reason%
+  muteip-success: "&a%player% &aadlı oyuncu IP üzerinden susturuldu. Sebep: &f%reason%"
+
+  # /unmuteip başarı mesajı - %player%
+  unmuteip-success: "&a%player% &aadlı oyuncunun IP susturması kaldırıldı."
+
+  # IP zaten susturulmuş - %player%
+  ip-already-muted: "&c%player% &cadlı oyuncunun IPsi zaten susturulmuş."
+
+  # IP susturulmamış - %player%
+  ip-not-muted: "&c%player% &cadlı oyuncunun IPsi susturulmamış."
+
+  # Unmute başarı mesajı - %player%, %type%
+  remove-success: "&a%player% adlı oyuncunun %type% başarıyla kaldırıldı."
+
+  # Aktif ceza bulunamadı - %player%, %type%
+  not-punished: "&c%player% adlı oyuncunun aktif bir %type% bulunmuyor."
+
+  # Unmute sunucu duyurusu - %target%, %player%
+  unmute-broadcast: "&a%target% &7adlı oyuncunun susturması &e%player% &7tarafından kaldırıldı."
+
+  # Unmuteip sunucu duyurusu - %target%, %player%
+  unmuteip-broadcast: "&a%target% &7adlı oyuncunun IP susturması &e%player% &7tarafından kaldırıldı."
 
 # Bu oyuncular susturulamaz
 exempt-players:
   - "Notch"
+
+# Gruba göre maksimum mute süresi (LuckPerms grup adı, küçük harf)
+# Format: 1s 30m 2h 7d 2y (saniye/dakika/saat/gün/yıl)
+# Eğer oyuncunun grubu bu listede YOKSA: sınırsız süre ve kalıcı mute yapabilir.
+# Eğer oyuncunun grubu bu listede VARSA: sadece o kadar süreye kadar mute atabilir,
+# kalıcı mute da bu limite takılır (widcore.mute.permanent olsa bile).
+group-max-duration:
+  mod: "30d"
+  helper: "7d"
+  default: "1d"
 
 # Komutlarda hazır sebep kısayollarını kullan
 use-reason-shortcuts: true
@@ -20,6 +74,41 @@ reasons:
   spam: "30m"
   hakaret: "2h"
 
+# Discord webhook bildirimi - Mute / Tempmute
+mute-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Ceza Sistemi"
+  title: "🔇 Oyuncu Susturuldu"
+  color: 16098851
+  fields:
+    - name: "👤 Oyuncu"
+      value: "%target%"
+      inline: true
+    - name: "👮 Yetkili"
+      value: "%player%"
+      inline: true
+    - name: "📋 Sebep"
+      value: "%reason%"
+      inline: false
+    - name: "⏳ Süre"
+      value: "%duration%"
+      inline: true
+
+# Discord webhook bildirimi - Unmute
+unmute-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Ceza Sistemi"
+  title: "🔊 Susturma Kaldırıldı"
+  color: 3066993
+  fields:
+    - name: "👤 Oyuncu"
+      value: "%target%"
+      inline: true
+    - name: "👮 Yetkili"
+      value: "%player%"
+      inline: true
 
 # Dokunma
-version: 1
+version: 7

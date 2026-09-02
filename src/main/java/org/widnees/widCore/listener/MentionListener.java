@@ -70,6 +70,11 @@ public class MentionListener implements Listener {
         MentionContext ctx = pendingMentions.remove(key);
         if (ctx == null || ctx.mentioned.isEmpty()) return;
 
+        // If the event was cancelled by a mute plugin (not by ChatFormatListener), skip mention delivery
+        if (event.isCancelled() && !ChatFormatListener.FORMAT_CANCELLED_EVENTS.remove(key)) return;
+        // If it was a format-cancel, remove from set (already done above via remove())
+        ChatFormatListener.FORMAT_CANCELLED_EVENTS.remove(key);
+
         String visibility = config.getString("highlight-visibility", "MENTIONED_ONLY").toUpperCase();
         String highlightColor = config.getString("highlight-color", "&b&l");
         String senderName = event.getPlayer().getName();
@@ -108,13 +113,16 @@ public class MentionListener implements Listener {
 
     private BinaryDataManager.MentionPrefs getPrefs(Player player) {
         BinaryDataManager.MentionPrefsData data = plugin.getMentionPrefsData();
-        if (data == null) return new BinaryDataManager.MentionPrefs();
-        return data.players.getOrDefault(player.getUniqueId(), new BinaryDataManager.MentionPrefs());
+        if (data == null) return BinaryDataManager.MentionPrefs.fromConfig(config);
+        return data.players.getOrDefault(player.getUniqueId(), BinaryDataManager.MentionPrefs.fromConfig(config));
     }
 
     private List<Player> detectMentioned(String message, boolean requireAt, Player sender) {
         List<Player> result = new ArrayList<>();
-        for (Player online : Bukkit.getOnlinePlayers()) {
+        Collection<? extends Player> candidates = plugin.getVanishManager() != null
+                ? plugin.getVanishManager().getVisiblePlayers(sender)
+                : Bukkit.getOnlinePlayers();
+        for (Player online : candidates) {
             if (online.equals(sender)) continue;
             if (!matches(message, online.getName(), requireAt)) continue;
 
@@ -131,6 +139,7 @@ public class MentionListener implements Listener {
         }
         return result;
     }
+
 
     private boolean matches(String message, String name, boolean requireAt) {
         String escapedName = Pattern.quote(name);

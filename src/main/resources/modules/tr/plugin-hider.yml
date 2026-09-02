@@ -1,6 +1,7 @@
 # Oyuncuyu bir gruba atamak için izin verin: widcore.group.<group>
 # NOT: 'default' grubu TÜM oyuncular için otomatik olarak geçerlidir; bunun için herhangi bir izin tanımlamanız gerekmez.
 #      Bir oyuncuda widcore.group.<group> izni varsa o oyuncu ilgili gruba geçer; aksi halde 'default' kullanılır.
+#      Bir oyuncuda birden fazla grup varsa (parent add), en yüksek 'priority' değerine sahip grup seçilir.
 #
 #
 # Kural yazım mantığı (örnekler)
@@ -13,28 +14,42 @@
 # - tpa *    => alt yolların hepsi (accept, deny, toggle vb.) tab’da görünür
 #
 # Ek notlar:
-# - Bir grubun 'command' veya 'tabacomplate' listesinde sadece "*" varsa, o grup TÜM komutları kullanabilir/görebilir (OP gibi).
+# - Bir grubun 'command' veya 'tabcomplate' listesinde sadece "*" varsa, o grup TÜM komutları kullanabilir/görebilir (OP gibi).
+# - '{group:groupadı}' sözdizimi ile başka bir grubun kurallarını mevcut listeye dahil edebilirsiniz.
+#   Örnek: command listesine "{group:default}" yazarsanız, 'default' grubunun tüm komut kuralları
+#   buraya otomatik olarak eklenir. tabcomplate listesine yazarsanız sadece o grubun tab kuralları eklenir.
+#
+#   Örnek kullanım:
+#     mod:
+#       command:
+#         - "{group:default}"   # default grubunun komutları buraya dahil edilir
+#         - ban *
+#       tabcomplate:
+#         - "{group:default}"   # default grubunun tab listesi buraya dahil edilir
+#         - ban *
 
 groups:
   default:
+    priority: 0
     # Oyuncunun ÇALIŞTIRABİLECEĞİ komutlar
     command:
       - tpa *
       - discord
     # Sadece TAB-TAMAMLAMA'da görünecek komutlar
-    tabacomplate:
+    tabcomplate:
       - tpa *
       - discord
 
   # Örnek grup: 'staff'
   # Bu gruba geçmek için ilgili oyuncuya 'widcore.group.staff' iznini verin.
-  # Bu örnekte '*' kullanıldığı için tüm komutları çalıştırabilir ve tüm komutlar tab’da görünür.
+  # Bu örnekte '*' kullanıldığı için tüm komutları çalıştırabilir ve tüm komutlar tab'da görünür.
   staff:
+    priority: 100
     # Oyuncunun ÇALIŞTIRABİLECEĞİ komutlar
     command:
       - "*"
     # Sadece TAB-TAMAMLAMA'da görünecek komutlar
-    tabacomplate:
+    tabcomplate:
       - "*"
 
 # Plugin/sunucu sürüm bilgisi gösteren komutlar yazıldığında gösterilecek mesajlar
@@ -49,4 +64,4 @@ brand-name: "naber"
 
 
 # Dokunma
-version: 1
+version: 3

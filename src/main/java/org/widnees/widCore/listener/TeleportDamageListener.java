@@ -1,6 +1,8 @@
 package org.widnees.widCore.listener;
 
+import org.bukkit.GameMode;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -8,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.widnees.widCore.Main;
 import org.widnees.widCore.manager.ConfigManager; 
 import org.widnees.widCore.manager.TeleportAnimator;
@@ -84,6 +87,32 @@ public class TeleportDamageListener implements Listener {
             }
         }
     }
+    /**
+     * Prevents the player from leaving the ArmorStand camera during GTA-style animation.
+     * When the player presses Shift in SPECTATOR mode, Minecraft detaches them from the spectator
+     * target. This event handler immediately re-attaches them to the camera ArmorStand.
+     * Event-driven: only fires when someone actually presses Shift — zero overhead otherwise.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerSneak(PlayerToggleSneakEvent event) {
+        if (!ConfigManager.isConfigLoaded()) return;
+        Player player = event.getPlayer();
+        if (!teleportAnimator.isAnimating(player)) return;
+        if (player.getGameMode() != GameMode.SPECTATOR) return;
+        ArmorStand stand = teleportAnimator.getCameraStand(player.getUniqueId());
+        if (stand != null && stand.isValid()) {
+            // Re-attach player to their camera stand on the next tick
+            // (Minecraft processes the detach after this event, so we delay by 1 tick)
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                if (player.isOnline() && teleportAnimator.isAnimating(player)
+                        && player.getGameMode() == GameMode.SPECTATOR
+                        && stand.isValid()) {
+                    player.setSpectatorTarget(stand);
+                }
+            });
+        }
+    }
+
         @SuppressWarnings("unused")
     private static final String _xW9b3f7 = "\u0077\u0069\u0064\u006e\u0065\u0065\u0073";
 

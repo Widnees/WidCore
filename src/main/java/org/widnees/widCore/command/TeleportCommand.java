@@ -63,7 +63,7 @@ public class TeleportCommand implements CommandExecutor {
                 sendUsage(player);
                 return true;
             }
-            Player target = findBestPlayerMatch(args[0]);
+            Player target = findBestPlayerMatch(args[0], player);
             if (target == null) {
                 Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("general.player-not-found")
                         .replace("%player%", args[0]));
@@ -74,6 +74,7 @@ public class TeleportCommand implements CommandExecutor {
                 return true;
             }
             target.teleportAsync(player.getLocation()).thenAccept(success -> {
+
                 if (success) {
                     Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("teleport.tp-other")
                             .replace("%player%", target.getName())
@@ -104,7 +105,7 @@ public class TeleportCommand implements CommandExecutor {
                 Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("teleport.no-perm"));
                 return true;
             }
-            Player target = findBestPlayerMatch(args[0]);
+            Player target = findBestPlayerMatch(args[0], player);
             if (target == null) {
                 Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("general.player-not-found")
                         .replace("%player%", args[0]));
@@ -125,13 +126,14 @@ public class TeleportCommand implements CommandExecutor {
                 Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("teleport.no-perm-other"));
                 return true;
             }
-            Player toTeleport = findBestPlayerMatch(args[0]);
+            Player toTeleport = findBestPlayerMatch(args[0], sender);
             if (toTeleport == null) {
                 Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("general.player-not-found")
                         .replace("%player%", args[0]));
                 return true;
             }
-            Player destination = findBestPlayerMatch(args[1]);
+            Player destination = findBestPlayerMatch(args[1], sender);
+
             if (destination == null) {
                 Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("general.player-not-found")
                         .replace("%player%", args[1]));
@@ -178,6 +180,38 @@ public class TeleportCommand implements CommandExecutor {
     }
 
     private Player findBestPlayerMatch(String partialName) {
+        return findBestPlayerMatch(partialName, null);
+    }
+
+    private Player findBestPlayerMatch(String partialName, CommandSender viewer) {
+        if (plugin.getVanishManager() != null && viewer != null) {
+            Player visible = plugin.getVanishManager().getVisiblePlayer(partialName, viewer);
+            if (visible != null) {
+                return visible;
+            }
+            // Partial match only among players visible to the viewer
+            String lowerCaseName = partialName.toLowerCase();
+            List<Player> matches = new ArrayList<>();
+            for (Player onlinePlayer : plugin.getVanishManager().getVisiblePlayers(viewer)) {
+                if (onlinePlayer.getName().toLowerCase().startsWith(lowerCaseName)) {
+                    matches.add(onlinePlayer);
+                }
+            }
+            if (matches.size() == 1) {
+                return matches.get(0);
+            } else if (matches.isEmpty()) {
+                return null;
+            } else {
+                Player bestMatch = matches.get(0);
+                for (Player match : matches) {
+                    if (match.getName().length() < bestMatch.getName().length()) {
+                        bestMatch = match;
+                    }
+                }
+                return bestMatch;
+            }
+        }
+
         Player exactMatch = Bukkit.getPlayerExact(partialName);
         if (exactMatch != null) {
             return exactMatch;
@@ -205,6 +239,7 @@ public class TeleportCommand implements CommandExecutor {
             return bestMatch;
         }
     }
+
 
     private void sendUsage(Player player) {
         Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("teleport.usage-header"));

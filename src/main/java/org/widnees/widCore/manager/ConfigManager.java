@@ -56,7 +56,7 @@ public class ConfigManager {
 
     private void restoreMissingConfigs() {
         String lang = this.plugin.getConfig().getString("lang", "en").toLowerCase();
-        String[] moduleFiles = new String[]{"announcer", "antimobspawn", "banneditem", "chat", "customcommand", "home", "inventory_rollback", "jail", "joinleave", "mobstacker", "motd", "removeitem", "spawn", "tpa", "void_spawn", "warp", "rtp", "mention", "chatguard/advertisement", "chatguard/bannedword", "chatguard/flood", "chatguard/spam", "punishment/ban", "punishment/kick", "punishment/mute"};
+        String[] moduleFiles = new String[]{"announcer", "antimobspawn", "banneditem", "chat", "customcommand", "home", "inventory_rollback", "jail", "joinleave", "mobstacker", "motd", "itemcleaner", "spawn", "tpa", "void_spawn", "warp", "rtp", "mention", "chatguard/advertisement", "chatguard/bannedword", "chatguard/flood", "chatguard/spam", "punishment/ban", "punishment/kick", "punishment/mute"};
         for (String modulePath : moduleFiles) {
             String langResourcePath = "modules/" + lang + "/" + modulePath + ".yml";
             String fallbackResourcePath = "modules/" + modulePath + ".yml";
@@ -157,7 +157,7 @@ public class ConfigManager {
         } else {
             this.updateConfig(configFile, resourcePath);
         }
-        YamlConfiguration userConfig = YamlConfiguration.loadConfiguration(configFile);
+        ListAwareConfig userConfig = ListAwareConfig.from(YamlConfiguration.loadConfiguration(configFile));
         this.moduleConfigs.put(langFileName, userConfig);
         return userConfig;
     }

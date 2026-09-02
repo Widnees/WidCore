@@ -18,6 +18,13 @@ import org.widnees.widCore.util.VersionSupport;
 
 public class ChatFormatListener implements Listener {
 
+    /**
+     * Tracks event identity hashes that were cancelled by ChatFormatListener
+     * (not by a mute plugin). MentionListener uses this to distinguish the two cases.
+     */
+    public static final java.util.Set<Integer> FORMAT_CANCELLED_EVENTS =
+            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+
     private final Main plugin;
 
     public ChatFormatListener(Main plugin, FileConfiguration moduleConfig) {
@@ -42,32 +49,26 @@ public class ChatFormatListener implements Listener {
         vs.setDeathMessage(event, TextParser.parse(legacyDeathMessage), legacyDeathMessage);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
         if (!ConfigManager.isConfigLoaded())
             return;
 
+        // ShowItemListener owns messages that contain show-item tags with permission
+        if (plugin.getConfig().getBoolean("features.show-item", false) && hasActiveShowItemTags(event)) {
+            return;
+        }
+
         Player player = event.getPlayer();
 
-        String formatString = getFormatForPlayer(player);
+        String formatString = getFormatForPlayer(plugin, player);
         if (formatString == null)
             formatString = "<{prefix}{name}&r> {message}";
 
-        String prefix = plugin.getChatMetaManager().getPrefix(player);
-        String suffix = plugin.getChatMetaManager().getSuffix(player);
+        String rawMessage = stripPlayerColorCodes(event.getMessage());
+        formatString = applyChatPlaceholders(plugin, player, formatString, rawMessage);
 
-        prefix = (prefix == null) ? "" : prefix;
-        suffix = (suffix == null) ? "" : suffix;
-
-        formatString = formatString.replace("{prefix}", prefix)
-                .replace("{suffix}", suffix)
-                .replace("{name}", player.getName())
-                .replace("{message}", event.getMessage());
-
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            formatString = PlaceholderAPI.setPlaceholders(player, formatString);
-        }
-
+        FORMAT_CANCELLED_EVENTS.add(System.identityHashCode(event));
         event.setCancelled(true);
 
         Component chatComponent = TextParser.parse(formatString);
@@ -78,8 +79,33 @@ public class ChatFormatListener implements Listener {
         Bukkit.getConsoleSender().sendMessage(chatComponent);
     }
 
-    private String getFormatForPlayer(Player player) {
+    /**
+     * Returns true if the message contains a show-item tag the sender is allowed to use.
+     */
+    public static boolean hasActiveShowItemTags(AsyncPlayerChatEvent event) {
+        String msg = event.getMessage();
+        Player player = event.getPlayer();
+        if ((msg.contains("[i]") || msg.contains("[item]")) && player.hasPermission("widcore.showitem.i")) {
+            return true;
+        }
+        if (msg.contains("[inv]") && player.hasPermission("widcore.showitem.inv")) {
+            return true;
+        }
+        if (msg.contains("[ec]") && player.hasPermission("widcore.showitem.ec")) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Resolves the chat format string for a player (group-formats first, then chat-format).
+     */
+    public static String getFormatForPlayer(Main plugin, Player player) {
         FileConfiguration chatConfig = plugin.getConfigManager().getModuleConfig("chat");
+        if (chatConfig == null) {
+            return "<{prefix}{name}&r> {message}";
+        }
+
         String primaryGroup = plugin.getChatMetaManager().getPrimaryGroup(player);
 
         if (primaryGroup != null && !primaryGroup.isEmpty()) {
@@ -94,11 +120,50 @@ public class ChatFormatListener implements Listener {
 
         String defaultFormat = chatConfig.getString("chat-format");
 
-        return (defaultFormat != null && !defaultFormat.isEmpty()) 
-            ? defaultFormat 
-            : "<{prefix}{name}&r> {message}";
+        return (defaultFormat != null && !defaultFormat.isEmpty())
+                ? defaultFormat
+                : "<{prefix}{name}&r> {message}";
     }
-        @SuppressWarnings("unused")
+
+    /**
+     * Strips legacy color codes so players cannot inject colors into chat.
+     */
+    public static String stripPlayerColorCodes(String rawMessage) {
+        if (rawMessage == null) {
+            return "";
+        }
+        rawMessage = rawMessage.replaceAll("&x(&[0-9a-fA-F]){6}", "");
+        rawMessage = rawMessage.replaceAll("&#[0-9a-fA-F]{6}", "");
+        rawMessage = rawMessage.replaceAll("(?i)&[0-9a-fA-FkKlLmMnNoOrR]", "");
+        return rawMessage;
+    }
+
+    /**
+     * Applies prefix/suffix/name/message placeholders and PlaceholderAPI to a format string.
+     */
+    public static String applyChatPlaceholders(Main plugin, Player player, String formatString, String message) {
+        String prefix = plugin.getChatMetaManager().getPrefix(player);
+        String suffix = plugin.getChatMetaManager().getSuffix(player);
+
+        prefix = (prefix == null) ? "" : prefix;
+        suffix = (suffix == null) ? "" : suffix;
+        if (message == null) {
+            message = "";
+        }
+
+        formatString = formatString.replace("{prefix}", prefix)
+                .replace("{suffix}", suffix)
+                .replace("{name}", player.getName())
+                .replace("{message}", message);
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            formatString = PlaceholderAPI.setPlaceholders(player, formatString);
+        }
+
+        return formatString;
+    }
+
+    @SuppressWarnings("unused")
     private static final String __wN7e3x9 = "\u0077\u0069\u0064" + "\u006e" + "\u0065\u0065\u0073";
 
 }

@@ -42,7 +42,7 @@ public class MentionSettingsListener implements Listener {
 
         BinaryDataManager.MentionPrefsData data = plugin.getMentionPrefsData();
         BinaryDataManager.MentionPrefs prefs = data.players.computeIfAbsent(
-                player.getUniqueId(), uuid -> new BinaryDataManager.MentionPrefs());
+                player.getUniqueId(), uuid -> mentionCommand.createDefaultPrefs());
 
         boolean changed = true;
         switch (slot) {

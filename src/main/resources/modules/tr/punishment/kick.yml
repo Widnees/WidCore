@@ -1,18 +1,43 @@
 # Sunucuya duyurulacak atılma mesajı
-broadcast-message: "&c{target} &7adlı oyuncu &c{player} &7tarafından sunucudan atıldı. &8(&f{reason}&8)"
+# Kullanılabilir değişkenler: %target%, %player%, %reason%
+messages:
+  broadcast: "&c%target% &7adlı oyuncu &c%player% &7tarafından sunucudan atıldı. &8(&f%reason%&8)"
 
-# Atılan oyuncunun ekranında görünecek mesaj
-kick-screen-message:
-  - "&c&lSUNUCUDAN ATILDINIZ"
-  - ""
-  - "&7Sebep: &f{reason}"
-  - ""
-  - "&7Tekrar giriş yapabilirsiniz."
+  # Atılan oyuncunun ekranında görünecek mesaj
+  kick-screen:
+    - "&c&lSUNUCUDAN ATILDINIZ"
+    - ""
+    - "&7Sebep: &f%reason%"
+    - ""
+    - "&7Tekrar giriş yapabilirsiniz."
+
+  # /kickall başarı mesajı - %count%, %reason%
+  kickall-success: "&e%count% &aoyuncu sunucudan atıldı. Sebep: &f%reason%"
+
+  # /kickip başarı mesajı - %ip%, %count%, %reason%
+  kickip-success: "&aIP &e%ip% &aadresindeki &e%count% &aoyuncu atıldı. Sebep: &f%reason%"
 
 # Bu oyuncular atılamaz
 exempt-players:
   - "Notch"
 
+# Discord webhook bildirimi - Kick
+kick-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Ceza Sistemi"
+  title: "👢 Oyuncu Atıldı"
+  color: 16776960
+  fields:
+    - name: "👤 Oyuncu"
+      value: "%target%"
+      inline: true
+    - name: "👮 Yetkili"
+      value: "%player%"
+      inline: true
+    - name: "📋 Sebep"
+      value: "%reason%"
+      inline: false
 
 # Dokunma
-version: 1
+version: 6

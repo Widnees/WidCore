@@ -26,12 +26,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.widnees.widCore.Main;
-import org.widnees.widCore.manager.ItemStackSerializer;
-import org.widnees.widCore.manager.TextParser;
 import org.widnees.widCore.util.FoliaScheduler;
 import org.widnees.widCore.util.VersionSupport;
 
-public class ItemRemovalManager {
+public class ItemCleanerManager {
     private final Main plugin;
     private final Set<Item> trackedItems = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Object> itemTasks = new ConcurrentHashMap<UUID, Object>();
@@ -43,21 +41,47 @@ public class ItemRemovalManager {
     private boolean enableDefaultRemoval;
     private final NamespacedKey timeKey;
     private final NamespacedKey deathDropKey;
+    private final NamespacedKey legacyTimeKey;
+    private final NamespacedKey legacyDeathDropKey;
 
-    public ItemRemovalManager(Main plugin) {
+    public ItemCleanerManager(Main plugin) {
         this.plugin = plugin;
-        this.timeKey = new NamespacedKey((Plugin)plugin, "item_removal_time");
-        this.deathDropKey = new NamespacedKey((Plugin)plugin, "item_removal_death_drop");
+        this.timeKey = new NamespacedKey((Plugin)plugin, "itemcleaner_time");
+        this.deathDropKey = new NamespacedKey((Plugin)plugin, "itemcleaner_death_drop");
+        this.legacyTimeKey = new NamespacedKey((Plugin)plugin, "item_removal_time");
+        this.legacyDeathDropKey = new NamespacedKey((Plugin)plugin, "item_removal_death_drop");
         this.reloadConfigValues();
         File databaseDir = new File(plugin.getDataFolder(), "database");
         if (!databaseDir.exists()) {
             databaseDir.mkdirs();
         }
-        this.persistenceFile = new File(databaseDir, "item_removals.dat");
+        this.persistenceFile = new File(databaseDir, "itemcleaner.dat");
+        File legacyPersistenceFile = new File(databaseDir, "item_removals.dat");
+        if (!this.persistenceFile.exists() && legacyPersistenceFile.exists()) {
+            if (!legacyPersistenceFile.renameTo(this.persistenceFile)) {
+                this.plugin.getLogger().warning("Failed to migrate item_removals.dat to itemcleaner.dat");
+            }
+        }
+    }
+
+    public NamespacedKey getTimeKey() {
+        return this.timeKey;
+    }
+
+    public NamespacedKey getDeathDropKey() {
+        return this.deathDropKey;
+    }
+
+    public NamespacedKey getLegacyTimeKey() {
+        return this.legacyTimeKey;
+    }
+
+    public NamespacedKey getLegacyDeathDropKey() {
+        return this.legacyDeathDropKey;
     }
 
     public void reloadConfigValues() {
-        FileConfiguration config = this.plugin.getConfigManager().getModuleConfig("removeitem");
+        FileConfiguration config = this.plugin.getConfigManager().getModuleConfig("itemcleaner");
         this.enablePlayerDeathRemoval = config.getBoolean("enable-player-death-removal", true);
         this.enableDefaultRemoval = config.getBoolean("enable-default-removal", true);
         this.deathLifespan = config.getInt("player-death-lifespan-seconds", 300);
@@ -80,11 +104,36 @@ public class ItemRemovalManager {
         if (item == null || !item.isValid() || this.trackedItems.contains(item)) {
             return;
         }
+        // Vanilla /give visual copies must never have their age reset.
+        if (this.isGiveAnimationItem(item)) {
+            return;
+        }
         item.setTicksLived(1);
         item.getPersistentDataContainer().set(this.timeKey, PersistentDataType.INTEGER, initialLifespan);
         item.getPersistentDataContainer().set(this.deathDropKey, PersistentDataType.BYTE, ((byte)(fromDeath ? 1 : 0)));
+        // Clean legacy keys if present
+        item.getPersistentDataContainer().remove(this.legacyTimeKey);
+        item.getPersistentDataContainer().remove(this.legacyDeathDropKey);
         this.trackedItems.add(item);
         this.startItemTask(item);
+    }
+
+    /**
+     * Vanilla {@code /give} spawns a visual-only item via {@code ItemEntity.makeFakeItem()}:
+     * pickup delay is {@link Short#MAX_VALUE} (players cannot pick it up, hoppers can)
+     * and age is set to {@code lifetime - 1} so it vanishes on the next tick.
+     * Calling {@code setTicksLived(1)} would keep that copy in the world.
+     * <p>
+     * Paper maps {@code Item.getTicksLived()} to {@code ItemEntity.age}, so a freshly
+     * spawned real drop is 0–2 while a give-animation copy is near its despawn
+     * threshold (default 5999, or {@code item-despawn-rate - 1} if customized).
+     * Pickup delay of 32767 does not decrement, so this remains valid 1 tick later.
+     */
+    public boolean isGiveAnimationItem(Item item) {
+        if (item == null) {
+            return false;
+        }
+        return item.getPickupDelay() >= Short.MAX_VALUE && item.getTicksLived() >= 10;
     }
 
     private void startItemTask(Item item) {
@@ -95,7 +144,7 @@ public class ItemRemovalManager {
                 this.trackedItems.remove(item);
                 return;
             }
-            Integer timeLeft = (Integer)item.getPersistentDataContainer().get(this.timeKey, PersistentDataType.INTEGER);
+            Integer timeLeft = this.getRemainingTime(item);
             if (timeLeft == null || timeLeft <= 0) {
                 item.remove();
                 this.cancelItemTask(itemId);
@@ -110,7 +159,7 @@ public class ItemRemovalManager {
                 break;
             }
             if (shouldDisplay) {
-                String format = this.plugin.getLanguageManager().getMessage("removeitem.hologram");
+                String format = this.plugin.getLanguageManager().getMessage("itemcleaner.hologram");
                 String name = format.replace("%time%", String.valueOf(timeLeft));
                 Component nameComponent = TextParser.parse(name);
                 VersionSupport vs = this.plugin.getVersionSupport();
@@ -119,10 +168,32 @@ public class ItemRemovalManager {
                 item.setCustomNameVisible(false);
             }
             item.getPersistentDataContainer().set(this.timeKey, PersistentDataType.INTEGER, (timeLeft - 1));
+            item.getPersistentDataContainer().remove(this.legacyTimeKey);
         }, 1L, 20L);
         if (task != null) {
             this.itemTasks.put(itemId, task);
         }
+    }
+
+    public Integer getRemainingTime(Item item) {
+        Integer timeLeft = item.getPersistentDataContainer().get(this.timeKey, PersistentDataType.INTEGER);
+        if (timeLeft == null) {
+            timeLeft = item.getPersistentDataContainer().get(this.legacyTimeKey, PersistentDataType.INTEGER);
+        }
+        return timeLeft;
+    }
+
+    public boolean isDeathDrop(Item item) {
+        Byte isDeathDropByte = item.getPersistentDataContainer().get(this.deathDropKey, PersistentDataType.BYTE);
+        if (isDeathDropByte == null) {
+            isDeathDropByte = item.getPersistentDataContainer().get(this.legacyDeathDropKey, PersistentDataType.BYTE);
+        }
+        return isDeathDropByte != null && isDeathDropByte == 1;
+    }
+
+    public boolean hasTrackedData(Item item) {
+        return item.getPersistentDataContainer().has(this.timeKey, PersistentDataType.INTEGER)
+                || item.getPersistentDataContainer().has(this.legacyTimeKey, PersistentDataType.INTEGER);
     }
 
     private void cancelItemTask(UUID itemId) {
@@ -139,6 +210,8 @@ public class ItemRemovalManager {
             if (item.isValid()) {
                 item.getPersistentDataContainer().remove(this.timeKey);
                 item.getPersistentDataContainer().remove(this.deathDropKey);
+                item.getPersistentDataContainer().remove(this.legacyTimeKey);
+                item.getPersistentDataContainer().remove(this.legacyDeathDropKey);
                 item.setCustomNameVisible(false);
             }
         }
@@ -200,10 +273,9 @@ public class ItemRemovalManager {
                 stored.x = item.getLocation().getX();
                 stored.y = item.getLocation().getY();
                 stored.z = item.getLocation().getZ();
-                Integer remainingTime = (Integer)item.getPersistentDataContainer().get(this.timeKey, PersistentDataType.INTEGER);
-                Byte isDeathDropByte = (Byte)item.getPersistentDataContainer().get(this.deathDropKey, PersistentDataType.BYTE);
+                Integer remainingTime = this.getRemainingTime(item);
                 stored.remainingSeconds = remainingTime != null ? remainingTime : 0;
-                stored.isDeathDrop = isDeathDropByte != null && isDeathDropByte == 1;
+                stored.isDeathDrop = this.isDeathDrop(item);
                 try {
                     stored.serializedItemStack = ItemStackSerializer.toBase64(new ItemStack[]{item.getItemStack()});
                     itemsToSave.add(stored);

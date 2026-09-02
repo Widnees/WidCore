@@ -11,6 +11,7 @@ general:
   unknown-command: "&cBilinmeyen argüman. Yardım için /widcore help kullanın."
   target-inventory-full: "&cHedef oyuncunun envanteri dolu!"
   self-interaction: "&cBu işlemi kendi üzerinizde yapamazsınız."
+  console-name: "Konsol"
 
 console:
   dependency-missing: "&c[UYARI] &e%feature% &cözelliği devre dışı bırakıldı çünkü &e%dependency% &ceklentisi bulunamadı!"
@@ -472,7 +473,7 @@ banneditem:
   message: "&cYasaklı bir eşyayı envanterinize alamazsınız."
   not-found: "'banneditem.yml' dosyasındaki '%item%' adında bir eşya bulunamadı."
 
-removeitem:
+itemcleaner:
   hologram: "&c%time%sn"
 
 voidspawn:
@@ -542,6 +543,7 @@ menu:
   loading: "&eYedekler veritabanından alınıyor, lütfen bekleyin..."
   date-format: "&7Tarih: %date%"
   location-format: "&7Konum: %world% (%x%, %y%, %z%)"
+  death-cause-format: "&7Ölüm Nedeni: &f%cause%"
   backup-format: "&eYedek: %date%"
   experience-format: "&aTecrübe Seviyesi: &e%level%"
   experience-total: "&7Toplam XP: %total%"
@@ -581,6 +583,24 @@ punishment_menu:
   item-reason: "&7Sebep: &f%reason%"
   item-date: "&7Tarih: &f%date%"
   item-duration: "&7Kalan Süre: %duration%"
+  item-status: "&7Durum: %status%"
+  item-end-date: "&7Bitiş Tarihi: &f%date%"
+  item-removed-by: "&7Kaldıran: &f%player%"
+  removed-by-expired: "Ceza Süresi Bitti"
+  status-active: "&c● Devam ediyor"
+  status-expired-label: "&a● Bitti"
+  filter-button: "&eFiltre"
+  filter-lore: "&7Tıkla: filtre değiştir"
+  filter-all: "● Tümü"
+  filter-active: "● Aktif"
+  filter-expired: "● Süresi Dolmuş"
+  search-button: "&eOyuncu Ara"
+  search-button-lore: "&7Belirli bir oyuncunun cezalarını ara"
+  search-active: "&7Aranan: &e%player%"
+  search-title: "&eOyuncu adını chate yaz"
+  search-subtitle: "&7Kalan: &c%seconds%s &7| &c%cancel% &7yaz: iptal"
+  search-cancelled: "&cArama iptal edildi."
+  search-cancel-command: "!iptal"
 
 
 tpa:
@@ -620,10 +640,12 @@ spawn:
   setspawn_description: "Sunucunun spawn noktası belirler."
   setspawn_usage_args: "/<command>"
   description: "Oyuncuyu spawn noktasına ışınlar."
-  usage_args: "/<command>"
+  usage_args: "/<command> [oyuncu]"
   success: "&aBaşarıyla spawn noktasına ışınlandınız."
   not-set: "&cSpawn noktası henüz ayarlanmamış."
   already-teleporting: "&cZaten bir ışınlanma işlemi devam ediyor."
+  sent-other: "&e%player% &aoyuncusu spawn noktasına ışınlanıyor."
+
 
 head:
   description: "Elinizdeki eşyayı kafanıza takar."
@@ -684,7 +706,7 @@ home:
 
 warp:
   description: "Belirtilen warp noktasına ışınlar."
-  usage_args: "/<command> <isim>"
+  usage_args: "/<command> <isim> [oyuncu]"
   setwarp_description: "Bulunduğunuz konuma yeni bir warp noktası oluşturur."
   setwarp_usage_args: "/<command> <isim>"
   delwarp_description: "Belirtilen warp noktasını siler."
@@ -697,6 +719,8 @@ warp:
   success: "&aBaşarıyla '%warp%' noktasına ışınlandınız."
   usage-set: "&cKullanım: /setwarp <isim>"
   usage-del: "&cKullanım: /delwarp <isim>"
+  sent-other: "&e%player% &aoyuncusu &e%warp% &awarp noktasına ışınlanıyor."
+
 
 joinleave:
   join-message: "&8[&a+&8] &7%player%"
@@ -723,11 +747,8 @@ chatguard:
 punishment:
   command:
     mute:
-      description: "Bir oyuncuyu süresiz olarak susturur."
-      usage: "/<command> <oyuncu> [sebep]"
-    tempmute:
-      description: "Bir oyuncuyu belirli bir süreyle susturur."
-      usage: "/<command> <oyuncu> <süre> [sebep]"
+      description: "Bir oyuncuyu susturur. Süre verilirse geçici, verilmezse kalıcı susturur (kalıcı için widcore.mute.permanent gerekli)."
+      usage: "/<command> <oyuncu> [süre] [sebep]"
     unmute:
       description: "Bir oyuncunun susturmasını kaldırır."
       usage: "/unmute <oyuncu>"
@@ -735,11 +756,8 @@ punishment:
       description: "Sunucudaki susturulmuş oyuncuları listeler."
       usage: "/mutelist [sayfa]"
     ban:
-      description: "Bir oyuncuyu sunucudan süresiz olarak yasaklar."
-      usage: "/<command> <oyuncu> [sebep]"
-    tempban:
-      description: "Bir oyuncuyu sunucudan belirli bir süreyle yasaklar."
-      usage: "/<command> <oyuncu> <süre> [sebep]"
+      description: "Bir oyuncuyu yasaklar. Süre verilirse geçici, verilmezse kalıcı yasaklar (kalıcı için widcore.ban.permanent gerekli)."
+      usage: "/<command> <oyuncu> [süre] [sebep]"
     unban:
       description: "Bir oyuncunun yasağını kaldırır."
       usage: "/unban <oyuncu>"
@@ -752,6 +770,26 @@ punishment:
     kickall:
       description: "Sunucudaki tüm oyuncuları atar."
       usage: "/<command> [sebep]"
+    kickip:
+      description: "Belirtilen IP adresindeki tüm oyuncuları atar."
+      usage: "/<command> <ip> [sebep]"
+    muteip:
+      description: "Belirtilen IP adresini susturur."
+      usage: "/<command> <ip> [sebep]"
+    unmuteip:
+      description: "Belirtilen IP adresinin susturmasını kaldırır."
+      usage: "/<command> <ip>"
+    banip:
+      description: "Belirtilen IP adresini yasaklar."
+      usage: "/<command> <ip> [sebep]"
+    unbanip:
+      description: "Belirtilen IP adresinin yasağını kaldırır."
+    tempbanip:
+      description: "Belirtilen IP adresini geçici olarak yasaklar."
+      usage: "/<command> <oyuncu|ip> <süre> [sebep]"
+    tempmuteip:
+      description: "Belirtilen IP adresini geçici olarak susturur."
+      usage: "/<command> <oyuncu|ip> <süre> [sebep]"
   kick-screen:
     - "&cSunucudan Atıldınız!"
     - "&7Sebep: &f%reason%"
@@ -764,6 +802,7 @@ punishment:
     kick: "&e%player% &7sunucudan atıldı. Sebep: &f%reason%"
     ban: "&e%player% &7yasaklandı. Sebep: &f%reason% (%duration%)"
     mute: "&e%player% &7susturuldu. Sebep: &f%reason% (%duration%)"
+  permanent: "§cKalıcı"
   default-reason: "Sebep belirtilmedi."
   mute-permanent: "&cSunucuda süresiz olarak susturuldun."
   kick-permanent: "&cBu sunucudan süresiz olarak yasaklandın!"
@@ -779,14 +818,32 @@ punishment:
   invalid-duration-shortcut: "&cGeçersiz süre veya sebep kısayolu! (%arg%)"
   invalid-duration-format: "&cGeçersiz süre formatı! Örnek: 1h, 1d, 30m"
   kickall-success: "&e%count% &aoyuncu sunucudan atıldı. Sebep: &f%reason%"
+  muteip-success: "&aIP &e%ip% &asusturuldu. Sebep: &f%reason%"
+  unmuteip-success: "&aIP &e%ip% &asusturması kaldırıldı."
+  kickip-success: "&aIP &e%ip% &aadresindeki &e%count% &aoyuncu atıldı. Sebep: &f%reason%"
+  ip-already-muted: "&cIP &e%ip% &czaten susturulmuş."
+  ip-not-muted: "&cIP &e%ip% &csusturulmamış."
+  invalid-ip: "&cGeçersiz IP adresi: &e%ip%"
+  banip-success: "&aIP &e%ip% &ayasaklandı. Sebep: &f%reason%"
+  unbanip-success: "&aIP &e%ip% &ayasağı kaldırıldı."
+  ip-already-banned: "&cIP &e%ip% &czaten yasaklı."
+  ip-not-banned: "&cIP &e%ip% &cyasaklı değil."
+  ban-screen-ip:
+    - "&cBu sunucudan yasaklandınız! (IP Ban)"
+    - "&7Sebep: &f%reason%"
   usage:
     kick: "&cKullanım: /kick <oyuncu> [sebep]"
-    ban: "&cKullanım: /ban <oyuncu> [sebep]"
-    tempban: "&cKullanım: /tempban <oyuncu> <süre|sebep> [ek sebep]"
-    mute: "&cKullanım: /mute <oyuncu> [sebep]"
-    tempmute: "&cKullanım: /tempmute <oyuncu> <süre|sebep> [ek sebep]"
+    ban: "&cKullanım: /ban <oyuncu> [süre] [sebep]"
+    mute: "&cKullanım: /mute <oyuncu> [süre] [sebep]"
+    ban-duration-exceeded: "&cGrubunuzun maksimum ban süresi aşıldı! Maksimum: &e%max%"
+    mute-duration-exceeded: "&cGrubunuzun maksimum mute süresi aşıldı! Maksimum: &e%max%"
     unban: "&cKullanım: /unban <oyuncu>"
     unmute: "&cKullanım: /unmute <oyuncu>"
+    muteip: "&cKullanım: /muteip <oyuncu|ip> [sebep]"
+    unmuteip: "&cKullanım: /unmuteip <oyuncu|ip>"
+    kickip: "&cKullanım: /kickip <oyuncu|ip> [sebep]"
+    banip: "&cKullanım: /banip <oyuncu|ip> [sebep]"
+    unbanip: "&cKullanım: /unbanip <oyuncu|ip>"
 
   freeze:
     usage: "&cKullanım: /freeze <oyuncu> [süre]"
@@ -852,6 +909,14 @@ database:
   shutdown-save-error: "Plugin kapatılırken veriler kaydedilirken bir hata oluştu."
   punishment:
     unknown-old-data: "Bilinmiyor (Eski Veri)"
+
+migrate:
+  starting: "&aVeriler taşınıyor... &7[Tür: &e%type%&7] %dryrun%"
+  dryrun-label: "&e[DRY-RUN — kayıt yapılmayacak]"
+  summary: "&a%type% migrate tamamlandı%dryrun%&7: &a%success% &7başarılı, &c%failed% &7başarısız, &e%skipped% &7atlandı."
+  folder-not-found: "&cKlasör bulunamadı: &7migrate/%folder%/ &c(tür: %type%)"
+  no-files-found: "&eKlasörde işlenebilir .yml dosyası bulunamadı."
+  unknown-type: "&cBilinmeyen migrate türü: &e%type% &c| Desteklenen: &7%types%"
 
 antimobspawn:
   invalid-mob-global: "[AntiMobSpawn] 'all_worlds' listesindeki mob adı geçersiz: %mob%"
@@ -991,6 +1056,24 @@ disguise:
   player-skin-loading: "&eSkin yükleniyor..."
   player-skin-failed: "&cSkin yüklenemedi: &e%name%"
 
+clearchat:
+  description: "Tüm oyuncular için sohbeti temizler."
+  usage_args: "/<command>"
+  cleared:
+    - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    - ""
+    - "   &e%player% &7tarafından sohbet temizlenmiştir."
+    - "   &a✦ İyi Oyunlar ✦"
+    - ""
+    - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+mutechat:
+  description: "Sohbeti susturur veya açar."
+  usage_args: "/<command>"
+  enabled: "&cSohbet susturuldu. Sadece yetkililer yazabilir."
+  disabled: "&aSohbet tekrar açıldı."
+  blocked: "&cSohbet şu an susturulmuş!"
+
 mention:
   description: "Mention bildirim ayarlarını yönetir."
   toggle-enabled: "&a✔ Mention bildirimleri &2açıldı&a."
@@ -1022,4 +1105,4 @@ mention:
   sender-disabled-notify: "&7%player% mention bildirimlerini devre dışı bırakmış."
 
 # Dokunma
-version: 22
+version: 29

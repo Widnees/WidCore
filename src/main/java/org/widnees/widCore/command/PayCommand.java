@@ -41,12 +41,15 @@ public class PayCommand implements CommandExecutor {
             return true;
         }
 
-        Player target = Bukkit.getPlayer(args[0]);
+        Player target = plugin.getVanishManager() != null
+                ? plugin.getVanishManager().getVisiblePlayer(args[0], player)
+                : Bukkit.getPlayer(args[0]);
         if (target == null || !target.isOnline()) {
             Main.sendMessage(plugin, player,
                     plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", args[0]));
             return true;
         }
+
 
         if (target.equals(player)) {
             Main.sendMessage(plugin, player, plugin.getLanguageManager().getMessage("economy.pay-self"));

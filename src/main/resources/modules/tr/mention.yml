@@ -38,5 +38,14 @@ sound:
 # Toast başarım bildirimi varsayılan 5sn göründüğünden 5000 önerilir
 notification-cooldown-ms: 5000
 
+# Ayarlarını henüz değiştirmemiş oyuncular için varsayılan bildirim tercihleri
+defaults:
+  enabled: true       # Mention bildirimlerinin ana anahtarı
+  title: true         # Title ve subtitle
+  actionbar: false    # Action bar
+  toast: false        # Toast (başarım)
+  sound: true         # Ses
+
 # Dokunma
-version: 1
+version: 2
+

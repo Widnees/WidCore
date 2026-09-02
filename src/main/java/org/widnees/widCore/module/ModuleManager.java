@@ -96,11 +96,12 @@ public class ModuleManager {
         modules.add(new MessagingModule(plugin));
         modules.add(new ShowItemModule(plugin));
         modules.add(new MentionModule(plugin));
+        modules.add(new ChatControlModule(plugin));
     }
 
     private void addServerModules() {
         modules.add(new ItemEditModule(plugin));
-        modules.add(new ItemRemovalModule(plugin));
+        modules.add(new ItemCleanerModule(plugin));
         modules.add(new JoinLeaveModule(plugin));
         modules.add(new MergeExperienceOrbModule(plugin));
         modules.add(new StackDeathDropsModule(plugin));

@@ -1,25 +1,114 @@
-# Mute broadcast message to server
-broadcast-message: "&c{target} &7was muted by &c{player}&7. &8(&f{reason}&8)"
+# Available placeholders: %target%, %player%, %reason%, %duration%
+messages:
+  # Broadcast message to server
+  broadcast:
+    - "&8&m----------------------------"
+    - "&c %target% &7was muted!"
+    - "&7 Staff: &f%player%"
+    - "&7 Reason: &f%reason%"
+    - "&7 Duration: &f%duration%"
+    - "&8&m----------------------------"
 
-# Private message sent to muted player
-player-message: "&cYou have been muted by &7{player}&c. Reason: &f{reason} &cDuration: &f{duration}"
+  # Message sent to the muted player - %reason%, %duration%
+  player-message:
+    - "&8&m----------------------------"
+    - "&cYou have been muted!"
+    - "&7 Staff: &f%player%"
+    - "&7 Reason: &f%reason%"
+    - "&7 Duration: &f%duration%"
+    - "&8&m----------------------------"
+
+  # Message when a muted player tries to chat - %duration%
+  mute-message: "&cYou are muted! Time remaining: &e%duration%"
+
+  # Permanent mute message
+  mute-permanent: "&cYou are permanently muted on this server."
+
+  # /muteip success message - %player%, %reason%
+  muteip-success: "&a%player% &ahas been muted via IP. Reason: &f%reason%"
+
+  # /unmuteip success message - %player%
+  unmuteip-success: "&a%player%&a's IP mute has been removed."
+
+  # IP already muted - %player%
+  ip-already-muted: "&c%player%&c's IP is already muted."
+
+  # IP not muted - %player%
+  ip-not-muted: "&c%player%&c's IP is not muted."
+
+  # Unmute success message - %player%, %type%
+  remove-success: "&aSuccessfully removed %type% from &e%player%&a."
+
+  # No active punishment found - %player%, %type%
+  not-punished: "&c%player% &cdoes not have an active %type%."
+
+  # Unmute broadcast message - %target%, %player%
+  unmute-broadcast: "&a%target%'s &7mute was lifted by &e%player%&7."
+
+  # Unmuteip broadcast message - %target%, %player%
+  unmuteip-broadcast: "&a%target%&7's IP mute was lifted by &e%player%&7."
 
 # These players cannot be muted
 exempt-players:
   - "Notch"
 
-# Use preset reason shortcuts in commands
+# Maximum mute duration per LuckPerms group (group name in lowercase)
+# Format: 1s 30m 2h 7d 2y (seconds/minutes/hours/days/years)
+# If the player's group is NOT in this list: they can mute for unlimited duration and permanently.
+# If the player's group IS in this list: they are capped at that duration.
+# Permanent mutes are also blocked if the group is listed here (even with widcore.mute.permanent).
+group-max-duration:
+  mod: "30d"
+  helper: "7d"
+  default: "1d"
+
+# Use shortcut reasons in commands
 use-reason-shortcuts: true
 
-# Force use of only registered shortcuts
+# Force only registered shortcuts to be used
 force-reason-shortcuts: false
 
-# Preset reasons and durations
+# Shortcut reasons and their durations
 reasons:
-  swearing: "1h"
+  swear: "1h"
   spam: "30m"
   insult: "2h"
 
+# Discord webhook notification - Mute / Tempmute
+mute-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Punishment System"
+  title: "🔇 Player Muted"
+  color: 16098851
+  fields:
+    - name: "👤 Player"
+      value: "%target%"
+      inline: true
+    - name: "👮 Staff"
+      value: "%player%"
+      inline: true
+    - name: "📋 Reason"
+      value: "%reason%"
+      inline: false
+    - name: "⏳ Duration"
+      value: "%duration%"
+      inline: true
+
+# Discord webhook notification - Unmute
+unmute-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Punishment System"
+  title: "🔊 Mute Removed"
+  color: 3066993
+  fields:
+    - name: "👤 Player"
+      value: "%target%"
+      inline: true
+    - name: "👮 Staff"
+      value: "%player%"
+      inline: true
 
 # Do not touch
-version: 1
+version: 6

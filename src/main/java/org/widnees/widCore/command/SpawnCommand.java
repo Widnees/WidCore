@@ -1,14 +1,16 @@
 package org.widnees.widCore.command;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.StringUtil;
 import org.widnees.widCore.Main;
 import org.widnees.widCore.manager.ConfigManager;
 import org.widnees.widCore.manager.SpawnLocationManager;
@@ -17,11 +19,13 @@ import org.widnees.widCore.manager.TeleportManager;
 import org.widnees.widCore.util.FoliaScheduler;
 import org.widnees.widCore.util.TeleportNotifier;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class SpawnCommand implements CommandExecutor {
+public class SpawnCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
     private final SpawnLocationManager spawnLocationManager;
@@ -43,33 +47,66 @@ public class SpawnCommand implements CommandExecutor {
         if (!ConfigManager.isConfigLoaded())
             return true;
 
-        if (!(sender instanceof Player)) {
-            Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("general.only-players"));
+        String basePerm = plugin.getAliasManager().getPermission("spawn");
+        String otherPerm = plugin.getAliasManager().getSubpermission("spawn", "other");
+
+        Player target;
+        boolean sendingOther = false;
+
+        if (args.length >= 1) {
+            if (!sender.hasPermission(otherPerm)) {
+                Main.sendNoPermission(this.plugin, sender, otherPerm);
+                return true;
+            }
+
+            target = Bukkit.getPlayer(args[0]);
+            if (target == null) {
+                Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("general.player-not-found")
+                        .replace("%player%", args[0]));
+                return true;
+            }
+            sendingOther = true;
+        } else {
+            if (!(sender instanceof Player)) {
+                Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("general.only-players"));
+                return true;
+            }
+
+            target = (Player) sender;
+
+            if (!target.hasPermission(basePerm)) {
+                Main.sendNoPermission(this.plugin, target, basePerm);
+                return true;
+            }
+        }
+
+        if (teleportAnimator.isAnimating(target)) {
+            Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("spawn.already-teleporting"));
             return true;
         }
-        Player player = (Player) sender;
 
-        if (teleportAnimator.isAnimating(player)) {
-            Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("spawn.already-teleporting"));
-            return true;
-        }
-
-        if (!player.hasPermission("widcore.spawn")) {
-            Main.sendNoPermission(this.plugin, player, "widcore.spawn");
-            return true;
-        }
-
-        if (teleportManager.isTeleporting(player.getUniqueId())) {
-            Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("spawn.already-teleporting"));
+        if (teleportManager.isTeleporting(target.getUniqueId())) {
+            Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("spawn.already-teleporting"));
             return true;
         }
 
         Location spawnLocation = spawnLocationManager.getSpawnLocation();
         if (spawnLocation == null) {
-            Main.sendMessage(this.plugin, player, plugin.getLanguageManager().getMessage("spawn.not-set"));
+            Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("spawn.not-set"));
             return true;
         }
 
+        startSpawnTeleport(target, spawnLocation);
+
+        if (sendingOther) {
+            Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("spawn.sent-other")
+                    .replace("%player%", target.getName()));
+        }
+
+        return true;
+    }
+
+    private void startSpawnTeleport(Player player, Location spawnLocation) {
         int delay = spawnConfig.getInt("teleport-delay-seconds", 5);
         boolean cancelOnMove = spawnConfig.getBoolean("cancel-on-move", true);
         String animationType = spawnConfig.getString("teleport-animation", "standart").toLowerCase();
@@ -77,11 +114,12 @@ public class SpawnCommand implements CommandExecutor {
 
         if (delay <= 0) {
             if (animationType.equals("gta_style") && !FoliaScheduler.isFolia()) {
-                teleportAnimator.playGtaStyleAnimation(player, spawnLocation, blindDistance, spawnConfig);
+                teleportAnimator.playGtaStyleAnimation(player, spawnLocation, blindDistance, spawnConfig,
+                        () -> TeleportNotifier.send(plugin, player, spawnConfig, "notifications.success", Collections.emptyMap()));
             } else {
                 teleportPlayerStandart(player, spawnLocation);
             }
-            return true;
+            return;
         }
 
         Map<String, String> warmupPl = new HashMap<>();
@@ -126,7 +164,8 @@ public class SpawnCommand implements CommandExecutor {
             if (ticksPassed[0] >= totalTicks) {
                 isCancelled[0] = true;
                 if (animationType.equals("gta_style") && !FoliaScheduler.isFolia()) {
-                    teleportAnimator.playGtaStyleAnimation(player, spawnLocation, blindDistance, spawnConfig);
+                    teleportAnimator.playGtaStyleAnimation(player, spawnLocation, blindDistance, spawnConfig,
+                            () -> TeleportNotifier.send(plugin, player, spawnConfig, "notifications.success", Collections.emptyMap()));
                 } else {
                     teleportPlayerStandart(player, spawnLocation);
                 }
@@ -147,16 +186,16 @@ public class SpawnCommand implements CommandExecutor {
             if (showParticles) {
 
                 if (animationType.equals("fog")) {
-                    double fogHeight = progress * 2.2; 
+                    double fogHeight = progress * 2.2;
                     double radius = 0.6;
                     for (int i = 0; i < 8; i++) {
                         double angle = (ticksPassed[0] * 0.15) + (i * Math.PI / 4);
                         double x = Math.cos(angle) * radius;
                         double z = Math.sin(angle) * radius;
 
-                        player.getWorld().spawnParticle(Particle.SMOKE_LARGE, 
+                        player.getWorld().spawnParticle(Particle.SMOKE_LARGE,
                                 playerLoc.clone().add(x, fogHeight, z), 1, 0.1, 0.1, 0.1, 0.01);
-                        player.getWorld().spawnParticle(Particle.SQUID_INK, 
+                        player.getWorld().spawnParticle(Particle.SQUID_INK,
                                 playerLoc.clone().add(-x, fogHeight * 0.8, -z), 1, 0.1, 0.05, 0.1, 0.005);
                     }
 
@@ -165,7 +204,7 @@ public class SpawnCommand implements CommandExecutor {
                             double innerAngle = (ticksPassed[0] * 0.1) + h;
                             double innerX = Math.cos(innerAngle) * 0.3;
                             double innerZ = Math.sin(innerAngle) * 0.3;
-                            player.getWorld().spawnParticle(Particle.SMOKE_NORMAL, 
+                            player.getWorld().spawnParticle(Particle.SMOKE_NORMAL,
                                     playerLoc.clone().add(innerX, h, innerZ), 1, 0.05, 0.05, 0.05, 0.005);
                         }
                     }
@@ -190,7 +229,6 @@ public class SpawnCommand implements CommandExecutor {
         }, 1L, 1L);
 
         teleportManager.updateTask(player.getUniqueId(), taskHolder[0]);
-        return true;
     }
 
     private void teleportPlayerStandart(Player player, Location location) {
@@ -208,7 +246,21 @@ public class SpawnCommand implements CommandExecutor {
             }
         });
     }
-        @SuppressWarnings("unused")
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        String otherPerm = plugin.getAliasManager().getSubpermission("spawn", "other");
+        if (args.length == 1 && sender.hasPermission(otherPerm)) {
+            List<String> playerNames = new ArrayList<>();
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                playerNames.add(player.getName());
+            }
+            return StringUtil.copyPartialMatches(args[0], playerNames, new ArrayList<>());
+        }
+        return Collections.emptyList();
+    }
+
+    @SuppressWarnings("unused")
     private static final String __W5e9c3x = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
 
 }

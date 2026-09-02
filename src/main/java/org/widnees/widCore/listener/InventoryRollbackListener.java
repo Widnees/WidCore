@@ -52,7 +52,8 @@ public class InventoryRollbackListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (moduleConfig.getBoolean("save-on-death", false)) {
-            dataManager.saveBackup(event.getEntity(), InventoryBackup.BackupReason.DEATH);
+            String deathCause = plugin.getVersionSupport().getDeathMessageString(event);
+            dataManager.saveBackup(event.getEntity(), InventoryBackup.BackupReason.DEATH, deathCause);
         }
     }
 
@@ -204,27 +205,46 @@ public class InventoryRollbackListener implements Listener {
 
     private void handleRestoreAction(Player viewer, OfflinePlayer target, InventoryBackup backup, String title) {
         Player targetPlayer = target.getPlayer();
-        if (targetPlayer != null && targetPlayer.isOnline()) {
-            if (title.equals(plugin.getLanguageManager().getMessage("menu.inv-backup-title"))) {
-                targetPlayer.getInventory().setContents(backup.getInventoryContents());
-                targetPlayer.setTotalExperience(0);
-                targetPlayer.setLevel(0);
-                targetPlayer.giveExp(backup.getTotalExperience());
-                Main.sendMessage(this.plugin, viewer,
-                        plugin.getLanguageManager().getMessage("menu.success-inv")
-                                .replace("%player%", target.getName()));
-                Main.sendMessage(plugin, targetPlayer, plugin.getLanguageManager().getMessage("menu.target-msg-inv"));
-            } else {
-                targetPlayer.getEnderChest().setContents(backup.getEnderChestContents());
-                Main.sendMessage(this.plugin, viewer,
-                        plugin.getLanguageManager().getMessage("menu.success-ec")
-                                .replace("%player%", target.getName()));
-                Main.sendMessage(plugin, targetPlayer, plugin.getLanguageManager().getMessage("menu.target-msg-ec"));
-            }
-            viewer.closeInventory();
-        } else {
+        if (targetPlayer == null || !targetPlayer.isOnline()) {
             Main.sendMessage(this.plugin, viewer, plugin.getLanguageManager().getMessage("menu.online-only"));
+            return;
         }
+        // Ensure item blobs are loaded before restore (list queries are metadata-only).
+        if (!backup.isContentsLoaded()) {
+            dataManager.loadBackupContentsAsync(target.getUniqueId(), backup, loaded -> {
+                if (loaded != null) {
+                    applyRestore(viewer, target, targetPlayer, loaded, title);
+                }
+            });
+            return;
+        }
+
+        applyRestore(viewer, target, targetPlayer, backup, title);
+    }
+
+    private void applyRestore(Player viewer, OfflinePlayer target, Player targetPlayer, InventoryBackup backup,
+            String title) {
+        if (!targetPlayer.isOnline()) {
+            Main.sendMessage(this.plugin, viewer, plugin.getLanguageManager().getMessage("menu.online-only"));
+            return;
+        }
+        if (title.equals(plugin.getLanguageManager().getMessage("menu.inv-backup-title"))) {
+            targetPlayer.getInventory().setContents(backup.getInventoryContents());
+            targetPlayer.setTotalExperience(0);
+            targetPlayer.setLevel(0);
+            targetPlayer.giveExp(backup.getTotalExperience());
+            Main.sendMessage(this.plugin, viewer,
+                    plugin.getLanguageManager().getMessage("menu.success-inv")
+                            .replace("%player%", target.getName()));
+            Main.sendMessage(plugin, targetPlayer, plugin.getLanguageManager().getMessage("menu.target-msg-inv"));
+        } else {
+            targetPlayer.getEnderChest().setContents(backup.getEnderChestContents());
+            Main.sendMessage(this.plugin, viewer,
+                    plugin.getLanguageManager().getMessage("menu.success-ec")
+                            .replace("%player%", target.getName()));
+            Main.sendMessage(plugin, targetPlayer, plugin.getLanguageManager().getMessage("menu.target-msg-ec"));
+        }
+        viewer.closeInventory();
     }
         @SuppressWarnings("unused")
     private static final String _0xW8b4d3 = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";

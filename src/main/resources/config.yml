@@ -47,11 +47,12 @@ features:
   messaging: true           # Private messaging (/msg, /r)
   show-item: true           # Item display in chat ([i], [inv])
   mention: true             # Player mention system (@name in chat)
+  chatcontrol: true         # Chat control (/clearchat, /mutechat)
 
   # --- Server & World Management ---
   worldmanager: true        # World management (/wm)
   void-spawn: true          # Teleport to spawn when falling into void
-  item_removal: true        # Automatic item removal from ground
+  itemcleaner: true         # Automatic ground item cleaner
   joinleave: true           # Join/Leave messages
   motd: true                # Server list (MOTD) customization
   banneditem: true          # Item banning system
@@ -86,4 +87,4 @@ chatguard:
   advertisement: true       # Advertisement blocking
 
 # Do not touch
-version: 11
+version: 14

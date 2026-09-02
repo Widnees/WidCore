@@ -7,6 +7,9 @@ authors: [ Widnees ]
 description: Widnees Core Plugin
 folia-supported: true
 softdepend: [LuckPerms, PlaceholderAPI, Vault, Towny, TownyAdvanced, packetevents]
+libraries:
+  - org.xerial:sqlite-jdbc:3.46.1.3
+
 
 commands:
   widcore:
@@ -217,9 +220,11 @@ permissions:
     default: op
     children:
       widcore.spawn: true
+      widcore.spawn.other: true
       widcore.setspawn: true
       widcore.voidspawn.set: true
       widcore.warp: true
+      widcore.warp.other: true
       widcore.setwarp: true
       widcore.delwarp: true
       widcore.rtp: true
@@ -228,6 +233,9 @@ permissions:
 
   widcore.spawn:
     description: Spawn noktasına ışınlanma izni.
+    default: op
+  widcore.spawn.other:
+    description: Başka oyuncuyu spawn noktasına ışınlama izni.
     default: op
   widcore.setspawn:
     description: Spawn noktası belirleme izni.
@@ -239,12 +247,16 @@ permissions:
   widcore.warp:
     description: Warp noktasına ışınlanma izni.
     default: op
+  widcore.warp.other:
+    description: Başka oyuncuyu warp noktasına ışınlama izni.
+    default: op
   widcore.setwarp:
     description: Warp noktası belirleme izni.
     default: op
   widcore.delwarp:
     description: Warp noktası silme izni.
     default: op
+
 
   widcore.rtp:
     description: Rastgele ışınlanma izni.
@@ -396,20 +408,25 @@ permissions:
     default: op
     children:
       widcore.ban: true
-      widcore.tempban: true
+      widcore.ban.permanent: true
       widcore.unban: true
       widcore.banlist: true
       widcore.mute: true
-      widcore.tempmute: true
+      widcore.mute.permanent: true
       widcore.unmute: true
       widcore.mutelist: true
       widcore.kick: true
       widcore.kickall: true
+      widcore.banip: true
+      widcore.unbanip: true
+      widcore.kickip: true
+      widcore.muteip: true
+      widcore.unmuteip: true
   widcore.ban:
-    description: Oyuncu yasaklama izni.
-    default: op
-  widcore.tempban:
     description: Oyuncuyu geçici yasaklama izni.
+    default: op
+  widcore.ban.permanent:
+    description: Oyuncuyu kalıcı olarak yasaklama izni (süre verilmezse gerekli).
     default: op
   widcore.unban:
     description: Oyuncu yasağını kaldırma izni.
@@ -418,10 +435,10 @@ permissions:
     description: Yasaklı oyuncu listesini görme izni.
     default: op
   widcore.mute:
-    description: Oyuncuyu susturma izni.
-    default: op
-  widcore.tempmute:
     description: Oyuncuyu geçici susturma izni.
+    default: op
+  widcore.mute.permanent:
+    description: Oyuncuyu kalıcı olarak susturma izni (süre verilmezse gerekli).
     default: op
   widcore.unmute:
     description: Oyuncunun susturmasını kaldırma izni.
@@ -434,6 +451,21 @@ permissions:
     default: op
   widcore.kickall:
     description: Tüm oyuncuları sunucudan atma izni.
+    default: op
+  widcore.banip:
+    description: Belirtilen IP adresini yasaklama izni.
+    default: op
+  widcore.unbanip:
+    description: Belirtilen IP adresinin yasağını kaldırma izni.
+    default: op
+  widcore.kickip:
+    description: Belirtilen IP adresindeki oyuncuları atma izni.
+    default: op
+  widcore.muteip:
+    description: Belirtilen IP adresini susturma izni.
+    default: op
+  widcore.unmuteip:
+    description: Belirtilen IP adresinin susturmasını kaldırma izni.
     default: op
 
   widcore.reload:
@@ -540,6 +572,10 @@ permissions:
 
   widcore.baltop:
     description: En zengin oyuncu listesini görme izni.
+    default: op
+
+  widcore.migrate:
+    description: Başka pluginlerin verilerini WidCore'a taşır.
     default: op
 
   widcore.server.*:

@@ -1,7 +1,5 @@
 package org.widnees.widCore.listener;
 
-import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -24,12 +22,13 @@ public class MobStackerListener implements Listener {
         this.manager = manager;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         if (!ConfigManager.isConfigLoaded())
             return;
 
         LivingEntity entity = event.getEntity();
+        manager.markSpawnReason(entity, event.getSpawnReason());
 
         FoliaScheduler.runAtEntityLater(plugin, entity, () -> {
             if (entity.isValid()) {
@@ -55,37 +54,12 @@ public class MobStackerListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEntityDeath(EntityDeathEvent event) {
         if (!ConfigManager.isConfigLoaded())
             return;
 
-        LivingEntity entity = event.getEntity();
-        manager.removeFromCache(entity.getUniqueId());
-
-        if (manager.isStacked(entity)) {
-            entity.setCustomName(null);
-            entity.setCustomNameVisible(false);
-        }
-
-        int stackSize = manager.getStackSize(entity);
-        if (stackSize > 1) {
-            int newSize = stackSize - 1;
-            Location spawnLoc = entity.getLocation();
-            EntityType type = entity.getType();
-
-            FoliaScheduler.runAtLocation(plugin, spawnLoc, () -> {
-                LivingEntity newEntity = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, type);
-
-                if (newEntity.getEquipment() != null && entity.getEquipment() != null) {
-                    newEntity.getEquipment().setArmorContents(entity.getEquipment().getArmorContents());
-                    newEntity.getEquipment().setItemInMainHand(entity.getEquipment().getItemInMainHand());
-                    newEntity.getEquipment().setItemInOffHand(entity.getEquipment().getItemInOffHand());
-                }
-
-                manager.setStackSize(newEntity, newSize);
-            });
-        }
+        manager.handleStackDeath(event);
     }
         @SuppressWarnings("unused")
     private static final String __wN7e3x9 = "\u0077\u0069\u0064" + "\u006e" + "\u0065\u0065\u0073";

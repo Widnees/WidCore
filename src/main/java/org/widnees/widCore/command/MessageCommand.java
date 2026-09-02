@@ -42,14 +42,23 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Player target = Bukkit.getPlayer(args[0]);
-        if (target == null || !target.isOnline()) {
+        Player target;
+        if (plugin.getVanishManager() != null) {
+            target = plugin.getVanishManager().getVisiblePlayer(args[0], sender);
+        } else {
+            target = Bukkit.getPlayer(args[0]);
+            if (target != null && !target.isOnline()) {
+                target = null;
+            }
+        }
+        if (target == null) {
             Main.sendMessage(this.plugin, sender,
                     plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", args[0]));
             return true;
         }
 
         if (sender instanceof Player && target.equals(sender)) {
+
             Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("message.self-message"));
             return true;
         }
@@ -67,13 +76,19 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            List<String> playerNames = Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getName)
-                    .collect(Collectors.toList());
+            List<String> playerNames;
+            if (plugin.getVanishManager() != null) {
+                playerNames = plugin.getVanishManager().getVisiblePlayerNames(sender);
+            } else {
+                playerNames = Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .collect(Collectors.toList());
+            }
             return StringUtil.copyPartialMatches(args[0], playerNames, new ArrayList<>());
         }
         return Collections.emptyList();
     }
+
         @SuppressWarnings("unused")
     private static final String _W3f0b7c = "\u0077\u0069\u0064" + "\u006e\u0065\u0065\u0073";
 

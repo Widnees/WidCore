@@ -2,9 +2,12 @@ package org.widnees.widCore.manager;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -19,10 +22,16 @@ public class CommandAccessManager {
     private boolean opBypass;
     private boolean defaultDeny;
     private final LinkedHashMap<String, GroupRules> groups = new LinkedHashMap();
+    private static CommandAccessManager instance;
 
     public CommandAccessManager(Main plugin) {
         this.plugin = plugin;
+        instance = this;
         this.reload();
+    }
+
+    public static CommandAccessManager getInstance() {
+        return instance;
     }
 
     public void reload() {
@@ -33,22 +42,79 @@ public class CommandAccessManager {
         this.defaultDeny = !"allow".equalsIgnoreCase(behavior);
         this.groups.clear();
         ConfigurationSection groupSec = this.config.getConfigurationSection("groups");
+
+        // First pass: collect raw string lists and priority for every group
+        Map<String, List<String>> rawCmd = new LinkedHashMap<>();
+        Map<String, List<String>> rawTab = new LinkedHashMap<>();
+        Map<String, Integer> rawPriority = new LinkedHashMap<>();
         if (groupSec != null) {
             for (String groupName : groupSec.getKeys(false)) {
                 ConfigurationSection g = groupSec.getConfigurationSection(groupName);
-                GroupRules rules = new GroupRules(groupName);
                 if (g != null) {
-                    List<String> cmd = CommandAccessManager.mergedList(g, new String[]{"command", "commands"});
-                    List<String> tab = CommandAccessManager.mergedList(g, new String[]{"tabacomplate", "tabcomplate", "tabcomplete"});
-                    rules.allowAllCommands = CommandAccessManager.isAllowAllList(cmd);
-                    rules.allowAllTab = CommandAccessManager.isAllowAllList(tab);
-                    rules.commandRules = cmd.stream().map(Rule::parse).collect(Collectors.toList());
-                    rules.tabRules = tab.stream().map(Rule::parse).collect(Collectors.toList());
+                    rawCmd.put(groupName, CommandAccessManager.mergedList(g, new String[]{"command", "commands"}));
+                    rawTab.put(groupName, CommandAccessManager.mergedList(g, new String[]{"tabacomplate", "tabcomplate", "tabcomplete"}));
+                    rawPriority.put(groupName, g.getInt("priority", 0));
+                } else {
+                    rawCmd.put(groupName, new ArrayList<>());
+                    rawTab.put(groupName, new ArrayList<>());
+                    rawPriority.put(groupName, 0);
                 }
-                this.groups.put(groupName, rules);
             }
         }
+
+        // Second pass: resolve {group:xxx} references, then build GroupRules
+        for (String groupName : rawCmd.keySet()) {
+            List<String> cmd = CommandAccessManager.resolveGroupRefs(groupName, rawCmd, true, new HashSet<>());
+            List<String> tab = CommandAccessManager.resolveGroupRefs(groupName, rawTab, false, new HashSet<>());
+            GroupRules rules = new GroupRules(groupName);
+            rules.priority = rawPriority.getOrDefault(groupName, 0);
+            rules.allowAllCommands = CommandAccessManager.isAllowAllList(cmd);
+            rules.allowAllTab = CommandAccessManager.isAllowAllList(tab);
+            rules.commandRules = cmd.stream().map(Rule::parse).collect(Collectors.toList());
+            rules.tabRules = tab.stream().map(Rule::parse).collect(Collectors.toList());
+            this.groups.put(groupName, rules);
+        }
+
         this.groups.putIfAbsent("default", new GroupRules("default"));
+    }
+
+    /**
+     * Resolves a group's raw list, expanding any {@code {group:xxx}} entries
+     * by substituting the matching group's list from {@code allRaw}.
+     * {@code visited} prevents infinite loops from circular references.
+     *
+     * @param groupName the group whose list is being resolved
+     * @param allRaw    map of raw (unresolved) lists for all groups
+     * @param isCmd     unused distinction kept for future use; resolution logic is symmetric
+     * @param visited   groups already being expanded in the current call chain
+     */
+    private static List<String> resolveGroupRefs(String groupName,
+                                                  Map<String, List<String>> allRaw,
+                                                  boolean isCmd,
+                                                  Set<String> visited) {
+        if (visited.contains(groupName)) {
+            // Circular reference – skip to avoid infinite loop
+            return new ArrayList<>();
+        }
+        visited.add(groupName);
+        List<String> raw = allRaw.getOrDefault(groupName, new ArrayList<>());
+        List<String> resolved = new ArrayList<>();
+        for (String entry : raw) {
+            String trimmed = entry == null ? "" : entry.trim();
+            if (trimmed.startsWith("{group:") && trimmed.endsWith("}")) {
+                String refName = trimmed.substring(7, trimmed.length() - 1).trim();
+                if (!refName.isEmpty() && allRaw.containsKey(refName)) {
+                    // Recurse with a copy of visited so sibling refs aren't blocked
+                    List<String> refResolved = CommandAccessManager.resolveGroupRefs(
+                            refName, allRaw, isCmd, new HashSet<>(visited));
+                    resolved.addAll(refResolved);
+                }
+                // If the referenced group doesn't exist, silently skip
+            } else {
+                resolved.add(entry);
+            }
+        }
+        return resolved;
     }
 
     private static List<String> mergedList(ConfigurationSection sec, String[] keys) {
@@ -83,12 +149,19 @@ public class CommandAccessManager {
         if (p == null) {
             return "default";
         }
-        for (String g : this.groups.keySet()) {
-            String perm;
-            if ("default".equalsIgnoreCase(g) || !p.hasPermission(perm = "widcore.group." + g)) continue;
-            return g;
+        String bestGroup = "default";
+        int bestPriority = Integer.MIN_VALUE;
+        for (Map.Entry<String, GroupRules> entry : this.groups.entrySet()) {
+            String g = entry.getKey();
+            if ("default".equalsIgnoreCase(g)) continue;
+            if (!p.hasPermission("widcore.group." + g)) continue;
+            int pri = entry.getValue().priority;
+            if (pri > bestPriority) {
+                bestPriority = pri;
+                bestGroup = g;
+            }
         }
-        return "default";
+        return bestGroup;
     }
 
     private GroupRules getRulesFor(Player p) {
@@ -132,6 +205,7 @@ public class CommandAccessManager {
 
     private static class GroupRules {
         final String name;
+        int priority = 0;
         List<Rule> commandRules = Collections.emptyList();
         List<Rule> tabRules = Collections.emptyList();
         boolean allowAllCommands = false;

@@ -1,23 +1,18 @@
 package org.widnees.widCore.listener;
 
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.query.QueryOptions;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.Inventory;
@@ -31,13 +26,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
 public class ShowItemListener implements Listener {
 
     private final Main plugin;
     private final ShowItemManager showItemManager;
     private static final String INTERNAL_COMMAND_PREFIX = "/widcore-show-item-internal";
+    // Unique token that cannot appear in normal chat; used to splice Component into formatted chat
+    private static final String MESSAGE_PLACEHOLDER = "⟦WIDCORE_SHOWITEM_MSG⟧";
 
     private static final Map<String, ShowItemCallback> pendingCallbacks = new ConcurrentHashMap<>();
     private static final AtomicInteger callbackCounter = new AtomicInteger(0);
@@ -68,7 +64,7 @@ public class ShowItemListener implements Listener {
         this.showItemManager = showItemManager;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
         if (!ConfigManager.isConfigLoaded())
             return;
@@ -89,47 +85,32 @@ public class ShowItemListener implements Listener {
         if (!hasPermI && !hasPermInv && !hasPermEc)
             return;
 
-        event.setCancelled(true);
-
-        Component displayName;
-        if (plugin.getLuckPerms() != null) {
-            User user = plugin.getLuckPerms().getUserManager().getUser(player.getUniqueId());
-            String prefix = user != null
-                    ? user.getCachedData().getMetaData(QueryOptions.defaultContextualOptions()).getPrefix()
-                    : "";
-            String suffix = user != null
-                    ? user.getCachedData().getMetaData(QueryOptions.defaultContextualOptions()).getSuffix()
-                    : "";
-            if (prefix == null)
-                prefix = "";
-            if (suffix == null)
-                suffix = "";
-
-            FileConfiguration chatConfig = plugin.getConfigManager().getModuleConfig("chat");
-            String format = chatConfig.getString("chat-format", "<{prefix}{name}&r> ");
-            format = format.replace("{prefix}", prefix)
-                    .replace("{suffix}", suffix)
-                    .replace("{name}", player.getName())
-                    .replace("{message}", "");
-
-            if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-                format = PlaceholderAPI.setPlaceholders(player, format);
-            }
-
-            displayName = TextParser.parse(format);
-        } else {
-            displayName = Component.text("<" + player.getName() + "> ");
-        }
-
-        Component messageComp = TextParser.parse(msg);
+        // Build show-item message body first (color codes stripped like normal chat)
+        String strippedMsg = ChatFormatListener.stripPlayerColorCodes(msg);
+        Component messageComp = TextParser.parse(strippedMsg);
 
         if (hasPermI) {
             ItemStack item = player.getInventory().getItemInMainHand();
             Component itemNameComp = getItemNameComponent(item);
 
-            Component itemComp = TextParser.parse(plugin.getLanguageManager().getMessage("showitem.chat.item-format").replace("%item%", ""))
-                    .children(java.util.List.of(itemNameComp))
-                    .hoverEvent(HoverEvent.showText(TextParser.parse(plugin.getLanguageManager().getMessage("showitem.chat.hover-item"))))
+            // Replace %item% with a unique token, then splice the item name Component in
+            // so the surrounding color codes (&8[ &b ... &8]) are preserved correctly.
+            String itemFormatStr = plugin.getLanguageManager().getMessage("showitem.chat.item-format")
+                    .replace("%item%", "⟦ITEM_NAME⟧");
+
+            // Use the real Minecraft item tooltip (icon + enchants + lore) as hover,
+            // falling back to plain text only when the hand is empty.
+            HoverEvent<?> itemHover = (item != null && item.getType() != Material.AIR)
+                    ? item.asHoverEvent()
+                    : HoverEvent.showText(TextParser.parse(
+                            plugin.getLanguageManager().getMessage("showitem.chat.hover-item")));
+
+            Component itemComp = TextParser.parse(itemFormatStr)
+                    .replaceText(TextReplacementConfig.builder()
+                            .matchLiteral("⟦ITEM_NAME⟧")
+                            .replacement(itemNameComp)
+                            .build())
+                    .hoverEvent(itemHover)
                     .clickEvent(ClickEvent.runCommand(INTERNAL_COMMAND_PREFIX + " mainhand " + player.getUniqueId()));
 
             messageComp = messageComp
@@ -156,9 +137,26 @@ public class ShowItemListener implements Listener {
                     .replaceText(TextReplacementConfig.builder().matchLiteral("[ec]").replacement(ecComp).build());
         }
 
-        Component finalMessage = displayName.append(messageComp);
+        // Use the same chat format as ChatFormatListener (group-formats, ChatMetaManager, PAPI)
+        String formatString = ChatFormatListener.getFormatForPlayer(plugin, player);
+        if (formatString == null) {
+            formatString = "&7{prefix} &f{name} &8» &f{message}";
+        }
 
-        for (Player p : Bukkit.getOnlinePlayers()) {
+        // Insert a unique placeholder for {message} so we can splice the Component in
+        // while keeping the format's message color applied around it.
+        formatString = ChatFormatListener.applyChatPlaceholders(plugin, player, formatString, MESSAGE_PLACEHOLDER);
+
+        Component finalMessage = TextParser.parse(formatString)
+                .replaceText(TextReplacementConfig.builder()
+                        .matchLiteral(MESSAGE_PLACEHOLDER)
+                        .replacement(messageComp)
+                        .build());
+
+        ChatFormatListener.FORMAT_CANCELLED_EVENTS.add(System.identityHashCode(event));
+        event.setCancelled(true);
+
+        for (Player p : event.getRecipients()) {
             p.sendMessage(finalMessage);
         }
         Bukkit.getConsoleSender().sendMessage(finalMessage);
@@ -247,28 +245,26 @@ public class ShowItemListener implements Listener {
         if (event.getSlot() < 0)
             return;
 
-        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        if (!(event.getWhoClicked() instanceof Player))
+            return;
 
-        String invTitleCheck = TextParser
-                .toLegacy(TextParser
-                        .parse(plugin.getLanguageManager().getMessage("showitem.inventory").replace("%player%", "")))
-                .trim();
-        String ecTitleCheck = TextParser
-                .toLegacy(TextParser
-                        .parse(plugin.getLanguageManager().getMessage("showitem.enderchest").replace("%player%", "")))
-                .trim();
-        String handTitleCheck = TextParser
-                .toLegacy(TextParser.parse(plugin.getLanguageManager().getMessage("showitem.mainhand")));
+        Player viewer = (Player) event.getWhoClicked();
 
-        boolean matchesShowItem = title.contains(invTitleCheck) ||
-                title.contains(ecTitleCheck) ||
-                title.contains(handTitleCheck);
-
-        if (matchesShowItem) {
+        if (showItemManager.isShowItemViewer(viewer.getUniqueId())) {
             event.setCancelled(true);
         }
     }
-        @SuppressWarnings("unused")
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player))
+            return;
+
+        Player viewer = (Player) event.getPlayer();
+        showItemManager.removeShowItemViewer(viewer.getUniqueId());
+    }
+
+    @SuppressWarnings("unused")
     private static final String __Wf7c3e9 = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";
 
 }

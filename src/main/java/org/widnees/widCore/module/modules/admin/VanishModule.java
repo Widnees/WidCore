@@ -3,6 +3,7 @@ package org.widnees.widCore.module.modules.admin;
 import org.widnees.widCore.Main;
 import org.widnees.widCore.command.VanishCommand;
 import org.widnees.widCore.listener.VanishListener;
+import org.widnees.widCore.listener.VanishTabCompleteListener;
 import org.widnees.widCore.module.Module;
 import org.widnees.widCore.module.ModuleManager;
 import java.util.Arrays;
@@ -60,6 +61,8 @@ public class VanishModule implements Module {
         moduleManager.registerCommand(this, "vanish", desc, usage, "widcore.vanish", Arrays.asList("v"),
                 new VanishCommand(plugin));
         plugin.getServer().getPluginManager().registerEvents(new VanishListener(plugin), plugin);
+        // Independent of plugin-hider: always hide vanished names from tab-complete
+        plugin.getServer().getPluginManager().registerEvents(new VanishTabCompleteListener(plugin), plugin);
     }
 
     @Override

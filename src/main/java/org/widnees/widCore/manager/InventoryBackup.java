@@ -13,8 +13,46 @@ public class InventoryBackup {
     private final int deathX;
     private final int deathY;
     private final int deathZ;
+    /** Bukkit death message string (e.g. "Steve was slain by Zombie"). Null for non-DEATH backups. */
+    private final String deathCause;
+    /** SQLite row id for lazy content loading; -1 if unknown/legacy. */
+    private final long storageId;
+    private final boolean contentsLoaded;
 
-    public InventoryBackup(ItemStack[] inventoryContents, ItemStack[] enderChestContents, long timestamp, BackupReason reason, int totalExperience, int level, String deathWorld, int deathX, int deathY, int deathZ) {
+    /** Convenience constructor — no deathCause. */
+    public InventoryBackup(ItemStack[] inventoryContents, ItemStack[] enderChestContents, long timestamp,
+            BackupReason reason, int totalExperience, int level, String deathWorld, int deathX, int deathY,
+            int deathZ) {
+        this(inventoryContents, enderChestContents, timestamp, reason, totalExperience, level, deathWorld, deathX,
+                deathY, deathZ, null);
+    }
+
+    /** Convenience constructor — no death info. */
+    public InventoryBackup(ItemStack[] inventoryContents, ItemStack[] enderChestContents, long timestamp,
+            BackupReason reason, int totalExperience, int level) {
+        this(inventoryContents, enderChestContents, timestamp, reason, totalExperience, level, null, 0, 0, 0, null);
+    }
+
+    /** Full new-backup constructor with deathCause (storageId assigned by DB on insert). */
+    public InventoryBackup(ItemStack[] inventoryContents, ItemStack[] enderChestContents, long timestamp,
+            BackupReason reason, int totalExperience, int level, String deathWorld, int deathX, int deathY,
+            int deathZ, String deathCause) {
+        this(inventoryContents, enderChestContents, timestamp, reason, totalExperience, level, deathWorld, deathX,
+                deathY, deathZ, deathCause, -1L, true);
+    }
+
+    /** Backward-compat bridge: storageId-aware but no deathCause. */
+    public InventoryBackup(ItemStack[] inventoryContents, ItemStack[] enderChestContents, long timestamp,
+            BackupReason reason, int totalExperience, int level, String deathWorld, int deathX, int deathY,
+            int deathZ, long storageId, boolean contentsLoaded) {
+        this(inventoryContents, enderChestContents, timestamp, reason, totalExperience, level, deathWorld, deathX,
+                deathY, deathZ, null, storageId, contentsLoaded);
+    }
+
+    /** Canonical constructor. */
+    public InventoryBackup(ItemStack[] inventoryContents, ItemStack[] enderChestContents, long timestamp,
+            BackupReason reason, int totalExperience, int level, String deathWorld, int deathX, int deathY,
+            int deathZ, String deathCause, long storageId, boolean contentsLoaded) {
         this.inventoryContents = inventoryContents;
         this.enderChestContents = enderChestContents;
         this.timestamp = timestamp;
@@ -25,10 +63,21 @@ public class InventoryBackup {
         this.deathX = deathX;
         this.deathY = deathY;
         this.deathZ = deathZ;
+        this.deathCause = deathCause;
+        this.storageId = storageId;
+        this.contentsLoaded = contentsLoaded;
     }
 
-    public InventoryBackup(ItemStack[] inventoryContents, ItemStack[] enderChestContents, long timestamp, BackupReason reason, int totalExperience, int level) {
-        this(inventoryContents, enderChestContents, timestamp, reason, totalExperience, level, null, 0, 0, 0);
+    /** Metadata-only backup for list menus (no inventory deserialize). */
+    public static InventoryBackup metadata(long storageId, long timestamp, BackupReason reason, int totalExperience,
+            int level, String deathWorld, int deathX, int deathY, int deathZ, String deathCause) {
+        return new InventoryBackup(new ItemStack[0], new ItemStack[0], timestamp, reason, totalExperience, level,
+                deathWorld, deathX, deathY, deathZ, deathCause, storageId, false);
+    }
+
+    public InventoryBackup withContents(ItemStack[] inventoryContents, ItemStack[] enderChestContents) {
+        return new InventoryBackup(inventoryContents, enderChestContents, timestamp, reason, totalExperience, level,
+                deathWorld, deathX, deathY, deathZ, deathCause, storageId, true);
     }
 
     public ItemStack[] getInventoryContents() {
@@ -71,6 +120,19 @@ public class InventoryBackup {
         return this.deathZ;
     }
 
+    /** Returns the Bukkit death message (e.g. "Steve was slain by Zombie"), or null if not recorded. */
+    public String getDeathCause() {
+        return this.deathCause;
+    }
+
+    public long getStorageId() {
+        return this.storageId;
+    }
+
+    public boolean isContentsLoaded() {
+        return this.contentsLoaded;
+    }
+
     public static enum BackupReason {
         DEATH("menu.type-death"),
         JOIN("menu.type-join"),
@@ -88,7 +150,4 @@ public class InventoryBackup {
             return this.langKey;
         }
     }
-        @SuppressWarnings("unused")
-    private static final String _0xW7e1a9 = "\u0077\u0069\u0064\u006e\u0065\u0065\u0073";
-
 }

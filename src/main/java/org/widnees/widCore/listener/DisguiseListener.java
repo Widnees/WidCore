@@ -1,5 +1,7 @@
 package org.widnees.widCore.listener;
 
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,6 +14,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.widnees.widCore.Main;
 import org.widnees.widCore.manager.DisguiseManager;
+import org.widnees.widCore.manager.TextParser;
 
 public class DisguiseListener implements Listener {
 
@@ -72,41 +75,39 @@ public class DisguiseListener implements Listener {
         DisguiseManager.DisguiseData data = disguiseManager.getDisguise(player);
         if (data == null || data.getType() != DisguiseManager.DisguiseType.PLAYER) return;
 
-        String format = event.getFormat();
         String disguisedName = data.getPlayerName();
         String realName = player.getName();
 
-        String maskedFormat = format.replace(realName, disguisedName);
-        String disguisedMsg;
-        try {
-            disguisedMsg = String.format(maskedFormat, disguisedName, event.getMessage());
-        } catch (Exception e) {
-            disguisedMsg = "<" + disguisedName + "> " + event.getMessage();
-        }
+        String rawMessage = ChatFormatListener.stripPlayerColorCodes(event.getMessage());
 
-        String realMsg;
-        try {
-            realMsg = String.format(format, realName, event.getMessage());
-        } catch (Exception e) {
-            realMsg = "<" + realName + "> " + event.getMessage();
-        }
+        // Disguised message: use the same format as ChatFormatListener but with disguised name
+        String disguisedFormatString = ChatFormatListener.getFormatForPlayer(plugin, player);
+        String disguisedFormatApplied = ChatFormatListener.applyChatPlaceholders(
+                plugin, player, disguisedFormatString, rawMessage);
+        // Replace the real player name with the disguised name in the resolved format
+        disguisedFormatApplied = disguisedFormatApplied.replace(realName, disguisedName);
+        Component disguisedComponent = TextParser.parse(disguisedFormatApplied);
+
+        // Real message: for the impersonated player who gets to see the real sender's name
+        String realFormatString = ChatFormatListener.getFormatForPlayer(plugin, player);
+        String realFormatApplied = ChatFormatListener.applyChatPlaceholders(
+                plugin, player, realFormatString, rawMessage);
+        Component realComponent = TextParser.parse(realFormatApplied);
 
         Player impersonatedPlayer = plugin.getServer().getPlayerExact(disguisedName);
 
+        ChatFormatListener.FORMAT_CANCELLED_EVENTS.add(System.identityHashCode(event));
         event.setCancelled(true);
-
-        final String dMsg = disguisedMsg;
-        final String rMsg = realMsg;
 
         for (Player recipient : event.getRecipients()) {
             if (impersonatedPlayer != null && recipient.equals(impersonatedPlayer)) {
-                recipient.sendMessage(rMsg); 
+                recipient.sendMessage(realComponent);
             } else {
-                recipient.sendMessage(dMsg); 
+                recipient.sendMessage(disguisedComponent);
             }
         }
 
-        plugin.getServer().getConsoleSender().sendMessage(dMsg);
+        Bukkit.getConsoleSender().sendMessage(disguisedComponent);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

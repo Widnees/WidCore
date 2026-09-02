@@ -24,10 +24,25 @@ import org.widnees.widCore.Main;
 import org.widnees.widCore.util.FoliaScheduler;
 
 public class TeleportAnimator {
+
+    private static class AnimationState {
+        final GameMode originalGameMode;
+        final boolean wasFlying;
+        final boolean allowFlight;
+
+        AnimationState(GameMode originalGameMode, boolean wasFlying, boolean allowFlight) {
+            this.originalGameMode = originalGameMode;
+            this.wasFlying = wasFlying;
+            this.allowFlight = allowFlight;
+        }
+    }
+
     private final Main plugin;
     private final Set<UUID> animatingPlayers = new HashSet<UUID>();
     private final Map<UUID, Location> animationTargets = new ConcurrentHashMap<UUID, Location>();
     private final Map<UUID, ArmorStand> cameraStands = new ConcurrentHashMap<UUID, ArmorStand>();
+    private final Map<UUID, AnimationState> animationStates = new ConcurrentHashMap<UUID, AnimationState>();
+    private final Map<UUID, Runnable> completionCallbacks = new ConcurrentHashMap<UUID, Runnable>();
 
     private static final double FLY_HEIGHT = 100.0;
 
@@ -36,10 +51,14 @@ public class TeleportAnimator {
     }
 
     public void playStandardTeleport(Player player, Location location, FileConfiguration effectsConfig) {
+        this.playStandardTeleport(player, location, effectsConfig, null);
+    }
+
+    public void playStandardTeleport(Player player, Location location, FileConfiguration effectsConfig, Runnable onComplete) {
         player.setFallDistance(0.0f);
         if (FoliaScheduler.isFolia()) {
             player.teleportAsync(location, PlayerTeleportEvent.TeleportCause.PLUGIN).thenAccept(success -> {
-                if (success.booleanValue()) {
+                if (success != null && success.booleanValue()) {
                     player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.2f);
                     double radius = effectsConfig.getDouble("effects.teleport-particle.radius", 4.0);
                     if (radius > 0.0) {
@@ -53,6 +72,9 @@ public class TeleportAnimator {
                             angle += 0.19634954084936207;
                         }
                     }
+                    if (onComplete != null) {
+                        onComplete.run();
+                    }
                 }
             });
         } else {
@@ -62,6 +84,9 @@ public class TeleportAnimator {
             if (maxParticleRadius > 0.0) {
                 this.runParticleAnimation(player, maxParticleRadius, effectsConfig);
             }
+            if (onComplete != null) {
+                onComplete.run();
+            }
         }
     }
 
@@ -70,17 +95,28 @@ public class TeleportAnimator {
     }
 
     public void playGtaStyleAnimation(Player player, Location targetLocation, double blindnessDistance, FileConfiguration spawnConfig) {
+        this.playGtaStyleAnimation(player, targetLocation, blindnessDistance, spawnConfig, null);
+    }
+
+    public void playGtaStyleAnimation(Player player, Location targetLocation, double blindnessDistance,
+                                      FileConfiguration spawnConfig, Runnable onComplete) {
         if (FoliaScheduler.isFolia()) {
-            this.playStandardTeleport(player, targetLocation, spawnConfig);
+            this.playStandardTeleport(player, targetLocation, spawnConfig, onComplete);
             return;
         }
         UUID playerId = player.getUniqueId();
         this.animatingPlayers.add(playerId);
         this.animationTargets.put(playerId, targetLocation);
+        if (onComplete != null) {
+            this.completionCallbacks.put(playerId, onComplete);
+        } else {
+            this.completionCallbacks.remove(playerId);
+        }
         GameMode originalGameMode = player.getGameMode();
         Location startLocation = player.getLocation();
         boolean wasFlying = player.isFlying();
         boolean allowFlight = player.getAllowFlight();
+        this.animationStates.put(playerId, new AnimationState(originalGameMode, wasFlying, allowFlight));
 
         ArmorStand cameraStand = (ArmorStand) player.getWorld().spawn(startLocation, ArmorStand.class, stand -> {
             stand.setVisible(false);
@@ -359,6 +395,8 @@ public class TeleportAnimator {
         }
         this.animatingPlayers.remove(playerId);
         this.animationTargets.remove(playerId);
+        this.animationStates.remove(playerId);
+        Runnable onComplete = this.completionCallbacks.remove(playerId);
         if (!player.isOnline()) {
             return;
         }
@@ -370,7 +408,7 @@ public class TeleportAnimator {
         player.setAllowFlight(allowFlight);
         player.setFlying(wasFlying);
         player.setFallDistance(0.0f);
-        this.playStandardTeleport(player, targetLocation, spawnConfig);
+        this.playStandardTeleport(player, targetLocation, spawnConfig, onComplete);
     }
 
     public void forceEndAnimation(Player player, FileConfiguration spawnConfig) {
@@ -378,10 +416,15 @@ public class TeleportAnimator {
             return;
         }
         UUID playerId = player.getUniqueId();
+        // Discard success callback — cancellation must not send teleport-success messages
+        this.completionCallbacks.remove(playerId);
         Location targetLocation = this.animationTargets.get(playerId);
+        AnimationState state = this.animationStates.get(playerId);
+        GameMode gm = state != null ? state.originalGameMode : (player.getPreviousGameMode() != null ? player.getPreviousGameMode() : GameMode.SURVIVAL);
+        boolean wasFlying = state != null ? state.wasFlying : false;
+        boolean allowFlight = state != null ? state.allowFlight : false;
         this.restorePlayerState(player, targetLocation != null ? targetLocation : player.getLocation(),
-                player.getPreviousGameMode() != null ? player.getPreviousGameMode() : GameMode.SURVIVAL,
-                false, false, spawnConfig);
+                gm, wasFlying, allowFlight, spawnConfig);
         Main.sendMessage(this.plugin, (CommandSender) player,
                 this.plugin.getLanguageManager().getMessage("teleport_damage.anim-cancel"));
     }
@@ -391,8 +434,65 @@ public class TeleportAnimator {
         this.forceEndAnimation(player, spawnConfig);
     }
 
+    /**
+     * Called during plugin disable/reload. Instantly teleports all animating players to their
+     * target location without any animation, then cleans up ArmorStands and state.
+     */
+    public void shutdownAllAnimations() {
+        // Copy to avoid ConcurrentModificationException
+        Set<UUID> ids = new HashSet<>(this.animatingPlayers);
+        for (UUID playerId : ids) {
+            // Clean up ArmorStand
+            ArmorStand stand = this.cameraStands.remove(playerId);
+            if (stand != null && stand.isValid()) {
+                stand.remove();
+            }
+
+            Location target = this.animationTargets.get(playerId);
+            AnimationState state = this.animationStates.get(playerId);
+
+            // Clear tracking maps (drop success callbacks — plugin is shutting down)
+            this.animatingPlayers.remove(playerId);
+            this.animationTargets.remove(playerId);
+            this.animationStates.remove(playerId);
+            this.completionCallbacks.remove(playerId);
+
+            Player player = org.bukkit.Bukkit.getPlayer(playerId);
+            if (player == null || !player.isOnline()) continue;
+
+            // Restore player state
+            player.removePotionEffect(PotionEffectType.BLINDNESS);
+            if (player.getGameMode() == GameMode.SPECTATOR) {
+                player.setSpectatorTarget(null);
+            }
+            GameMode gm = state != null ? state.originalGameMode : (player.getPreviousGameMode() != null ? player.getPreviousGameMode() : GameMode.SURVIVAL);
+            player.setGameMode(gm);
+            if (state != null) {
+                player.setAllowFlight(state.allowFlight);
+                player.setFlying(state.wasFlying);
+            }
+            player.setFallDistance(0.0f);
+
+            // Directly teleport to target — no animation
+            if (target != null) {
+                player.teleport(target, PlayerTeleportEvent.TeleportCause.PLUGIN);
+            }
+        }
+        // Clean up any orphaned ArmorStands
+        for (ArmorStand orphan : this.cameraStands.values()) {
+            if (orphan != null && orphan.isValid()) {
+                orphan.remove();
+            }
+        }
+        this.cameraStands.clear();
+    }
+
     public Set<UUID> getAnimatingPlayers() {
         return new HashSet<UUID>(this.animatingPlayers);
+    }
+
+    public ArmorStand getCameraStand(UUID playerId) {
+        return this.cameraStands.get(playerId);
     }
 
     public Location getAnimationTarget(UUID playerId) {

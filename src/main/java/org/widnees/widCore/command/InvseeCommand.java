@@ -1,10 +1,13 @@
 package org.widnees.widCore.command;
 
+import java.util.Collections;
+import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -13,8 +16,9 @@ import org.bukkit.scheduler.BukkitTask;
 import org.widnees.widCore.Main;
 import org.widnees.widCore.database.BinaryDataManager;
 import org.widnees.widCore.manager.ConfigManager;
+import org.widnees.widCore.manager.PlayerNameCache;
 
-public class InvseeCommand implements CommandExecutor {
+public class InvseeCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
 
@@ -44,10 +48,9 @@ public class InvseeCommand implements CommandExecutor {
             return true;
         }
 
-        @SuppressWarnings("deprecation")
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+        OfflinePlayer target = resolveTarget(args[0]);
 
-        if (!target.hasPlayedBefore() && !target.isOnline()) {
+        if (target == null || (!target.hasPlayedBefore() && !target.isOnline())) {
             Main.sendMessage(this.plugin, player,
                     plugin.getLanguageManager().getMessage("invsee.never-played").replace("%player%", args[0]));
             return true;
@@ -102,7 +105,29 @@ public class InvseeCommand implements CommandExecutor {
 
         return true;
     }
-        @SuppressWarnings("unused")
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (args.length != 1 || !sender.hasPermission("widcore.inv")) {
+            return Collections.emptyList();
+        }
+        PlayerNameCache cache = plugin.getPlayerNameCache();
+        if (cache == null) {
+            return Collections.emptyList();
+        }
+        return cache.complete(sender, args[0], true);
+    }
+
+    private OfflinePlayer resolveTarget(String name) {
+        PlayerNameCache cache = plugin.getPlayerNameCache();
+        if (cache != null) {
+            return cache.resolveKnown(name);
+        }
+        Player online = Bukkit.getPlayerExact(name);
+        return online != null ? online : null;
+    }
+
+    @SuppressWarnings("unused")
     private static final String __xW9a4f1 = "\u0077" + "\u0069\u0064\u006e\u0065\u0065\u0073";
 
 }

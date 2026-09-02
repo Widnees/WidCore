@@ -1,23 +1,33 @@
 package org.widnees.widCore.listener;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.bukkit.event.server.TabCompleteEvent;
+import org.widnees.widCore.Main;
 import org.widnees.widCore.manager.CommandAccessManager;
+import org.widnees.widCore.manager.VanishManager;
 
 import java.util.*;
 
 public class TabCompleteGuardListener implements Listener {
 
     private final CommandAccessManager access;
+    private final Main plugin;
 
-    public TabCompleteGuardListener(CommandAccessManager access) {
+    public TabCompleteGuardListener(CommandAccessManager access, Main plugin) {
         this.access = access;
+        this.plugin = plugin;
     }
 
+
+    /**
+     * Legacy command list filter (Bukkit/Spigot command map).
+     * Removes namespace commands and commands not visible to the player.
+     */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerCommandSend(PlayerCommandSendEvent event) {
         Player player = event.getPlayer();
@@ -25,6 +35,11 @@ public class TabCompleteGuardListener implements Listener {
 
         Set<String> allowed = new HashSet<>(event.getCommands());
         for (String cmd : event.getCommands()) {
+            // Namespace'li komutları (pluginadi:komut) her zaman gizle
+            if (cmd.contains(":")) {
+                allowed.remove(cmd);
+                continue;
+            }
             String root = extractRoot(cmd);
             if (!access.isRootVisible(player, root) && !access.isRootVisible(player, cmd)) {
                 allowed.remove(cmd);
@@ -38,18 +53,21 @@ public class TabCompleteGuardListener implements Listener {
     public void onTabComplete(TabCompleteEvent event) {
         if (event.isCancelled()) return;
         String buffer = event.getBuffer();
-        if (buffer == null || !buffer.startsWith("/")) return; 
+        if (buffer == null || !buffer.startsWith("/")) return;
 
         Player player = event.getSender() instanceof Player ? (Player) event.getSender() : null;
+
+        // Always hide vanished names (even for plugin-hider bypass), unless viewer has vanish.see
+        filterVanishedPlayerCompletions(event, player);
+
         if (access.hasBypass(player)) return;
 
-        String raw = buffer.substring(1); 
+        String raw = buffer.substring(1);
         String[] tokens = raw.trim().split("\\s+");
         if (tokens.length == 0 || tokens[0].isEmpty()) return;
 
         String root = tokens[0];
         if (!access.isRootVisible(player, root)) {
-
             event.getCompletions().clear();
             return;
         }
@@ -61,7 +79,6 @@ public class TabCompleteGuardListener implements Listener {
         }
         List<String> prevArgs = new ArrayList<>(allArgs);
         if (!endsWithSpace && !prevArgs.isEmpty()) {
-
             prevArgs = prevArgs.subList(0, prevArgs.size() - 1);
         }
 
@@ -70,7 +87,35 @@ public class TabCompleteGuardListener implements Listener {
         }
     }
 
+
+    private void filterVanishedPlayerCompletions(TabCompleteEvent event, Player viewer) {
+        if (plugin == null) return;
+        VanishManager vanishManager = plugin.getVanishManager();
+        if (vanishManager == null || vanishManager.getVanishedCount() == 0) return;
+        if (viewer != null && viewer.hasPermission("widcore.vanish.see")) return;
+
+        List<String> completions = event.getCompletions();
+        if (completions == null || completions.isEmpty()) return;
+
+        Set<String> vanishedNames = new HashSet<>();
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (vanishManager.isVanished(online)
+                    && (viewer == null || !vanishManager.canSee(viewer, online))) {
+                vanishedNames.add(online.getName());
+                vanishedNames.add(online.getName().toLowerCase(Locale.ROOT));
+            }
+        }
+        if (vanishedNames.isEmpty()) return;
+
+        completions.removeIf(completion -> {
+            if (completion == null) return false;
+            String trimmed = completion.trim();
+            return vanishedNames.contains(trimmed) || vanishedNames.contains(trimmed.toLowerCase(Locale.ROOT));
+        });
+    }
+
     private String extractRoot(String s) {
+
         if (s == null) return "";
         int idx = s.indexOf(':');
         if (idx >= 0 && idx + 1 < s.length()) return s.substring(idx + 1);

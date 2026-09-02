@@ -71,7 +71,9 @@ public class TpaCommand implements CommandExecutor, TabCompleter {
                     plugin.getLanguageManager().getMessage("tpa.usage").replace("%cmd%", type));
             return;
         }
-        Player target = Bukkit.getPlayer(args[0]);
+        Player target = plugin.getVanishManager() != null
+                ? plugin.getVanishManager().getVisiblePlayer(args[0], player)
+                : Bukkit.getPlayer(args[0]);
         if (target == null || !target.isOnline()) {
             Main.sendMessage(plugin, player,
                     plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", args[0]));
@@ -82,6 +84,7 @@ public class TpaCommand implements CommandExecutor, TabCompleter {
             return;
         }
         tpaManager.sendTpaRequest(player, target, type);
+
     }
 
     private void handleResponse(Player player, String[] args, boolean accept) {
@@ -122,14 +125,17 @@ public class TpaCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
             String input = args[0].toLowerCase();
-            return Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getName)
+            List<String> names = plugin.getVanishManager() != null
+                    ? plugin.getVanishManager().getVisiblePlayerNames(sender)
+                    : Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(java.util.stream.Collectors.toList());
+            return names.stream()
                     .filter(name -> name.toLowerCase().startsWith(input))
                     .sorted()
                     .collect(java.util.stream.Collectors.toList());
         }
         return Collections.emptyList();
     }
+
         @SuppressWarnings("unused")
     private static final String _xW4d9f3 = "\u0077" + "\u0069\u0064" + "\u006e\u0065\u0065\u0073";
 

@@ -38,5 +38,13 @@ sound:
 # Default 5000 ms matches the toast advancement display duration
 notification-cooldown-ms: 5000
 
+# Default notification preferences for players who have not changed their settings
+defaults:
+  enabled: true       # Master switch for mention notifications
+  title: true         # Title & subtitle
+  actionbar: false    # Action bar
+  toast: false        # Toast (advancement)
+  sound: true         # Sound
+
 # Do not touch
-version: 1
+version: 2

@@ -227,10 +227,6 @@ ban:
   command: "ban"
   aliases: []
 
-tempban:
-  command: "tempban"
-  aliases: []
-
 unban:
   command: "unban"
   aliases: []
@@ -241,10 +237,6 @@ banlist:
 
 mute:
   command: "mute"
-  aliases: []
-
-tempmute:
-  command: "tempmute"
   aliases: []
 
 unmute:
@@ -261,6 +253,26 @@ kick:
 
 kickall:
   command: "kickall"
+  aliases: []
+
+banip:
+  command: "banip"
+  aliases: []
+
+unbanip:
+  command: "unbanip"
+  aliases: []
+
+muteip:
+  command: "muteip"
+  aliases: []
+
+unmuteip:
+  command: "unmuteip"
+  aliases: []
+
+kickip:
+  command: "kickip"
   aliases: []
 
 # ============================================
@@ -382,5 +394,17 @@ mention:
     toggle:
       aliases: ["toggle"]
 
+# ============================================
+# CHAT CONTROL COMMANDS
+# ============================================
+
+clearchat:
+  command: "clearchat"
+  aliases: ["cc"]
+
+mutechat:
+  command: "mutechat"
+  aliases: ["mc"]
+
 # Do not touch
-version: 8
+version: 11

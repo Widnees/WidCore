@@ -1,27 +1,88 @@
-# Maximum block distance required for mobs to merge
+# ===============================
+# MOB STACKER
+# ===============================
+# Nearby similar mobs merge into one entity to reduce lag.
+# Nametag placeholders: {amount} = stack size, {type} = mob type
+# Villagers are not blacklisted: profession, biome type and baby/adult stay in separate stacks.
+
+# Max block distance required for two mobs to merge
 stack-radius: 5
 
-# Distance (blocks) required for mob name (x2 Zombie) to be visible
+# Distance (blocks) at which the stack nametag (x2 Zombie) becomes visible
 name-visible-distance: 10
 
-# How often (seconds) mobs should be checked and merged
+# How often (seconds) nearby mobs are scanned and merged
+# Newly spawned mobs also try to merge 1 tick after spawn
 check-interval-seconds: 5
 
-# Mob types that cannot be merged
-blacklisted-mobs:
-  - "VILLAGER"
-  - "WITHER"
-  - "ENDER_DRAGON"
+# Maximum number of mobs a single stack can hold
+# Overflow is kept on the other mob (200+200 with max 256 becomes 256+144)
+max-stack-size: 256
 
-# Worlds where this feature is disabled
+# Name format displayed above the stacked mob
+stack-nametag: "&e(x{amount}) &f{type}"
+
+# If this list is not empty, ONLY these mob types can merge
+# Example: [ZOMBIE, SKELETON, CREEPER]
+# If empty, every type can merge except blacklisted-mobs
+whitelisted-mobs: []
+
+# Mob types that never merge
+blacklisted-mobs:
+  - WITHER
+  - ENDER_DRAGON
+  - ELDER_GUARDIAN
+  - ARMOR_STAND
+
+# Worlds where stacking is disabled
 blacklisted-worlds:
   - "disabled_world"
 
-# Maximum stack size a mob can reach
-max-stack-size: 256
+# Spawn reasons allowed to stack. Empty list = all reasons
+# Mobs from other reasons (COMMAND, SPAWNER_EGG, CUSTOM, ...) will not merge
+stack-spawn-reasons:
+  - NATURAL
+  - SPAWNER
+  - SLIME_SPLIT
+  - DEFAULT
 
-# Name format displayed above the mob
-stack-nametag: "&e(x{amount}) &f{type}"
+# States that prevent a mob from merging
+never-stack:
+  # Tamed wolves, cats, horses, parrots, ...
+  tamed: true
+  # Player-named mobs (stack nametags are still allowed)
+  named: true
+  # Mobs tied to a fence/player with a lead
+  leashed: true
+  # Mobs that are riding something or have a passenger
+  mounted: true
+  # Donkeys/mules/llamas with a chest (chest contents would be lost)
+  carrying-chest: true
+  # Zombies/piglins/hoglins currently converting
+  converting: true
+
+# Extra checks before two mobs of the same type can merge
+require-matching:
+  # Baby and adult stay in separate stacks
+  age: true
+  # Farmer / librarian / nitwit / ... stay separate
+  villager-profession: true
+  # Desert / plains / snow / ... villager types stay separate
+  villager-type: true
+  # Sheep color, cat/parrot/fox/horse variants, sheared sheep, ...
+  color-and-variant: true
+  # Slime / magma cube / phantom size
+  slime-size: true
+  # Charged creepers stay separate from normal ones
+  creeper-powered: true
+  # true = armored/armed mobs only merge with the same equipment
+  equipment: false
+
+# Damage causes that kill the whole stack at once (no revive-in-place)
+# Other deaths drop 1 mob of loot, keep the same entity, and reduce the stack by 1
+kill-entire-stack-causes:
+  - VOID
+  - SUICIDE
 
 # Do not touch
-version: 1
+version: 3

@@ -44,6 +44,7 @@ public class EconomyModule implements Module {
     @Override
     public void register() {
         this.economyManager = new EconomyManager(plugin);
+        plugin.setEconomyManager(this.economyManager);
         this.baltopManager = new BaltopManager(plugin, economyManager);
 
         AliasManager aliasManager = plugin.getAliasManager();
@@ -75,6 +76,7 @@ public class EconomyModule implements Module {
     public void unregister() {
         if (economyManager != null) {
             economyManager.shutdown();
+            plugin.setEconomyManager(null);
         }
     }
         @SuppressWarnings("unused")

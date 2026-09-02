@@ -1,0 +1,109 @@
+WidCore Migrate
+===============
+
+KOMUTLAR
+--------
+/widcore migrate list                  - Klasörlerde kaç dosya olduğunu gösterir
+/widcore migrate economy               - Economy verilerini migrate eder
+/widcore migrate home                  - Home verilerini migrate eder
+/widcore migrate warp                  - Warp konumlarını migrate eder
+/widcore migrate punishment            - LiteBans ceza verilerini migrate eder
+/widcore migrate economy --dryrun      - Economy için test çalıştırır
+/widcore migrate home --dryrun         - Home için test çalıştırır
+/widcore migrate warp --dryrun         - Warp için test çalıştırır
+/widcore migrate punishment --dryrun   - LiteBans için test çalıştırır
+
+Yetki: widcore.migrate
+
+
+--DRYRUN NEDİR?
+---------------
+Her migrate komutuna --dryrun ekleyebilirsin.
+Bu mod hiçbir veriyi GÜNCELLEMEZ, sadece işlemin sonucunda
+kaç kaydın başarılı olacağını gösterir.
+
+Migration yapmadan önce mutlaka --dryrun ile test etmeni öneririz.
+
+Örnek:
+  /widcore migrate economy --dryrun
+
+Çıktı şöyle görünür:
+  --- ECONOMY Migrate Sonucu [DRY-RUN] ---
+  Başarılı : 247
+  Başarısız: 0
+  Atlandı  : 3
+
+Sonuç seni tatmin ediyorsa aynı komutu --dryrun olmadan çalıştır.
+
+
+ECONOMY MIGRATION
+-----------------
+Elindeki economy data dosyasını şu klasöre yükle:
+
+  migrate/economy/
+
+İkisi aynı klasörde birlikte olabilir, otomatik algılanır.
+
+Adımlar:
+  1. /widcore migrate economy --dryrun
+  2. Sonuç tamam görünüyorsa: /widcore migrate economy
+
+
+HOME MIGRATION
+--------------
+Elindeki home data dosyalarını şu klasöre yükle:
+
+  migrate/home/
+
+Economy ve Home için aynı dosyaları kullanıyorsan her iki klasöre de
+yükleyebilirsin. Her komut sadece kendi alanını okur.
+
+Adımlar:
+  1. /widcore migrate home --dryrun
+  2. Sonuç tamam görünüyorsa: /widcore migrate home
+
+
+WARP MIGRATION
+--------------
+Elindeki warp data dosyalarını şu klasöre yükle:
+
+  migrate/warp/
+
+Adımlar:
+  1. /widcore migrate warp --dryrun
+  2. Sonuç tamam görünüyorsa: /widcore migrate warp
+
+
+PUNISHMENT MIGRATION (LiteBans)
+--------------------------------
+LiteBans MariaDB/MySQL dump dosyasını (.sql) şu klasöre yükle:
+
+  migrate/punishment/
+
+Dump'ı sunucundan alabilirsin:
+  mysqldump -u root -p litebans > litebans_dump.sql
+
+Klasöre birden fazla .sql dosyası koyabilirsin, hepsi sırayla işlenir.
+
+Aktarılanlar:
+  - litebans_bans  → ban / IP ban (süreli ve kalıcı)
+  - litebans_mutes → mute / IP mute (süreli ve kalıcı)
+  - litebans_history → son bilinen IP adresleri (IP ban/mute için)
+
+Aktarılmayanlar:
+  - kick ve warn kayıtları (WidCore bunları kaydetmiyor)
+
+Merge kuralları:
+  - WidCore'da zaten aktif ban/mute olan oyunculara DOKUNULMAZ
+  - Geçmiş kayıtlar tarih+sebep bazlı tekrar kontrolüyle eklenir
+  - IP ban/mute: aynı IP için en yeni kayıt geçerlidir
+
+Adımlar:
+  1. /widcore migrate punishment --dryrun
+  2. Sonuç tamam görünüyorsa: /widcore migrate punishment
+
+Çıktı şöyle görünür:
+  --- PUNISHMENT Migrate Sonucu [DRY-RUN] ---
+  Başarılı : 183
+  Başarısız: 0
+  Atlandı  : 4

@@ -49,9 +49,11 @@ public class AliasManager {
         PERMISSIONS.put("sethome", "widcore.home.create");
         PERMISSIONS.put("delhome", "widcore.home.delete");
         PERMISSIONS.put("warp", "widcore.warp");
+        SUB_PERMISSIONS.put("warp.other", "widcore.warp.other");
         PERMISSIONS.put("setwarp", "widcore.setwarp");
         PERMISSIONS.put("delwarp", "widcore.delwarp");
         PERMISSIONS.put("spawn", "widcore.spawn");
+        SUB_PERMISSIONS.put("spawn.other", "widcore.spawn.other");
         PERMISSIONS.put("setspawn", "widcore.setspawn");
         PERMISSIONS.put("setvoidspawn", "widcore.voidspawn.set");
         PERMISSIONS.put("worldmanager", "widcore.worldmanager");
@@ -73,11 +75,9 @@ public class AliasManager {
         PERMISSIONS.put("pay", "widcore.pay");
         PERMISSIONS.put("baltop", "widcore.baltop");
         PERMISSIONS.put("ban", "widcore.ban");
-        PERMISSIONS.put("tempban", "widcore.tempban");
         PERMISSIONS.put("unban", "widcore.unban");
         PERMISSIONS.put("banlist", "widcore.banlist");
         PERMISSIONS.put("mute", "widcore.mute");
-        PERMISSIONS.put("tempmute", "widcore.tempmute");
         PERMISSIONS.put("unmute", "widcore.unmute");
         PERMISSIONS.put("mutelist", "widcore.mutelist");
         PERMISSIONS.put("kick", "widcore.kick");
@@ -150,6 +150,12 @@ public class AliasManager {
                 subpermissions.put("other", SUB_PERMISSIONS.get("rtp.other"));
                 subpermissions.put("free", SUB_PERMISSIONS.get("rtp.free"));
                 subpermissions.put("cooldown_bypass", SUB_PERMISSIONS.get("rtp.cooldown_bypass"));
+            }
+            if (key.equals("spawn")) {
+                subpermissions.put("other", SUB_PERMISSIONS.get("spawn.other"));
+            }
+            if (key.equals("warp")) {
+                subpermissions.put("other", SUB_PERMISSIONS.get("warp.other"));
             }
             if (key.equals("worldmanager")) {
                 subpermissions.put("create", SUB_PERMISSIONS.get("worldmanager.create"));

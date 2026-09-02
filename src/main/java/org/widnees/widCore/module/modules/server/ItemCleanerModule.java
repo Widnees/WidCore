@@ -1,31 +1,31 @@
 package org.widnees.widCore.module.modules.server;
 
 import org.widnees.widCore.Main;
-import org.widnees.widCore.listener.ItemRemovalListener;
+import org.widnees.widCore.listener.ItemCleanerListener;
 import org.widnees.widCore.module.Module;
 
-public class ItemRemovalModule implements Module {
+public class ItemCleanerModule implements Module {
     private final Main plugin;
 
-    public ItemRemovalModule(Main plugin) {
+    public ItemCleanerModule(Main plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public String getName() {
-        return "Item Removal Timer";
+        return "Item Cleaner";
     }
 
     @Override
     public boolean isEnabled() {
-        return plugin.getConfig().getBoolean("features.item_removal", false);
+        return plugin.getConfig().getBoolean("features.itemcleaner", false);
     }
 
     @Override
     public void register() {
-        plugin.getItemRemovalManager().startup();
+        plugin.getItemCleanerManager().startup();
         plugin.getServer().getPluginManager()
-                .registerEvents(new ItemRemovalListener(plugin, plugin.getItemRemovalManager()), plugin);
+                .registerEvents(new ItemCleanerListener(plugin, plugin.getItemCleanerManager()), plugin);
     }
 
     @Override

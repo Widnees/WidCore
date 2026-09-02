@@ -111,6 +111,9 @@ public class MenuManager {
                 lore.add(this.plugin.getLanguageManager().getMessage("menu.date-format").replace("%date%", dateFormat.format(date)));
                 if (reason == InventoryBackup.BackupReason.DEATH && backup.getDeathWorld() != null) {
                     lore.add(this.plugin.getLanguageManager().getMessage("menu.location-format").replace("%world%", backup.getDeathWorld()).replace("%x%", String.valueOf(backup.getDeathX())).replace("%y%", String.valueOf(backup.getDeathY())).replace("%z%", String.valueOf(backup.getDeathZ())));
+                    if (backup.getDeathCause() != null && !backup.getDeathCause().isEmpty()) {
+                        lore.add(this.plugin.getLanguageManager().getMessage("menu.death-cause-format").replace("%cause%", backup.getDeathCause()));
+                    }
                 }
                 ItemStack chestItem = this.createMenuItem(Material.CHEST, this.plugin.getLanguageManager().getMessage("menu.backup-format").replace("%date%", timeFormat.format(date)), lore);
                 menu.setItem(i, chestItem);
@@ -130,16 +133,48 @@ public class MenuManager {
     }
 
     public void openBackupPreviewMenu(Player viewer, InventoryBackup backup, boolean isEnderChest) {
+        // Lazy-load inventory blobs only when preview is opened (not for list menu).
+        if (backup != null && !backup.isContentsLoaded()) {
+            OfflinePlayer target = this.viewingTarget.get(viewer.getUniqueId());
+            UUID targetUuid = target != null ? target.getUniqueId() : null;
+            Main.sendMessage(this.plugin, (CommandSender)viewer, this.plugin.getLanguageManager().getMessage("menu.loading"));
+            this.dataManager.loadBackupContentsAsync(targetUuid, backup, loaded -> {
+                if (loaded == null) {
+                    return;
+                }
+                // Keep list entry updated with hydrated backup if present.
+                List<InventoryBackup> list = this.loadedBackups.get(viewer.getUniqueId());
+                if (list != null) {
+                    for (int i = 0; i < list.size(); i++) {
+                        InventoryBackup entry = list.get(i);
+                        if (entry.getStorageId() == loaded.getStorageId()
+                                || (entry.getStorageId() < 0 && entry.getTimestamp() == loaded.getTimestamp())) {
+                            list.set(i, loaded);
+                            break;
+                        }
+                    }
+                }
+                openBackupPreviewMenuLoaded(viewer, loaded, isEnderChest);
+            });
+            return;
+        }
+        openBackupPreviewMenuLoaded(viewer, backup, isEnderChest);
+    }
+
+
+    private void openBackupPreviewMenuLoaded(Player viewer, InventoryBackup backup, boolean isEnderChest) {
         int menuSize = 54;
         String title = isEnderChest ? this.plugin.getLanguageManager().getMessage("menu.ec-backup-title") : this.plugin.getLanguageManager().getMessage("menu.inv-backup-title");
         Inventory menu = Bukkit.createInventory(null, (int)menuSize, (String)title);
         ItemStack[] contents = isEnderChest ? backup.getEnderChestContents() : backup.getInventoryContents();
-        int i = 0;
-        while (i < contents.length) {
-            if (i < 45 && contents[i] != null) {
-                menu.setItem(i, contents[i]);
+        if (contents != null) {
+            int i = 0;
+            while (i < contents.length) {
+                if (i < 45 && contents[i] != null) {
+                    menu.setItem(i, contents[i]);
+                }
+                ++i;
             }
-            ++i;
         }
         int bottomRowStart = menuSize - 9;
         ItemStack glass = this.createMenuItem(Material.BLACK_STAINED_GLASS_PANE, " ", null);

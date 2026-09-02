@@ -81,6 +81,7 @@ public class InvseeListener implements Listener {
         if (clickedInventory != null && clickedInventory.equals(viewer.getInventory())) {
             if (event.getClick().isShiftClick()) {
                 event.setCancelled(true);
+                if (currentItem == null || currentItem.getType() == Material.AIR) return;
                 ItemStack clickedStack = currentItem.clone();
                 Inventory topInventory = event.getView().getTopInventory();
 

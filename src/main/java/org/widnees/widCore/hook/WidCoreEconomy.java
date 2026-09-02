@@ -82,9 +82,9 @@ public class WidCoreEconomy implements Economy {
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
         if (economyManager.withdraw(player, amount)) {
-            return new EconomyResponse(amount, getBalance(player), EconomyResponse.ResponseType.SUCCESS, null);
+            return new EconomyResponse(amount, economyManager.getBalance(player), EconomyResponse.ResponseType.SUCCESS, null);
         }
-        return new EconomyResponse(0, getBalance(player), EconomyResponse.ResponseType.FAILURE, plugin.getLanguageManager().getMessage("economy.insufficient-funds"));
+        return new EconomyResponse(0, economyManager.getBalance(player), EconomyResponse.ResponseType.FAILURE, plugin.getLanguageManager().getMessage("economy.insufficient-funds"));
     }
 
     @Override
@@ -100,7 +100,7 @@ public class WidCoreEconomy implements Economy {
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
         economyManager.deposit(player, amount);
-        return new EconomyResponse(amount, getBalance(player), EconomyResponse.ResponseType.SUCCESS, null);
+        return new EconomyResponse(amount, economyManager.getBalance(player), EconomyResponse.ResponseType.SUCCESS, null);
     }
 
     @Override

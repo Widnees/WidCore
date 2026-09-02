@@ -47,6 +47,10 @@ public class TrollManager {
         return this.mobLookTrollTasks.containsKey(playerId);
     }
 
+    public java.util.Set<UUID> getAllMobLookTrolledPlayers() {
+        return this.mobLookTrollTasks.keySet();
+    }
+
     public void addCreeperChestPlayer(UUID playerId, Location chestLocation) {
         this.creeperChestTrollPlayers.add(playerId);
         this.creeperChestLocations.put(playerId, chestLocation);

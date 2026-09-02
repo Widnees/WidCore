@@ -1,4 +1,4 @@
-package org.widnees.widCore.command;
+                                                                                    package org.widnees.widCore.command;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -12,6 +12,7 @@ import org.bukkit.util.StringUtil;
 import org.widnees.widCore.Main;
 import org.widnees.widCore.manager.ConfigManager;
 import org.widnees.widCore.manager.PunishmentManager;
+import org.widnees.widCore.manager.TextParser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +49,12 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (commandKey.equals("muteip") || commandKey.equals("unmuteip") || commandKey.equals("kickip")
+                || commandKey.equals("banip") || commandKey.equals("unbanip")) {
+            handleIPCommand(sender, commandKey, args);
+            return true;
+        }
+
         if (args.length < 1) {
             sendUsage(sender, commandKey);
             return true;
@@ -58,8 +65,38 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Player target = Bukkit.getPlayer(args[0]);
+        // kick requires the player to be online
+        if (commandKey.equals("kick")) {
+            Player onlineTarget = Bukkit.getPlayer(args[0]);
+            if (onlineTarget == null) {
+                Main.sendMessage(this.plugin, sender,
+                        plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", args[0]));
+                return true;
+            }
+            if (sender instanceof Player && ((Player) sender).getUniqueId().equals(onlineTarget.getUniqueId())) {
+                Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.self-punish"));
+                return true;
+            }
+            if (punishmentManager.isExempt("kick", onlineTarget.getName())) {
+                Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.exempt"));
+                return true;
+            }
+            String reason = (args.length > 1) ? String.join(" ", Arrays.copyOfRange(args, 1, args.length))
+                    : plugin.getLanguageManager().getMessage("punishment.default-reason");
+            handleKick(sender, onlineTarget, reason);
+            return true;
+        }
+
+        // ban and mute support offline players (duration optional)
+        OfflinePlayer target = Bukkit.getPlayer(args[0]);
         if (target == null) {
+            // Try offline lookup
+            OfflinePlayer offline = Bukkit.getOfflinePlayer(args[0]);
+            if (offline != null && (offline.hasPlayedBefore() || offline.isOnline())) {
+                target = offline;
+            }
+        }
+        if (target == null || (!((target instanceof Player) && ((Player) target).isOnline()) && !target.hasPlayedBefore())) {
             Main.sendMessage(this.plugin, sender,
                     plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", args[0]));
             return true;
@@ -70,29 +107,20 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (punishmentManager.isExempt(commandKey.replace("temp", ""), target.getName())) {
+        String targetName = target.getName() != null ? target.getName() : args[0];
+        if (punishmentManager.isExempt(commandKey, targetName)) {
             Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.exempt"));
             return true;
         }
 
-        if (commandKey.equals("tempban") || commandKey.equals("tempmute")) {
-            handleTempPunishment(sender, target, commandKey, args);
+        if (commandKey.equals("ban")) {
+            handleBanWithOptionalDuration(sender, target, args);
             return true;
         }
 
-        String reason = (args.length > 1) ? String.join(" ", Arrays.copyOfRange(args, 1, args.length))
-                : plugin.getLanguageManager().getMessage("punishment.default-reason");
-
-        switch (commandKey) {
-            case "kick":
-                handleKick(sender, target, reason);
-                break;
-            case "ban":
-                handleBan(sender, target, reason);
-                break;
-            case "mute":
-                handleMute(sender, target, reason);
-                break;
+        if (commandKey.equals("mute")) {
+            handleMuteWithOptionalDuration(sender, target, args);
+            return true;
         }
 
         return true;
@@ -105,17 +133,11 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             case "ban":
                 permission = "widcore.ban";
                 break;
-            case "tempban":
-                permission = "widcore.tempban";
-                break;
             case "unban":
                 permission = "widcore.unban";
                 break;
             case "mute":
                 permission = "widcore.mute";
-                break;
-            case "tempmute":
-                permission = "widcore.tempmute";
                 break;
             case "unmute":
                 permission = "widcore.unmute";
@@ -131,6 +153,21 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
                 break;
             case "mutelist":
                 permission = "widcore.mutelist";
+                break;
+            case "muteip":
+                permission = "widcore.muteip";
+                break;
+            case "unmuteip":
+                permission = "widcore.unmuteip";
+                break;
+            case "kickip":
+                permission = "widcore.kickip";
+                break;
+            case "banip":
+                permission = "widcore.banip";
+                break;
+            case "unbanip":
+                permission = "widcore.unbanip";
                 break;
         }
 
@@ -150,7 +187,19 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             actionPast = plugin.getLanguageManager().getMessage("punishment.type-mute");
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+        // First try an exact (case-sensitive) lookup inside the punishment maps.
+        // Bukkit.getOfflinePlayer(String) is case-insensitive and can return the
+        // wrong player when two accounts differ only in letter case (e.g. "Syro" vs "syro").
+        java.util.UUID exactUUID = commandName.equals("unban")
+                ? punishmentManager.getBannedUUIDByExactName(args[0])
+                : punishmentManager.getMutedUUIDByExactName(args[0]);
+
+        OfflinePlayer target;
+        if (exactUUID != null) {
+            target = Bukkit.getOfflinePlayer(exactUUID);
+        } else {
+            target = Bukkit.getOfflinePlayer(args[0]);
+        }
 
         if (!target.hasPlayedBefore() && !target.isOnline()) {
             Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.never-played"));
@@ -159,89 +208,175 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
 
         boolean success;
         if (commandName.equals("unban")) {
-            success = punishmentManager.unbanPlayer(target.getUniqueId());
+            success = punishmentManager.unbanPlayer(target.getUniqueId(), sender.getName());
         } else {
-            success = punishmentManager.unmutePlayer(target.getUniqueId());
+            success = punishmentManager.unmutePlayer(target.getUniqueId(), sender.getName());
         }
 
         if (success) {
+            // Broadcast
+            FileConfiguration config = commandName.equals("unban")
+                    ? punishmentManager.getBanConfig()
+                    : punishmentManager.getMuteConfig();
+            boolean broadcastEnabled = config.getBoolean("broadcast", true);
+            if (broadcastEnabled) {
+                String broadcastKey = commandName.equals("unban") ? "messages.unban-broadcast" : "messages.unmute-broadcast";
+                String broadcastMsg = config.getString(broadcastKey, "");
+                if (broadcastMsg != null && !broadcastMsg.isEmpty()) {
+                    broadcastMsg = broadcastMsg
+                            .replace("%target%", target.getName() != null ? target.getName() : args[0])
+                            .replace("%player%", sender.getName());
+                    TextParser.broadcast(broadcastMsg);
+                }
+            }
+            // Sender feedback
             Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.remove-success")
-                    .replace("%player%", target.getName())
+                    .replace("%player%", target.getName() != null ? target.getName() : args[0])
                     .replace("%type%", actionPast));
         } else {
             Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.not-punished")
-                    .replace("%player%", target.getName())
+                    .replace("%player%", target.getName() != null ? target.getName() : args[0])
                     .replace("%type%", actionPast));
         }
     }
 
-    private void handleTempPunishment(CommandSender sender, Player target, String commandName, String[] args) {
+    /**
+     * Checks if the sender's group has a max-duration entry in the config.
+     * Returns -1 if the group is NOT listed (unlimited).
+     * Returns the parsed duration in ms if the group IS listed.
+     */
+    private long getGroupMaxDuration(CommandSender sender, org.bukkit.configuration.file.FileConfiguration config) {
+        if (!(sender instanceof Player)) {
+            // Console → unlimited
+            return -1L;
+        }
+        Player player = (Player) sender;
+        org.bukkit.configuration.ConfigurationSection section = config.getConfigurationSection("group-max-duration");
+        if (section == null) return -1L;
 
-        if (args.length < 2) {
-            sendUsage(sender, commandName);
+        String primaryGroup = "default";
+        if (plugin.getChatMetaManager() != null) {
+            String g = plugin.getChatMetaManager().getPrimaryGroup(player);
+            if (g != null && !g.isEmpty()) primaryGroup = g.toLowerCase();
+        }
+
+        // Check if the player's actual group is explicitly listed
+        if (section.contains(primaryGroup)) {
+            String maxStr = section.getString(primaryGroup);
+            if (maxStr == null) return -1L;
+            return punishmentManager.parseDuration(maxStr);
+        }
+
+        // Fall back to 'default' entry if it exists
+        if (section.contains("default")) {
+            String maxStr = section.getString("default");
+            if (maxStr == null) return -1L;
+            return punishmentManager.parseDuration(maxStr);
+        }
+
+        // Group not listed at all → unlimited
+        return -1L;
+    }
+
+    /**
+     * /ban <oyuncu> [süre] [sebep]
+     * - Süre yoksa veya 2. arg geçerli süre değilse → kalıcı ban
+     *   Grup listede varsa kalıcı ban da engellenir; listede yoksa widcore.ban.permanent gerekli
+     * - Süre varsa → geçici ban, grubun max süresini aşamaz
+     */
+    private void handleBanWithOptionalDuration(CommandSender sender, OfflinePlayer target, String[] args) {
+        long maxDuration = getGroupMaxDuration(sender, punishmentManager.getBanConfig());
+
+        if (args.length >= 2) {
+            long duration = punishmentManager.parseDuration(args[1]);
+            if (duration > 0) {
+                // Grup max süre kontrolü (listede varsa ve aşılıyorsa engelle)
+                if (maxDuration > 0 && duration > maxDuration) {
+                    String maxStr = punishmentManager.formatDuration(maxDuration);
+                    Main.sendMessage(this.plugin, sender,
+                            plugin.getLanguageManager().getMessage("punishment.usage.ban-duration-exceeded")
+                                    .replace("%max%", maxStr));
+                    return;
+                }
+                String reason = (args.length > 2)
+                        ? String.join(" ", Arrays.copyOfRange(args, 2, args.length))
+                        : plugin.getLanguageManager().getMessage("punishment.default-reason");
+                punishmentManager.tempBanPlayer(target, sender, duration, reason);
+                return;
+            }
+        }
+
+        // Kalıcı ban:
+        // - Grup listede varsa (maxDuration > 0): kalıcı ban tamamen engellenir
+        // - Grup listede yoksa (maxDuration == -1): widcore.ban.permanent gerekli
+        if (maxDuration > 0) {
+            // Grup listede, kalıcı ban engellendi — max süreyi söyle
+            String maxStr = punishmentManager.formatDuration(maxDuration);
+            Main.sendMessage(this.plugin, sender,
+                    plugin.getLanguageManager().getMessage("punishment.usage.ban-duration-exceeded")
+                            .replace("%max%", maxStr));
             return;
         }
+        if (!sender.hasPermission("widcore.ban.permanent")) {
+            Main.sendNoPermission(this.plugin, sender, "widcore.ban.permanent");
+            return;
+        }
+        String reason = (args.length > 1)
+                ? String.join(" ", Arrays.copyOfRange(args, 1, args.length))
+                : plugin.getLanguageManager().getMessage("punishment.default-reason");
+        punishmentManager.banPlayer(target, sender, reason);
+    }
 
-        FileConfiguration config = (commandName.equals("tempban")) ? punishmentManager.getBanConfig()
-                : punishmentManager.getMuteConfig();
+    /**
+     * /mute <oyuncu> [süre] [sebep]
+     * - Süre yoksa veya 2. arg geçerli süre değilse → kalıcı mute
+     *   Grup listede varsa kalıcı mute da engellenir; listede yoksa widcore.mute.permanent gerekli
+     * - Süre varsa → geçici mute, grubun max süresini aşamaz
+     */
+    private void handleMuteWithOptionalDuration(CommandSender sender, OfflinePlayer target, String[] args) {
+        long maxDuration = getGroupMaxDuration(sender, punishmentManager.getMuteConfig());
 
-        boolean useShortcuts = config.getBoolean("use-reason-shortcuts", false);
-        boolean forceShortcuts = config.getBoolean("force-reason-shortcuts", false);
-        String potentialDurationOrReason = args[1];
-        long duration;
-        String reason;
-        int reasonStartIndex = 2;
-
-        boolean isShortcut = useShortcuts && config.isSet("reasons." + potentialDurationOrReason.toLowerCase());
-
-        if (isShortcut) {
-            String durationString = config.getString("reasons." + potentialDurationOrReason.toLowerCase());
-            duration = punishmentManager.parseDuration(durationString);
-        } else {
-            if (forceShortcuts) {
-                Main.sendMessage(this.plugin, sender,
-                        plugin.getLanguageManager().getMessage("punishment.shortcuts-only"));
-                return;
-            }
-
-            duration = punishmentManager.parseDuration(potentialDurationOrReason);
-            if (duration <= 0) {
-                if (useShortcuts) {
+        if (args.length >= 2) {
+            long duration = punishmentManager.parseDuration(args[1]);
+            if (duration > 0) {
+                // Grup max süre kontrolü
+                if (maxDuration > 0 && duration > maxDuration) {
+                    String maxStr = punishmentManager.formatDuration(maxDuration);
                     Main.sendMessage(this.plugin, sender,
-                            plugin.getLanguageManager().getMessage("punishment.invalid-duration-shortcut")
-                                    .replace("%arg%", potentialDurationOrReason));
-                } else {
-                    Main.sendMessage(this.plugin, sender,
-                            plugin.getLanguageManager().getMessage("punishment.invalid-duration-format"));
+                            plugin.getLanguageManager().getMessage("punishment.usage.mute-duration-exceeded")
+                                    .replace("%max%", maxStr));
+                    return;
                 }
+                String reason = (args.length > 2)
+                        ? String.join(" ", Arrays.copyOfRange(args, 2, args.length))
+                        : plugin.getLanguageManager().getMessage("punishment.default-reason");
+                punishmentManager.tempMutePlayer(target, sender, duration, reason);
                 return;
             }
         }
 
-        if (args.length > reasonStartIndex) {
-            reason = potentialDurationOrReason + " "
-                    + String.join(" ", Arrays.copyOfRange(args, reasonStartIndex, args.length));
-        } else {
-            reason = potentialDurationOrReason;
+        // Kalıcı mute:
+        // - Grup listede varsa (maxDuration > 0): kalıcı mute tamamen engellenir
+        // - Grup listede yoksa (maxDuration == -1): widcore.mute.permanent gerekli
+        if (maxDuration > 0) {
+            String maxStr = punishmentManager.formatDuration(maxDuration);
+            Main.sendMessage(this.plugin, sender,
+                    plugin.getLanguageManager().getMessage("punishment.usage.mute-duration-exceeded")
+                            .replace("%max%", maxStr));
+            return;
         }
-
-        if (commandName.equals("tempban")) {
-            punishmentManager.tempBanPlayer(target, sender, duration, reason);
-        } else {
-            punishmentManager.tempMutePlayer(target, sender, duration, reason);
+        if (!sender.hasPermission("widcore.mute.permanent")) {
+            Main.sendNoPermission(this.plugin, sender, "widcore.mute.permanent");
+            return;
         }
+        String reason = (args.length > 1)
+                ? String.join(" ", Arrays.copyOfRange(args, 1, args.length))
+                : plugin.getLanguageManager().getMessage("punishment.default-reason");
+        punishmentManager.mutePlayer(target, sender, reason);
     }
 
     private void handleKick(CommandSender sender, Player target, String reason) {
         punishmentManager.kickPlayer(target, sender, reason);
-    }
-
-    private void handleBan(CommandSender sender, Player target, String reason) {
-        punishmentManager.banPlayer(target, sender, reason);
-    }
-
-    private void handleMute(CommandSender sender, Player target, String reason) {
-        punishmentManager.mutePlayer(target, sender, reason);
     }
 
     private void handleKickAll(CommandSender sender, String[] args) {
@@ -257,9 +392,253 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
             count++;
         }
 
-        Main.sendMessage(this.plugin, sender, plugin.getLanguageManager().getMessage("punishment.kickall-success")
+        FileConfiguration kickConfig = punishmentManager.getKickConfig();
+        String msg = kickConfig.getString("messages.kickall-success",
+                "&e%count% &aplayers kicked. Reason: &f%reason%")
                 .replace("%count%", String.valueOf(count))
-                .replace("%reason%", reason));
+                .replace("%reason%", reason);
+        Main.sendMessage(this.plugin, sender, msg);
+    }
+
+    private void handleIPCommand(CommandSender sender, String commandKey, String[] args) {
+        if (args.length < 1) {
+            sendUsage(sender, commandKey);
+            return;
+        }
+
+        String input = args[0];
+        String ip;
+
+        if (commandKey.equals("unmuteip")) {
+            // unmuteip: accept raw IP or player name (resolve from muted IPs)
+            if (input.matches("^(\\d{1,3}\\.){3}\\d{1,3}$")) {
+                ip = input;
+            } else {
+                ip = punishmentManager.getMutedIPByPlayerName(input);
+                if (ip == null) {
+                    Main.sendMessage(this.plugin, sender,
+                            plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", input));
+                    return;
+                }
+            }
+        } else if (commandKey.equals("unbanip")) {
+            // unbanip: accept raw IP or player name (resolve from banned IPs)
+            if (input.matches("^(\\d{1,3}\\.){3}\\d{1,3}$") || input.contains(":")) {
+                ip = input;
+            } else {
+                // First try online players
+                ip = punishmentManager.getBannedIPByPlayerName(input);
+                if (ip == null) {
+                    // Fall back to last-known IP (covers offline players who were IP-banned)
+                    String resolved = punishmentManager.resolveIpForPlayerName(input);
+                    if (resolved != null && punishmentManager.isIPBanned(resolved)) {
+                        ip = resolved;
+                    }
+                }
+                if (ip == null) {
+                    Main.sendMessage(this.plugin, sender,
+                            plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", input));
+                    return;
+                }
+            }
+        } else {
+            // muteip, kickip, banip, tempbanip, tempmuteip: accept player name or raw IP
+            // tempbanip/tempmuteip also support offline players via lastKnownIp
+            if (input.matches("^(\\d{1,3}\\.){3}\\d{1,3}$")) {
+                ip = input;
+            } else if (commandKey.equals("tempbanip") || commandKey.equals("tempmuteip")) {
+                // Try online first, then last-known IP for offline
+                ip = punishmentManager.resolveIpForPlayerName(input);
+                if (ip == null) {
+                    Main.sendMessage(this.plugin, sender,
+                            plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", input));
+                    return;
+                }
+            } else {
+                Player targetPlayer = Bukkit.getPlayer(input);
+                if (targetPlayer == null) {
+                    Main.sendMessage(this.plugin, sender,
+                            plugin.getLanguageManager().getMessage("general.player-not-found").replace("%player%", input));
+                    return;
+                }
+                ip = punishmentManager.getPlayerIP(targetPlayer);
+                if (ip == null) {
+                    Main.sendMessage(this.plugin, sender,
+                            plugin.getLanguageManager().getMessage("punishment.invalid-ip").replace("%ip%", input));
+                    return;
+                }
+            }
+        }
+
+        FileConfiguration muteConfig = punishmentManager.getMuteConfig();
+        FileConfiguration banConfig = punishmentManager.getBanConfig();
+        FileConfiguration kickConfig = punishmentManager.getKickConfig();
+
+        switch (commandKey) {
+            case "muteip": {
+                if (punishmentManager.isIPMuted(ip)) {
+                    String msg = muteConfig.getString("messages.ip-already-muted",
+                            "&c%player%&c's IP is already muted.")
+                            .replace("%player%", input).replace("%ip%", ip);
+                    Main.sendMessage(this.plugin, sender, msg);
+                    return;
+                }
+                String reason = (args.length > 1)
+                        ? String.join(" ", Arrays.copyOfRange(args, 1, args.length))
+                        : plugin.getLanguageManager().getMessage("punishment.default-reason");
+                punishmentManager.muteIP(ip, sender, reason);
+                String msg = muteConfig.getString("messages.muteip-success",
+                        "&a%player% &amuted via IP. Reason: &f%reason%")
+                        .replace("%player%", input).replace("%ip%", ip).replace("%reason%", reason);
+                Main.sendMessage(this.plugin, sender, msg);
+                break;
+            }
+            case "unmuteip": {
+                if (!punishmentManager.isIPMuted(ip)) {
+                    String msg = muteConfig.getString("messages.ip-not-muted",
+                            "&c%player%&c's IP is not muted.")
+                            .replace("%player%", input).replace("%ip%", ip);
+                    Main.sendMessage(this.plugin, sender, msg);
+                    return;
+                }
+                boolean success = punishmentManager.unmuteIP(ip, sender.getName());
+                if (success) {
+                    // Broadcast
+                    if (muteConfig.getBoolean("broadcast", true)) {
+                        String broadcastMsg = muteConfig.getString("messages.unmuteip-broadcast", "");
+                        if (broadcastMsg != null && !broadcastMsg.isEmpty()) {
+                            broadcastMsg = broadcastMsg
+                                    .replace("%target%", input).replace("%ip%", ip)
+                                    .replace("%player%", sender.getName());
+                            TextParser.broadcast(broadcastMsg);
+                        }
+                    }
+                    String msg = muteConfig.getString("messages.unmuteip-success",
+                            "&a%player%&a's IP mute removed.")
+                            .replace("%player%", input).replace("%ip%", ip);
+                    Main.sendMessage(this.plugin, sender, msg);
+                }
+                break;
+            }
+            case "kickip": {
+                String reason = (args.length > 1)
+                        ? String.join(" ", Arrays.copyOfRange(args, 1, args.length))
+                        : plugin.getLanguageManager().getMessage("punishment.default-reason");
+                int count = punishmentManager.kickPlayersWithIP(ip, sender, reason);
+                String msg = kickConfig.getString("messages.kickip-success",
+                        "&aKicked &e%count% &aplayer(s) with IP &e%ip%&a. Reason: &f%reason%")
+                        .replace("%player%", input).replace("%ip%", ip)
+                        .replace("%count%", String.valueOf(count))
+                        .replace("%reason%", reason);
+                Main.sendMessage(this.plugin, sender, msg);
+                break;
+            }
+            case "banip": {
+                if (punishmentManager.isIPBanned(ip)) {
+                    String msg = banConfig.getString("messages.ip-already-banned",
+                            "&c%player%&c's IP is already banned.")
+                            .replace("%player%", input).replace("%ip%", ip);
+                    Main.sendMessage(this.plugin, sender, msg);
+                    return;
+                }
+                String reason = (args.length > 1)
+                        ? String.join(" ", Arrays.copyOfRange(args, 1, args.length))
+                        : plugin.getLanguageManager().getMessage("punishment.default-reason");
+                punishmentManager.banIP(ip, sender, reason);
+                String msg = banConfig.getString("messages.banip-success",
+                        "&a%player% &abanned via IP. Reason: &f%reason%")
+                        .replace("%player%", input).replace("%ip%", ip).replace("%reason%", reason);
+                Main.sendMessage(this.plugin, sender, msg);
+                break;
+            }
+            case "unbanip": {
+                if (!punishmentManager.isIPBanned(ip)) {
+                    String msg = banConfig.getString("messages.ip-not-banned",
+                            "&c%player%&c's IP is not banned.")
+                            .replace("%player%", input).replace("%ip%", ip);
+                    Main.sendMessage(this.plugin, sender, msg);
+                    return;
+                }
+                boolean success = punishmentManager.unbanIP(ip, sender.getName());
+                if (success) {
+                    // Broadcast
+                    if (banConfig.getBoolean("broadcast", true)) {
+                        String broadcastMsg = banConfig.getString("messages.unbanip-broadcast", "");
+                        if (broadcastMsg != null && !broadcastMsg.isEmpty()) {
+                            broadcastMsg = broadcastMsg
+                                    .replace("%target%", input).replace("%ip%", ip)
+                                    .replace("%player%", sender.getName());
+                            TextParser.broadcast(broadcastMsg);
+                        }
+                    }
+                    String msg = banConfig.getString("messages.unbanip-success",
+                            "&a%player%&a's IP ban removed.")
+                            .replace("%player%", input).replace("%ip%", ip);
+                    Main.sendMessage(this.plugin, sender, msg);
+                }
+                break;
+            }
+            case "tempbanip": {
+                if (args.length < 2) {
+                    sendUsage(sender, commandKey);
+                    return;
+                }
+                long duration = punishmentManager.parseDuration(args[1]);
+                if (duration <= 0) {
+                    Main.sendMessage(this.plugin, sender,
+                            plugin.getLanguageManager().getMessage("punishment.invalid-duration-format"));
+                    return;
+                }
+                if (punishmentManager.isIPBanned(ip)) {
+                    String msg = banConfig.getString("messages.ip-already-banned",
+                            "&cIP &e%ip% &cis already banned.").replace("%ip%", ip);
+                    Main.sendMessage(this.plugin, sender, msg);
+                    return;
+                }
+                String reason = (args.length > 2)
+                        ? String.join(" ", Arrays.copyOfRange(args, 2, args.length))
+                        : plugin.getLanguageManager().getMessage("punishment.default-reason");
+                punishmentManager.tempBanIP(ip, sender, duration, reason);
+                String durationStr = punishmentManager.formatDuration(duration);
+                String msg = banConfig.getString("messages.tempbanip-success",
+                        "&aIP &e%ip% &atemporarily banned for &e%duration%&a. Reason: &f%reason%")
+                        .replace("%ip%", ip)
+                        .replace("%duration%", durationStr)
+                        .replace("%reason%", reason);
+                Main.sendMessage(this.plugin, sender, msg);
+                break;
+            }
+            case "tempmuteip": {
+                if (args.length < 2) {
+                    sendUsage(sender, commandKey);
+                    return;
+                }
+                long duration = punishmentManager.parseDuration(args[1]);
+                if (duration <= 0) {
+                    Main.sendMessage(this.plugin, sender,
+                            plugin.getLanguageManager().getMessage("punishment.invalid-duration-format"));
+                    return;
+                }
+                if (punishmentManager.isIPMuted(ip)) {
+                    String msg = muteConfig.getString("messages.ip-already-muted",
+                            "&cIP &e%ip% &cis already muted.").replace("%ip%", ip);
+                    Main.sendMessage(this.plugin, sender, msg);
+                    return;
+                }
+                String reason = (args.length > 2)
+                        ? String.join(" ", Arrays.copyOfRange(args, 2, args.length))
+                        : plugin.getLanguageManager().getMessage("punishment.default-reason");
+                punishmentManager.tempMuteIP(ip, sender, duration, reason);
+                String durationStr = punishmentManager.formatDuration(duration);
+                String msg = muteConfig.getString("messages.tempmuteip-success",
+                        "&aIP &e%ip% &atemporarily muted for &e%duration%&a. Reason: &f%reason%")
+                        .replace("%ip%", ip)
+                        .replace("%duration%", durationStr)
+                        .replace("%reason%", reason);
+                Main.sendMessage(this.plugin, sender, msg);
+                break;
+            }
+        }
     }
 
     private void sendUsage(CommandSender sender, String commandName) {
@@ -279,19 +658,20 @@ public class PunishmentCommand implements CommandExecutor, TabCompleter {
                 StringUtil.copyPartialMatches(args[0], punishmentManager.getBannedPlayerNames(), completions);
             } else if (commandKey.equals("unmute")) {
                 StringUtil.copyPartialMatches(args[0], punishmentManager.getMutedPlayerNames(), completions);
+            } else if (commandKey.equals("unmuteip")) {
+                StringUtil.copyPartialMatches(args[0], punishmentManager.getMutedIPPlayerNames(), completions);
+            } else if (commandKey.equals("unbanip")) {
+                StringUtil.copyPartialMatches(args[0], punishmentManager.getBannedIPPlayerNames(), completions);
+            } else if (commandKey.equals("muteip") || commandKey.equals("kickip") || commandKey.equals("banip")) {
+                List<String> playerNames = Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .collect(Collectors.toList());
+                StringUtil.copyPartialMatches(args[0], playerNames, completions);
             } else {
                 List<String> playerNames = Bukkit.getOnlinePlayers().stream()
                         .map(Player::getName)
                         .collect(Collectors.toList());
                 StringUtil.copyPartialMatches(args[0], playerNames, completions);
-            }
-        } else if (args.length == 2 && (commandKey.equals("tempmute") || commandKey.equals("tempban"))) {
-            FileConfiguration config = (commandKey.equals("tempban")) ? punishmentManager.getBanConfig()
-                    : punishmentManager.getMuteConfig();
-
-            if (config.getBoolean("use-reason-shortcuts", false)) {
-                List<String> reasons = new ArrayList<>(config.getConfigurationSection("reasons").getKeys(false));
-                StringUtil.copyPartialMatches(args[1], reasons, completions);
             }
         }
 

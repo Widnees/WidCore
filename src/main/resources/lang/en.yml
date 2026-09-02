@@ -11,6 +11,7 @@ general:
   unknown-command: "&cUnknown argument. Use /widcore help for assistance."
   target-inventory-full: "&cTarget player's inventory is full!"
   self-interaction: "&cYou cannot perform this action on yourself."
+  console-name: "Console"
 
 console:
   dependency-missing: "&c[WARNING] &e%feature% &chas been disabled because &e%dependency% &cplugin was not found!"
@@ -470,7 +471,7 @@ banneditem:
   message: "&cYou cannot have a banned item in your inventory."
   not-found: "Item named '%item%' in 'banneditem.yml' not found."
 
-removeitem:
+itemcleaner:
   hologram: "&c%time%s"
 
 voidspawn:
@@ -541,6 +542,7 @@ menu:
   loading: "&eRetrieving backups from database, please wait..."
   date-format: "&7Date: %date%"
   location-format: "&7Location: %world% (%x%, %y%, %z%)"
+  death-cause-format: "&7Death Cause: &f%cause%"
   backup-format: "&eBackup: %date%"
   experience-format: "&aExperience Level: &e%level%"
   experience-total: "&7Total XP: %total%"
@@ -580,6 +582,24 @@ punishment_menu:
   item-reason: "&7Reason: &f%reason%"
   item-date: "&7Date: &f%date%"
   item-duration: "&7Remaining: %duration%"
+  item-status: "&7Status: %status%"
+  item-end-date: "&7End Date: &f%date%"
+  item-removed-by: "&7Removed By: &f%player%"
+  removed-by-expired: "Punishment Expired"
+  status-active: "&c● Active"
+  status-expired-label: "&a● Expired"
+  filter-button: "&eFilter"
+  filter-lore: "&7Click: change filter"
+  filter-all: "● All"
+  filter-active: "● Active"
+  filter-expired: "● Expired"
+  search-button: "&eSearch Player"
+  search-button-lore: "&7Search punishments of a specific player"
+  search-active: "&7Searching: &e%player%"
+  search-title: "&eType player name in chat"
+  search-subtitle: "&7Remaining: &c%seconds%s &7| type &c%cancel% &7to cancel"
+  search-cancelled: "&cSearch cancelled."
+  search-cancel-command: "!exit"
 
 tpa:
   description: "Sends a teleport request to a player."
@@ -618,10 +638,12 @@ spawn:
   setspawn_description: "Sets the server spawn point."
   setspawn_usage_args: "/<command>"
   description: "Teleports the player to the spawn point."
-  usage_args: "/<command>"
+  usage_args: "/<command> [player]"
   success: "&aSuccessfully teleported to spawn."
   not-set: "&cSpawn point has not been set yet."
   already-teleporting: "&cYou are already being teleported."
+  sent-other: "&e%player% &ais being teleported to spawn."
+
 
 head:
   description: "Equips the item in your hand to your head."
@@ -682,7 +704,7 @@ home:
 
 warp:
   description: "Teleports to the specified warp point."
-  usage_args: "/<command> <name>"
+  usage_args: "/<command> <name> [player]"
   setwarp_description: "Creates a new warp point at your location."
   setwarp_usage_args: "/<command> <name>"
   delwarp_description: "Deletes the specified warp point."
@@ -695,6 +717,8 @@ warp:
   success: "&aSuccessfully teleported to '%warp%'."
   usage-set: "&cUsage: /setwarp <name>"
   usage-del: "&cUsage: /delwarp <name>"
+  sent-other: "&e%player% &ais being teleported to warp &e%warp%&a."
+
 
 joinleave:
   join-message: "&8[&a+&8] &7%player%"
@@ -721,11 +745,8 @@ chatguard:
 punishment:
   command:
     mute:
-      description: "Mutes a player permanently."
-      usage: "/<command> <player> [reason]"
-    tempmute:
-      description: "Mutes a player for a specified duration."
-      usage: "/<command> <player> <duration> [reason]"
+      description: "Mutes a player. Provide a duration for a temporary mute; omit for permanent mute (requires widcore.mute.permanent)."
+      usage: "/<command> <player> [duration] [reason]"
     unmute:
       description: "Unmutes a player."
       usage: "/unmute <player>"
@@ -733,11 +754,8 @@ punishment:
       description: "Lists muted players on the server."
       usage: "/mutelist [page]"
     ban:
-      description: "Bans a player from the server permanently."
-      usage: "/<command> <player> [reason]"
-    tempban:
-      description: "Bans a player from the server for a specified duration."
-      usage: "/<command> <player> <duration> [reason]"
+      description: "Bans a player. Provide a duration for a temporary ban; omit for permanent ban (requires widcore.ban.permanent)."
+      usage: "/<command> <player> [duration] [reason]"
     unban:
       description: "Unbans a player."
       usage: "/unban <player>"
@@ -750,6 +768,20 @@ punishment:
     kickall:
       description: "Kicks all online players from the server."
       usage: "/<command> [reason]"
+    kickip:
+      description: "Kicks all online players from a given IP address."
+      usage: "/<command> <ip> [reason]"
+    muteip:
+      description: "Mutes all players from a given IP address."
+      usage: "/<command> <ip> [reason]"
+    unmuteip:
+      description: "Unmutes a previously muted IP address."
+      usage: "/<command> <ip>"
+    banip:
+      description: "Bans all players from a given IP address."
+      usage: "/<command> <ip> [reason]"
+    unbanip:
+      description: "Unbans a previously banned IP address."
   kick-screen:
     - "&cYou have been Kicked!"
     - "&7Reason: &f%reason%"
@@ -762,6 +794,7 @@ punishment:
     kick: "&e%player% &7kicked from server. Reason: &f%reason%"
     ban: "&e%player% &7banned. Reason: &f%reason% (%duration%)"
     mute: "&e%player% &7muted. Reason: &f%reason% (%duration%)"
+  permanent: "§cPermanent"
   default-reason: "No reason specified."
   mute-permanent: "&cYou have been permanently muted from the server."
   kick-permanent: "&cYou have been permanently banned from this server!"
@@ -777,14 +810,32 @@ punishment:
   invalid-duration-shortcut: "&cInvalid duration or reason shortcut! (%arg%)"
   invalid-duration-format: "&cInvalid duration format! Example: 1h, 1d, 30m"
   kickall-success: "&aKicked &e%count% &aplayers. Reason: &f%reason%"
+  muteip-success: "&aIP &e%ip% &ahas been muted. Reason: &f%reason%"
+  unmuteip-success: "&aIP &e%ip% &ahas been unmuted."
+  kickip-success: "&aKicked &e%count% &aplayer(s) from IP &e%ip%&a. Reason: &f%reason%"
+  ip-already-muted: "&cIP &e%ip% &cis already muted."
+  ip-not-muted: "&cIP &e%ip% &cis not muted."
+  invalid-ip: "&cInvalid IP address: &e%ip%"
+  banip-success: "&aIP &e%ip% &ahas been banned. Reason: &f%reason%"
+  unbanip-success: "&aIP &e%ip% &ahas been unbanned."
+  ip-already-banned: "&cIP &e%ip% &cis already banned."
+  ip-not-banned: "&cIP &e%ip% &cis not banned."
+  ban-screen-ip:
+    - "&cYou have been banned from this server! (IP Ban)"
+    - "&7Reason: &f%reason%"
   usage:
     kick: "&cUsage: /kick <player> [reason]"
-    ban: "&cUsage: /ban <player> [reason]"
-    tempban: "&cUsage: /tempban <player> <duration|reason> [extra reason]"
-    mute: "&cUsage: /mute <player> [reason]"
-    tempmute: "&cUsage: /tempmute <player> <duration|reason> [extra reason]"
+    ban: "&cUsage: /ban <player> [duration] [reason]"
+    mute: "&cUsage: /mute <player> [duration] [reason]"
+    ban-duration-exceeded: "&cYour group's maximum ban duration has been exceeded! Maximum: &e%max%"
+    mute-duration-exceeded: "&cYour group's maximum mute duration has been exceeded! Maximum: &e%max%"
     unban: "&cUsage: /unban <player>"
     unmute: "&cUsage: /unmute <player>"
+    muteip: "&cUsage: /muteip <player|ip> [reason]"
+    unmuteip: "&cUsage: /unmuteip <player|ip>"
+    kickip: "&cUsage: /kickip <player|ip> [reason]"
+    banip: "&cUsage: /banip <player|ip> [reason]"
+    unbanip: "&cUsage: /unbanip <player|ip>"
 
   freeze:
     usage: "&cUsage: /freeze <player> [duration]"
@@ -850,6 +901,14 @@ database:
   shutdown-save-error: "An error occurred while saving data during plugin shutdown."
   punishment:
     unknown-old-data: "Unknown (Old Data)"
+
+migrate:
+  starting: "&aMigrating data... &7[Type: &e%type%&7] %dryrun%"
+  dryrun-label: "&e[DRY-RUN — no data will be saved]"
+  summary: "&a%type% migration complete%dryrun%&7: &a%success% &7succeeded, &c%failed% &7failed, &e%skipped% &7skipped."
+  folder-not-found: "&cFolder not found: &7migrate/%folder%/ &c(type: %type%)"
+  no-files-found: "&eNo processable .yml files found in folder."
+  unknown-type: "&cUnknown migration type: &e%type% &c| Supported: &7%types%"
 
 antimobspawn:
   invalid-mob-global: "[AntiMobSpawn] Invalid mob name in 'all_worlds' list: %mob%"
@@ -963,7 +1022,7 @@ tempfly:
   removed: "&aRemoved flight time from &e%player%&a."
   removed-target: "&cYour temporary flight has been removed by a staff member."
   no-time: "&c%player% has no active flight time."
-  check: "&e%player% &ahas &e%time% &aflight time remaining."
+  check: "&e%player% &ahas &e%time% &aflight time remaining."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
   expired: "&cYour temporary flight time has expired!"
   actionbar: "&e✈ &fFlight Remaining: &a%time%"
   bossbar: "&a✈ Flight Time Remaining: %time%"
@@ -988,6 +1047,24 @@ disguise:
   type-player: "Player"
   player-skin-loading: "&eLoading skin..."
   player-skin-failed: "&cFailed to load skin: &e%name%"
+
+clearchat:
+  description: "Clears the chat for all players."
+  usage_args: "/<command>"
+  cleared:
+    - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    - ""
+    - "   &eChat has been cleared by &7%player%&e."
+    - "   &a✦ Have Fun! ✦"
+    - ""
+    - "&8&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+mutechat:
+  description: "Mutes or unmutes the chat."
+  usage_args: "/<command>"
+  enabled: "&cChat has been muted. Only staff can type."
+  disabled: "&aChat has been unmuted."
+  blocked: "&cThe chat is currently muted!"
 
 mention:
   description: "Manages mention notification settings."
@@ -1020,4 +1097,4 @@ mention:
   sender-disabled-notify: "&7%player% has disabled mention notifications."
 
 # don't touch
-version: 22
+version: 29

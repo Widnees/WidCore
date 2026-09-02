@@ -1,4 +1,4 @@
-package org.widnees.widCore.module.modules.admin;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               package org.widnees.widCore.module.modules.admin;
 
 import org.widnees.widCore.Main;
 import org.widnees.widCore.command.PunishmentCommand;
@@ -33,16 +33,14 @@ public class PunishmentModule implements Module {
         PunishmentListCommand punishmentListCommand = new PunishmentListCommand(plugin,plugin.getPunishmentMenuManager());
 
         plugin.getServer().getPluginManager().registerEvents(new PunishmentListener(plugin, plugin.getPunishmentManager()), plugin);
-        plugin.getServer().getPluginManager().registerEvents(new PunishmentMenuListener(plugin.getPunishmentMenuManager()), plugin);
+        PunishmentMenuListener menuListener = new PunishmentMenuListener(plugin, plugin.getPunishmentMenuManager());
+        plugin.getServer().getPluginManager().registerEvents(menuListener, plugin);
+        plugin.setPunishmentMenuListenerInstance(menuListener);
 
         if (plugin.getConfig().getBoolean("features.punishment_mute", false)) {
             String muteDesc = plugin.getLanguageManager().getMessage("punishment.command.mute.description");
             String muteUsage = plugin.getLanguageManager().getMessage("punishment.command.mute.usage");
             moduleManager.registerCommand(this, "mute", muteDesc, muteUsage, "widcore.mute", null, punishmentCommand);
-
-            String tempMuteDesc = plugin.getLanguageManager().getMessage("punishment.command.tempmute.description");
-            String tempMuteUsage = plugin.getLanguageManager().getMessage("punishment.command.tempmute.usage");
-            moduleManager.registerCommand(this, "tempmute", tempMuteDesc, tempMuteUsage, "widcore.tempmute", null, punishmentCommand);
 
             String unmuteDesc = plugin.getLanguageManager().getMessage("punishment.command.unmute.description");
             String unmuteUsage = plugin.getLanguageManager().getMessage("punishment.command.unmute.usage");
@@ -58,10 +56,6 @@ public class PunishmentModule implements Module {
             String banUsage = plugin.getLanguageManager().getMessage("punishment.command.ban.usage");
             moduleManager.registerCommand(this, "ban", banDesc, banUsage, "widcore.ban", null, punishmentCommand);
 
-            String tempBanDesc = plugin.getLanguageManager().getMessage("punishment.command.tempban.description");
-            String tempBanUsage = plugin.getLanguageManager().getMessage("punishment.command.tempban.usage");
-            moduleManager.registerCommand(this, "tempban", tempBanDesc, tempBanUsage, "widcore.tempban", null, punishmentCommand);
-
             String unbanDesc = plugin.getLanguageManager().getMessage("punishment.command.unban.description");
             String unbanUsage = plugin.getLanguageManager().getMessage("punishment.command.unban.usage");
             moduleManager.registerCommand(this, "unban", unbanDesc, unbanUsage, "widcore.unban", null, punishmentCommand);
@@ -69,6 +63,15 @@ public class PunishmentModule implements Module {
             String banListDesc = plugin.getLanguageManager().getMessage("punishment.command.banlist.description");
             String banListUsage = plugin.getLanguageManager().getMessage("punishment.command.banlist.usage");
             moduleManager.registerCommand(this, "banlist", banListDesc, banListUsage, "widcore.banlist", null, punishmentListCommand);
+
+            String banIpDesc = plugin.getLanguageManager().getMessage("punishment.command.banip.description");
+            String banIpUsage = plugin.getLanguageManager().getMessage("punishment.command.banip.usage");
+            moduleManager.registerCommand(this, "banip", banIpDesc, banIpUsage, "widcore.banip", null, punishmentCommand);
+
+            String unbanIpDesc = plugin.getLanguageManager().getMessage("punishment.command.unbanip.description");
+            String unbanIpUsage = plugin.getLanguageManager().getMessage("punishment.command.unbanip.usage");
+            moduleManager.registerCommand(this, "unbanip", unbanIpDesc, unbanIpUsage, "widcore.unbanip", null, punishmentCommand);
+
         }
 
         if (plugin.getConfig().getBoolean("features.punishment_kick", false)) {
@@ -79,6 +82,22 @@ public class PunishmentModule implements Module {
             String kickAllDesc = plugin.getLanguageManager().getMessage("punishment.command.kickall.description");
             String kickAllUsage = plugin.getLanguageManager().getMessage("punishment.command.kickall.usage");
             moduleManager.registerCommand(this, "kickall", kickAllDesc, kickAllUsage, "widcore.kickall", null, punishmentCommand);
+
+            String kickIpDesc = plugin.getLanguageManager().getMessage("punishment.command.kickip.description");
+            String kickIpUsage = plugin.getLanguageManager().getMessage("punishment.command.kickip.usage");
+            moduleManager.registerCommand(this, "kickip", kickIpDesc, kickIpUsage, "widcore.kickip", null, punishmentCommand);
+        }
+
+        // IP mute commands — require mute feature
+        if (plugin.getConfig().getBoolean("features.punishment_mute", false)) {
+            String muteIpDesc = plugin.getLanguageManager().getMessage("punishment.command.muteip.description");
+            String muteIpUsage = plugin.getLanguageManager().getMessage("punishment.command.muteip.usage");
+            moduleManager.registerCommand(this, "muteip", muteIpDesc, muteIpUsage, "widcore.muteip", null, punishmentCommand);
+
+            String unmuteIpDesc = plugin.getLanguageManager().getMessage("punishment.command.unmuteip.description");
+            String unmuteIpUsage = plugin.getLanguageManager().getMessage("punishment.command.unmuteip.usage");
+            moduleManager.registerCommand(this, "unmuteip", unmuteIpDesc, unmuteIpUsage, "widcore.unmuteip", null, punishmentCommand);
+
         }
     }
 

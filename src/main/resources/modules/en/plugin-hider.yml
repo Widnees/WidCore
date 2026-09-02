@@ -1,6 +1,7 @@
 # Assign players to a group via permission: widcore.group.<group>
 # NOTE: the 'default' group is automatically applied to EVERYONE; no permission is required for it.
 #       If a player has widcore.group.<group> they will use that group's rules, otherwise 'default' is used.
+#       When a player has multiple groups (parent add), the group with the HIGHEST 'priority' value is selected.
 #
 #
 # How rule patterns work (examples)
@@ -13,16 +14,29 @@
 # - tpa *    => shows all sub paths (accept, deny, toggle, etc.) in tab-complete
 #
 # Additional notes:
-# - If a group's 'command' or 'tabacomplate' list contains only "*", that group can use/see ALL commands (like OP).
+# - If a group's 'command' or 'tabcomplate' list contains only "*", that group can use/see ALL commands (like OP).
+# - Use the '{group:groupname}' syntax to inherit another group's rules into the current list.
+#   If placed in 'command', only that group's command rules are imported.
+#   If placed in 'tabcomplate', only that group's tab-complete rules are imported.
+#
+#   Example:
+#     mod:
+#       command:
+#         - "{group:default}"   # imports all command rules from the 'default' group
+#         - ban *
+#       tabcomplate:
+#         - "{group:default}"   # imports all tab-complete rules from the 'default' group
+#         - ban *
 
 groups:
   default:
+    priority: 0
     # Allowed commands to EXECUTE
     command:
       - tpa *
       - discord
     # Visible commands in TAB-COMPLETE
-    tabacomplate:
+    tabcomplate:
       - tpa *
       - discord
 
@@ -30,11 +44,12 @@ groups:
   # To assign this group, give the player 'widcore.group.staff' permission.
   # Using '*' below allows all commands and shows all commands in tab-complete for this group.
   staff:
+    priority: 100
     # Allowed commands to EXECUTE
     command:
       - "*"
     # Visible commands in TAB-COMPLETE
-    tabacomplate:
+    tabcomplate:
       - "*"
 
 # Messages shown when sensitive info commands are typed
@@ -48,4 +63,4 @@ brand-name: "WidCore"
 
 
 # Do not touch
-version: 1
+version: 3

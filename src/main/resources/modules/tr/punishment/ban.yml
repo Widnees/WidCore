@@ -1,18 +1,74 @@
-# Sunucuya duyurulacak yasaklama mesajı
-broadcast-message: "&c{target} &7adlı oyuncu &c{player} &7tarafından yasaklandı. &8(&f{reason}&8)"
+# Kullanılabilir değişkenler: %target%, %player%, %reason%, %duration%
+messages:
+  # Sunucuya duyurulacak yasaklama mesajı
+  broadcast:
+    - "&8&m----------------------------"
+    - "&c %target% &7yasaklandı!"
+    - "&7 Yetkili: &f%player%"
+    - "&7 Sebep: &f%reason%"
+    - "&7 Süre: &f%duration%"
+    - "&8&m----------------------------"
 
-# Yasaklanan oyuncunun ekranında görünecek mesaj
-kick-screen-message:
-  - "&c&lSUNUCUDAN YASAKLANDINIZ"
-  - ""
-  - "&7Sebep: &f{reason}"
-  - "&7Süre: &f{duration}"
-  - ""
-  - "&7İtiraz için Discord'a gelebilirsiniz."
+  # Yasaklanan oyuncunun giriş yaptığında göreceği ekran
+  # Placeholders: %reason%, %punisher%, %ban-date%, %expiry%, %duration%
+  ban-screen:
+    - "&c&lSUNUCUDAN YASAKLANDINIZ"
+    - ""
+    - "&7Sebep: &f%reason%"
+    - "&7Yasaklayan: &f%punisher%"
+    - "&7Yasaklanma tarihi: &f%ban-date%"
+    - "&7Bitiş tarihi: &f%expiry%"
+    - "&7Kalan süre: &f%duration%"
+    - ""
+    - "&7İtiraz için Discord'a gelebilirsiniz."
+
+  # IP ban ekran mesajı
+  # Placeholders: %reason%, %punisher%, %ban-date%, %expiry%
+  ban-screen-ip:
+    - "&c&lSUNUCUDAN YASAKLANDINIZ (IP Ban)"
+    - ""
+    - "&7Sebep: &f%reason%"
+    - "&7Yasaklayan: &f%punisher%"
+    - ""
+    - "&7İtiraz için Discord'a gelebilirsiniz."
+
+  # /banip başarı mesajı - %player%, %reason%
+  banip-success: "&a%player% &aadlı oyuncu IP üzerinden yasaklandı. Sebep: &f%reason%"
+
+  # /unbanip başarı mesajı - %player%
+  unbanip-success: "&a%player% &aadlı oyuncunun IP yasağı kaldırıldı."
+
+  # IP zaten yasaklı - %player%
+  ip-already-banned: "&c%player% &cadlı oyuncunun IPsi zaten yasaklı."
+
+  # IP yasaklı değil - %player%
+  ip-not-banned: "&c%player% &cadlı oyuncunun IPsi yasaklı değil."
+
+  # Unban başarı mesajı - %player%, %type%
+  remove-success: "&a%player% adlı oyuncunun %type% başarıyla kaldırıldı."
+
+  # Aktif ceza bulunamadı - %player%, %type%
+  not-punished: "&c%player% adlı oyuncunun aktif bir %type% bulunmuyor."
+
+  # Unban sunucu duyurusu - %target%, %player%
+  unban-broadcast: "&a%target% &7adlı oyuncunun yasağı &e%player% &7tarafından kaldırıldı."
+
+  # Unbanip sunucu duyurusu - %target%, %player%
+  unbanip-broadcast: "&a%target% &7adlı oyuncunun IP yasağı &e%player% &7tarafından kaldırıldı."
 
 # Bu oyuncular yasaklanamaz
 exempt-players:
   - "Notch"
+
+# Gruba göre maksimum ban süresi (LuckPerms grup adı, küçük harf)
+# Format: 1s 30m 2h 7d 2y (saniye/dakika/saat/gün/yıl)
+# Eğer oyuncunun grubu bu listede YOKSA: sınırsız süre ve kalıcı ban yapabilir.
+# Eğer oyuncunun grubu bu listede VARSA: sadece o kadar süreye kadar ban atabilir,
+# kalıcı ban da bu limite takılır (widcore.ban.permanent olsa bile).
+group-max-duration:
+  mod: "30d"
+  helper: "7d"
+  default: "1d"
 
 # Komutlarda hazır sebep kısayollarını kullan (örn: /tempban oyuncu hile)
 use-reason-shortcuts: true
@@ -26,6 +82,42 @@ reasons:
   kufur: "1d"
   reklam: "7d"
 
+# Discord webhook bildirimi - Ban / Tempban
+# color: ondalık renk kodu (kırmızı: 15158332, mavi: 3447003, yeşil: 3066993)
+ban-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Ceza Sistemi"
+  title: "🔨 Oyuncu Yasaklandı"
+  color: 15158332
+  fields:
+    - name: "👤 Oyuncu"
+      value: "%target%"
+      inline: true
+    - name: "👮 Yetkili"
+      value: "%player%"
+      inline: true
+    - name: "📋 Sebep"
+      value: "%reason%"
+      inline: false
+    - name: "⏳ Süre"
+      value: "%duration%"
+      inline: true
+
+# Discord webhook bildirimi - Unban
+unban-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Ceza Sistemi"
+  title: "✅ Yasak Kaldırıldı"
+  color: 3066993
+  fields:
+    - name: "👤 Oyuncu"
+      value: "%target%"
+      inline: true
+    - name: "👮 Yetkili"
+      value: "%player%"
+      inline: true
 
 # Dokunma
-version: 1
+version: 7

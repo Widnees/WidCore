@@ -23,11 +23,17 @@ import java.util.List;
 public class MentionCommand implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
+    private final FileConfiguration config;
 
     public static final String MENU_TITLE_KEY = "mention.menu-title";
 
     public MentionCommand(Main plugin, FileConfiguration config) {
         this.plugin = plugin;
+        this.config = config;
+    }
+
+    public BinaryDataManager.MentionPrefs createDefaultPrefs() {
+        return BinaryDataManager.MentionPrefs.fromConfig(config);
     }
 
     public String getMenuTitle() {
@@ -81,7 +87,7 @@ public class MentionCommand implements CommandExecutor, TabCompleter {
     public void openSettingsMenu(Player player) {
         BinaryDataManager.MentionPrefsData data = plugin.getMentionPrefsData();
         BinaryDataManager.MentionPrefs prefs = data.players.computeIfAbsent(
-                player.getUniqueId(), uuid -> new BinaryDataManager.MentionPrefs());
+                player.getUniqueId(), uuid -> createDefaultPrefs());
 
         String title = getMenuTitle();
         Inventory inv = Bukkit.createInventory(null, 9, title);
@@ -139,7 +145,7 @@ public class MentionCommand implements CommandExecutor, TabCompleter {
     private void toggleMentions(Player player, String label) {
         BinaryDataManager.MentionPrefsData data = plugin.getMentionPrefsData();
         BinaryDataManager.MentionPrefs prefs = data.players.computeIfAbsent(
-                player.getUniqueId(), uuid -> new BinaryDataManager.MentionPrefs());
+                player.getUniqueId(), uuid -> createDefaultPrefs());
 
         prefs.enabled = !prefs.enabled;
         plugin.getDataManager().saveMentionPrefs(data);

@@ -50,6 +50,12 @@ public class JoinLeaveListener implements Listener {
         if (plugin.getTempFlyManager() != null) {
             plugin.getTempFlyManager().handleJoin(player);
         }
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                player.updateCommands();
+            }
+        }, 20L);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

@@ -3,7 +3,9 @@ package org.widnees.widCore.manager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import net.kyori.adventure.text.Component;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -24,6 +26,7 @@ public class ShowItemManager {
     private final Main plugin;
     private final boolean componentApiExists;
     private Economy economy;
+    private final Set<UUID> activeShowItemViewers = ConcurrentHashMap.newKeySet();
 
     public ShowItemManager(Main plugin) {
         boolean components;
@@ -76,6 +79,14 @@ public class ShowItemManager {
             }
             meta.setLore(coloredLore);
         }
+    }
+
+    public boolean isShowItemViewer(UUID viewerUUID) {
+        return activeShowItemViewers.contains(viewerUUID);
+    }
+
+    public void removeShowItemViewer(UUID viewerUUID) {
+        activeShowItemViewers.remove(viewerUUID);
     }
 
     public Inventory createItemInventory(Player viewer, Player target, String type) {
@@ -136,6 +147,7 @@ public class ShowItemManager {
             item.setItemMeta(meta);
         }
         inv.setItem(4, item);
+        activeShowItemViewers.add(viewer.getUniqueId());
         return inv;
     }
 
@@ -179,6 +191,7 @@ public class ShowItemManager {
             }
             ++i;
         }
+        activeShowItemViewers.add(viewer.getUniqueId());
         return inv;
     }
 
@@ -191,6 +204,7 @@ public class ShowItemManager {
             return null;
         }
         inv.setContents(p.getEnderChest().getContents());
+        activeShowItemViewers.add(viewer.getUniqueId());
         return inv;
     }
 

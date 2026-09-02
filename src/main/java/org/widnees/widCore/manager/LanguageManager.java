@@ -220,6 +220,11 @@ public class LanguageManager {
             }
             return this.getMessage("console.message-not-found").replace("%key%", key);
         }
+        // Support list format: if value is a list, join lines with \n
+        if (this.langConfig.isList(key)) {
+            List<String> lines = this.langConfig.getStringList(key);
+            return String.join("\n", lines);
+        }
         return this.langConfig.getString(key);
     }
 

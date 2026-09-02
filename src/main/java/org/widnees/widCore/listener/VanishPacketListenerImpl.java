@@ -208,12 +208,12 @@ public class VanishPacketListenerImpl extends PacketListenerAbstract {
     }
 
     private void forceFlag(PacketSendEvent event, WrapperPlayServerEntityMetadata wrapper, byte flagBit) {
-        java.util.List<EntityData> originalList = wrapper.getEntityMetadata();
-        java.util.List<EntityData> newList = new java.util.ArrayList<>(originalList);
+        java.util.List<EntityData<?>> originalList = wrapper.getEntityMetadata();
+        java.util.List<EntityData<?>> newList = new java.util.ArrayList<>(originalList);
 
         boolean foundIndex0 = false;
         for (int i = 0; i < newList.size(); i++) {
-            EntityData ed = newList.get(i);
+            EntityData<?> ed = newList.get(i);
             if (ed.getIndex() == 0) {
                 byte existing = (ed.getValue() instanceof Byte) ? (Byte) ed.getValue() : (byte) 0;
 

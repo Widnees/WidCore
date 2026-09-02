@@ -13,7 +13,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.widnees.widCore.command.WidCoreCommand;
 import org.widnees.widCore.database.BinaryDataManager;
+import org.widnees.widCore.manager.EconomyManager;
+import org.widnees.widCore.migrate.MigrateManager;
+import org.widnees.widCore.migrate.EssentialsEconomyMigrator;
+import org.widnees.widCore.migrate.EssentialsHomeMigrator;
 import org.widnees.widCore.listener.JoinLeaveListener;
+import org.widnees.widCore.listener.PunishmentMenuListener;
 import org.widnees.widCore.listener.UpdateListener;
 import org.widnees.widCore.manager.*;
 import org.widnees.widCore.module.ModuleManager;
@@ -34,6 +39,7 @@ public final class Main extends JavaPlugin {
     private LanguageManager languageManager;
     private BinaryDataManager dataManager;
     private VanishManager vanishManager;
+    private PlayerNameCache playerNameCache;
     private TrollManager trollManager;
     private LuckPerms luckPerms;
     private SpawnLocationManager spawnLocationManager;
@@ -44,7 +50,7 @@ public final class Main extends JavaPlugin {
     private ChatMetaManager chatMetaManager;
     private ChatGuardManager chatGuardManager;
     private MessageManager messageManager;
-    private ItemRemovalManager itemRemovalManager;
+    private ItemCleanerManager itemCleanerManager;
     private WorldDataManager worldDataManager;
     private PunishmentManager punishmentManager;
     private PunishmentMenuManager punishmentMenuManager;
@@ -68,8 +74,13 @@ public final class Main extends JavaPlugin {
     private RtpManager rtpManager;
     private DisguiseManager disguiseManager;
     private BinaryDataManager.MentionPrefsData mentionPrefsData;
+    private PunishmentMenuListener punishmentMenuListenerInstance;
+    private org.widnees.widCore.hook.VanishServerPlaceholderHook vanishServerPlaceholderHook;
+    private EconomyManager economyManager;
+    private MigrateManager migrateManager;
 
     private final HashMap<UUID, UUID> openOfflineInventories = new HashMap<>();
+
     private final HashMap<UUID, UUID> openInvseeInventories = new HashMap<>();
     private final HashMap<UUID, BukkitTask> activeInvseeTasks = new HashMap<>();
     private final Set<UUID> vanishedPlayers = new HashSet<>();
@@ -111,12 +122,14 @@ public final class Main extends JavaPlugin {
         this.dismissMenuManager = new DismissMenuManager(this);
         this.joinLeaveListener = new JoinLeaveListener(this, this.dismissMenuManager);
         this.vanishManager = new VanishManager(this, this.joinLeaveListener);
+        this.playerNameCache = new PlayerNameCache(this);
+        getServer().getPluginManager().registerEvents(this.playerNameCache, this);
 
         getServer().getPluginManager().registerEvents(
             new org.widnees.widCore.listener.WelcomeMenuListener(this, this.dismissMenuManager), this);
 
         this.showItemManager = new ShowItemManager(this);
-        this.itemRemovalManager = new ItemRemovalManager(this);
+        this.itemCleanerManager = new ItemCleanerManager(this);
         this.worldDataManager = new WorldDataManager(this);
         this.worldDataManager.loadWorldsEarly(); 
         this.messageManager = new MessageManager(this);
@@ -160,9 +173,38 @@ public final class Main extends JavaPlugin {
 
         this.helpMenuManager = new HelpMenuManager(this, this.moduleManager, "widcore");
 
-        getCommand("widcore").setExecutor(new WidCoreCommand(this));
+        // Migrate sistemi
+        this.migrateManager = new MigrateManager(this);
+        this.migrateManager.registerHandler(new EssentialsEconomyMigrator(this));
+        this.migrateManager.registerHandler(new EssentialsHomeMigrator(this));
+        this.migrateManager.registerHandler(new org.widnees.widCore.migrate.EssentialsWarpMigrator(this));
+        this.migrateManager.registerHandler(new org.widnees.widCore.migrate.LitebansPunishmentMigrator(this));
+        
+
+        WidCoreCommand widCoreCommand = new WidCoreCommand(this);
+        getCommand("widcore").setExecutor(widCoreCommand);
+        getCommand("widcore").setTabCompleter(widCoreCommand);
 
         getServer().getPluginManager().registerEvents(new UpdateListener(this), this);
+
+        // DiscordSRV hook — cancel edilmiş chat event'lerini Discord'a iletir
+        if (getServer().getPluginManager().getPlugin("DiscordSRV") != null) {
+            try {
+                getServer().getPluginManager().registerEvents(
+                    new org.widnees.widCore.hook.DiscordSRVHook(this), this);
+                getLogger().info("DiscordSRV entegrasyonu aktif edildi.");
+            } catch (Throwable e) {
+                getLogger().warning("DiscordSRV hook yüklenemedi: " + e.getMessage());
+            }
+        }
+
+        // PlaceholderAPI: %server_online% vanish oyuncularını saymaz
+        try {
+            this.vanishServerPlaceholderHook =
+                org.widnees.widCore.hook.VanishServerPlaceholderHook.tryRegister(this);
+        } catch (Throwable e) {
+            getLogger().warning("PlaceholderAPI vanish hook yüklenemedi: " + e.getMessage());
+        }
 
         FoliaScheduler.runTaskLaterAsync(this, () -> {
             updateManager.checkForUpdates(Bukkit.getConsoleSender());
@@ -170,17 +212,72 @@ public final class Main extends JavaPlugin {
 
     }
 
+
+    /**
+     * Stops all active in-progress operations (animations, open menus, RTP, troll tasks, etc.).
+     * Called both during onDisable and reloadPlugin so players are never left in a broken state.
+     */
+    private void shutdownActiveProcesses() {
+        // 1. Stop teleport animations — must come first so players are restored before inventories close
+        if (this.teleportAnimator != null) {
+            this.teleportAnimator.shutdownAllAnimations();
+        }
+
+        // 2. Close all open inventories so their InventoryCloseEvent listeners fire and clean up state
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getOpenInventory() != null) {
+                player.closeInventory();
+            }
+        }
+
+        // 3. Cancel PunishmentMenuListener chat-await tasks
+        if (this.punishmentMenuListenerInstance != null) {
+            this.punishmentMenuListenerInstance.shutdown();
+        }
+
+        // 4. Cancel RTP queue and cleanup walk speeds / potion effects
+        if (this.rtpManager != null) {
+            this.rtpManager.shutdown();
+        }
+
+        // 5. Cancel TrollManager mob-look tasks
+        if (this.trollManager != null) {
+            for (UUID uid : new java.util.HashSet<>(this.trollManager.getAllMobLookTrolledPlayers())) {
+                this.trollManager.removeMobLookTask(uid);
+            }
+        }
+    }
+
     @Override
     public void onDisable() {
         printDisableMessage();
 
         try {
+            shutdownActiveProcesses();
+
+            if (this.playerNameCache != null) {
+                this.playerNameCache.shutdown();
+            }
+
+            if (this.vanishServerPlaceholderHook != null) {
+                try {
+                    this.vanishServerPlaceholderHook.uninstall();
+                } catch (Throwable ignored) {
+                }
+                this.vanishServerPlaceholderHook = null;
+            }
+
+            if (this.moduleManager != null) {
+                this.moduleManager.unregisterModules();
+            }
+
+
             if (this.vanishManager != null) {
                 this.vanishManager.unvanishAll();
             }
 
-            if (this.itemRemovalManager != null && getConfig().getBoolean("features.item_removal", false)) {
-                this.itemRemovalManager.shutdown();
+            if (this.itemCleanerManager != null && getConfig().getBoolean("features.itemcleaner", false)) {
+                this.itemCleanerManager.shutdown();
             }
 
             if (this.disguiseManager != null) {
@@ -204,11 +301,21 @@ public final class Main extends JavaPlugin {
 
             CompletableFuture.allOf(punishmentSave, backLocationSave, playerDataSave).join();
 
-            this.dataManager.close();
+            if (this.dataManager != null) {
+                this.dataManager.close();
+            }
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error during plugin disable: ", e);
         }
+    }
+
+    public void setPunishmentMenuListenerInstance(PunishmentMenuListener listener) {
+        this.punishmentMenuListenerInstance = listener;
+    }
+
+    public PunishmentMenuListener getPunishmentMenuListenerInstance() {
+        return punishmentMenuListenerInstance;
     }
 
     public AliasManager getAliasManager() {
@@ -291,6 +398,18 @@ public final class Main extends JavaPlugin {
         return dataManager;
     }
 
+    public EconomyManager getEconomyManager() {
+        return economyManager;
+    }
+
+    public void setEconomyManager(EconomyManager manager) {
+        this.economyManager = manager;
+    }
+
+    public MigrateManager getMigrateManager() {
+        return migrateManager;
+    }
+
     public BinaryDataManager.MentionPrefsData getMentionPrefsData() {
         return mentionPrefsData;
     }
@@ -303,12 +422,16 @@ public final class Main extends JavaPlugin {
         return vanishManager;
     }
 
+    public PlayerNameCache getPlayerNameCache() {
+        return playerNameCache;
+    }
+
     public ShowItemManager getShowItemManager() {
         return showItemManager;
     }
 
-    public ItemRemovalManager getItemRemovalManager() {
-        return itemRemovalManager;
+    public ItemCleanerManager getItemCleanerManager() {
+        return itemCleanerManager;
     }
 
     public WorldDataManager getWorldDataManager() {
@@ -409,6 +532,8 @@ public final class Main extends JavaPlugin {
     }
 
     public void reloadPlugin() {
+        // Stop all active processes before reloading so players are not left in broken states
+        shutdownActiveProcesses();
 
         moduleManager.unregisterModules();
 
@@ -427,6 +552,11 @@ public final class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new UpdateListener(this), this);
 
         this.helpMenuManager = new HelpMenuManager(this, this.moduleManager, "widcore");
+
+        // Force update commands for all players so the new command visibility rules apply immediately
+        for (org.bukkit.entity.Player p : getServer().getOnlinePlayers()) {
+            p.updateCommands();
+        }
 
         getLogger().info("Plugin reloaded!");
     }

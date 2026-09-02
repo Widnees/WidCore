@@ -1,27 +1,88 @@
-# Mobların birleşmesi için gereken maksimum blok uzaklığı
+# ===============================
+# MOB STACKER
+# ===============================
+# Yakındaki benzer moblar tek entity halinde birleşir, lag azalır.
+# İsim yer tutucuları: {amount} = stack sayısı, {type} = mob türü
+# Köylüler kara listede değil: meslek, biyom tipi ve bebek/yetişkin ayrı stack olur.
+
+# Birleşme için gereken maksimum blok uzaklığı
 stack-radius: 5
 
-# Mob isminin (x2 Zombie) görünmesi için gereken uzaklık (blok)
+# Stack isminin (x2 Zombie) görünmesi için gereken uzaklık (blok)
 name-visible-distance: 10
 
-# Mobların kaç saniyede bir kontrol edilip birleştirileceği
+# Yakındaki mobların kaç saniyede bir taranıp birleştirileceği
+# Yeni spawn olan moblar 1 tick sonra da birleşmeyi dener
 check-interval-seconds: 5
+
+# Bir stack'in ulaşabileceği maksimum mob sayısı
+# Fazlası diğer mobda kalır (max 256 iken 200+200 → 256+144)
+max-stack-size: 256
+
+# Stack'li mobun üzerinde görünecek isim formatı
+stack-nametag: "&e(x{amount}) &f{type}"
+
+# Bu liste doluysa SADECE bu türler birleşir
+# Örnek: [ZOMBIE, SKELETON, CREEPER]
+# Boşsa kara listedekiler hariç her tür birleşebilir
+whitelisted-mobs: []
 
 # Birleşmesi engellenen mob türleri
 blacklisted-mobs:
-  - "VILLAGER"
-  - "WITHER"
-  - "ENDER_DRAGON"
+  - WITHER
+  - ENDER_DRAGON
+  - ELDER_GUARDIAN
+  - ARMOR_STAND
 
 # Özelliğin devre dışı olduğu dünyalar
 blacklisted-worlds:
   - "disabled_world"
 
-# Bir mobun ulaşabileceği maksimum stack sayısı
-max-stack-size: 256
+# Birleşmeye izin verilen spawn sebepleri. Boş liste = hepsi
+# Diğer sebeplerle (COMMAND, SPAWNER_EGG, CUSTOM, ...) çıkan moblar birleşmez
+stack-spawn-reasons:
+  - NATURAL
+  - SPAWNER
+  - SLIME_SPLIT
+  - DEFAULT
 
-# Mobun üzerinde görünecek isim formatı
-stack-nametag: "&e(x{amount}) &f{type}"
+# Birleşmeyi engelleyen durumlar
+never-stack:
+  # Evcilleştirilmiş kurt, kedi, at, papağan, ...
+  tamed: true
+  # Oyuncunun isim verdiği moblar (stack ismi yine görünür)
+  named: true
+  # Tasma ile bağlı moblar
+  leashed: true
+  # Bineğe binmiş veya üzerinde yolcu olan moblar
+  mounted: true
+  # Sandıklı eşek/katır/lama (sandık içeriği silinir)
+  carrying-chest: true
+  # Dönüşmekte olan zombi/piglin/hoglin
+  converting: true
+
+# Aynı türdeki iki mobun birleşmesi için ekstra eşleşme kuralları
+require-matching:
+  # Bebek ve yetişkin ayrı stack olur
+  age: true
+  # Çiftçi / kütüphaneci / nitwit / ... ayrı kalır
+  villager-profession: true
+  # Çöl / ova / kar / ... köylü tipleri ayrı kalır
+  villager-type: true
+  # Koyun rengi, kedi/papağan/tilki/at varyantı, kırkılmış koyun, ...
+  color-and-variant: true
+  # Slime / magma cube / phantom boyutu
+  slime-size: true
+  # Şarjlı creeper normalden ayrı kalır
+  creeper-powered: true
+  # true = zırhlı/silahlı moblar yalnızca aynı ekipmanla birleşir
+  equipment: false
+
+# Tüm stack'i tek seferde öldüren hasar sebepleri (yerinde revive yok)
+# Diğer ölümlerde 1 mob'luk loot düşer, aynı entity kalır, stack 1 azalır
+kill-entire-stack-causes:
+  - VOID
+  - SUICIDE
 
 # Dokunma
-version: 1
+version: 3

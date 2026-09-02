@@ -154,6 +154,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
 
         try {
             Location loc = disguised.getLocation();
+            float yaw = getAdjustedYaw(loc.getYaw(), data);
 
             switch (data.getType()) {
                 case ENTITY: {
@@ -162,12 +163,13 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
                     WrapperPlayServerSpawnEntity spawnPacket = new WrapperPlayServerSpawnEntity(
                             fakeId, Optional.of(fakeUuid), peType,
                             new Vector3d(loc.getX(), loc.getY(), loc.getZ()),
-                            loc.getPitch(), loc.getYaw(), loc.getYaw(),
+                            loc.getPitch(), yaw, yaw,
                             0, Optional.of(new Vector3d(0, 0, 0))
                     );
                     PacketEvents.getAPI().getPlayerManager().sendPacket(observer, spawnPacket);
                     break;
                 }
+
                 case ITEM: {
                     WrapperPlayServerSpawnEntity spawnPacket = new WrapperPlayServerSpawnEntity(
                             fakeId, Optional.of(fakeUuid), EntityTypes.ITEM,
@@ -230,7 +232,61 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
                     0, Optional.of(new Vector3d(0, 0, 0))
             );
             PacketEvents.getAPI().getPlayerManager().sendPacket(observer, spawnPacket);
+            sendRealPlayerEquipment(observer, player);
         } catch (Exception ignored) {}
+    }
+
+    private static void sendRealPlayerEquipment(Player observer, Player player) {
+        try {
+            List<com.github.retrooper.packetevents.protocol.player.Equipment> equipmentList = new ArrayList<>();
+            addEquipment(equipmentList,
+                    com.github.retrooper.packetevents.protocol.player.EquipmentSlot.MAIN_HAND,
+                    player.getInventory().getItemInMainHand());
+            addEquipment(equipmentList,
+                    com.github.retrooper.packetevents.protocol.player.EquipmentSlot.OFF_HAND,
+                    player.getInventory().getItemInOffHand());
+            addEquipment(equipmentList,
+                    com.github.retrooper.packetevents.protocol.player.EquipmentSlot.HELMET,
+                    player.getInventory().getHelmet());
+            addEquipment(equipmentList,
+                    com.github.retrooper.packetevents.protocol.player.EquipmentSlot.CHEST_PLATE,
+                    player.getInventory().getChestplate());
+            addEquipment(equipmentList,
+                    com.github.retrooper.packetevents.protocol.player.EquipmentSlot.LEGGINGS,
+                    player.getInventory().getLeggings());
+            addEquipment(equipmentList,
+                    com.github.retrooper.packetevents.protocol.player.EquipmentSlot.BOOTS,
+                    player.getInventory().getBoots());
+
+            if (!equipmentList.isEmpty()) {
+                WrapperPlayServerEntityEquipment equipPacket =
+                        new WrapperPlayServerEntityEquipment(player.getEntityId(), equipmentList);
+                PacketEvents.getAPI().getPlayerManager().sendPacket(observer, equipPacket);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private static void addEquipment(
+            List<com.github.retrooper.packetevents.protocol.player.Equipment> list,
+            com.github.retrooper.packetevents.protocol.player.EquipmentSlot slot,
+            org.bukkit.inventory.ItemStack bukkitItem) {
+        com.github.retrooper.packetevents.protocol.item.ItemStack peItem;
+        if (bukkitItem == null || bukkitItem.getType().isAir()) {
+            peItem = com.github.retrooper.packetevents.protocol.item.ItemStack.EMPTY;
+        } else {
+            com.github.retrooper.packetevents.protocol.item.type.ItemType itemType =
+                    com.github.retrooper.packetevents.protocol.item.type.ItemTypes.getByName(
+                            bukkitItem.getType().getKey().getKey());
+            if (itemType == null) {
+                peItem = com.github.retrooper.packetevents.protocol.item.ItemStack.EMPTY;
+            } else {
+                peItem = com.github.retrooper.packetevents.protocol.item.ItemStack.builder()
+                        .type(itemType)
+                        .amount(bukkitItem.getAmount())
+                        .build();
+            }
+        }
+        list.add(new com.github.retrooper.packetevents.protocol.player.Equipment(slot, peItem));
     }
 
     public static void applySelfDisguise(Main plugin, Player player, DisguiseManager.DisguiseData data) {
@@ -251,6 +307,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
             FoliaScheduler.runTaskLater(plugin, () -> {
                 try {
                     Location loc = player.getLocation();
+                    float yaw = getAdjustedYaw(loc.getYaw(), data);
                     EntityType peType;
 
                     if (data.getType() == DisguiseManager.DisguiseType.ENTITY) {
@@ -265,7 +322,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
                     WrapperPlayServerSpawnEntity spawnPacket = new WrapperPlayServerSpawnEntity(
                             selfFakeId, Optional.of(selfFakeUuid), peType,
                             new Vector3d(loc.getX(), loc.getY(), loc.getZ()),
-                            loc.getPitch(), loc.getYaw(), loc.getYaw(),
+                            loc.getPitch(), yaw, yaw,
                             0, Optional.of(new Vector3d(0, 0, 0))
                     );
                     PacketEvents.getAPI().getPlayerManager().sendPacket(player, spawnPacket);
@@ -274,6 +331,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
                         sendItemMetadata(player, selfFakeId, data.getMaterial());
                     }
                 } catch (Exception ignored) {}
+
 
                 if (isPlayer) {
                     FoliaScheduler.runTaskLater(plugin, () ->
@@ -291,10 +349,11 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
     public static void sendTeleportPacket(Player player, int entityId) {
         try {
             Location loc = player.getLocation();
+            float yaw = getAdjustedYaw(loc.getYaw(), getDisguiseData(player));
             WrapperPlayServerEntityTeleport telePacket = new WrapperPlayServerEntityTeleport(
                     entityId,
                     new Vector3d(loc.getX(), loc.getY(), loc.getZ()),
-                    loc.getYaw(), loc.getPitch(), false
+                    yaw, loc.getPitch(), false
             );
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, telePacket);
         } catch (Exception ignored) {}
@@ -302,8 +361,9 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
 
     public static void sendHeadRotationPacket(Player player, int entityId) {
         try {
+            float yaw = getAdjustedYaw(player.getLocation().getYaw(), getDisguiseData(player));
             WrapperPlayServerEntityHeadLook headPacket = new WrapperPlayServerEntityHeadLook(
-                    entityId, player.getLocation().getYaw()
+                    entityId, yaw
             );
             PacketEvents.getAPI().getPlayerManager().sendPacket(player, headPacket);
         } catch (Exception ignored) {}
@@ -313,26 +373,28 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
         Integer fakeId = observerFakeIds.get(player.getUniqueId());
         if (fakeId == null) return;
         Location loc = player.getLocation();
+        float yaw = getAdjustedYaw(loc.getYaw(), getDisguiseData(player));
         for (Player observer : Bukkit.getOnlinePlayers()) {
             if (observer.equals(player)) continue;
             try {
                 WrapperPlayServerEntityTeleport telePacket = new WrapperPlayServerEntityTeleport(
                         fakeId,
                         new Vector3d(loc.getX(), loc.getY(), loc.getZ()),
-                        loc.getYaw(), loc.getPitch(), false
+                        yaw, loc.getPitch(), false
                 );
                 PacketEvents.getAPI().getPlayerManager().sendPacket(observer, telePacket);
                 WrapperPlayServerEntityHeadLook headPacket = new WrapperPlayServerEntityHeadLook(
-                        fakeId, loc.getYaw()
+                        fakeId, yaw
                 );
                 PacketEvents.getAPI().getPlayerManager().sendPacket(observer, headPacket);
             } catch (Exception ignored) {}
         }
     }
 
+
     private static void sendSetInvisibleMetadata(Player observer, int entityId, boolean invisible) {
         try {
-            List<EntityData> metadata = new ArrayList<>();
+            List<EntityData<?>> metadata = new ArrayList<>();
             byte flags = invisible ? (byte) (1 << 5) : (byte) 0;
             metadata.add(new EntityData(0, EntityDataTypes.BYTE, flags));
             WrapperPlayServerEntityMetadata metaPacket = new WrapperPlayServerEntityMetadata(entityId, metadata);
@@ -342,7 +404,7 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
 
     private static void sendItemMetadata(Player observer, int entityId, org.bukkit.Material material) {
         try {
-            List<EntityData> metadata = new ArrayList<>();
+            List<EntityData<?>> metadata = new ArrayList<>();
             metadata.add(new EntityData(0, EntityDataTypes.BYTE, (byte) 0));
 
             com.github.retrooper.packetevents.protocol.item.type.ItemType itemType =
@@ -483,7 +545,29 @@ public class DisguisePacketHandler extends PacketListenerAbstract {
             return null;
         }
     }
-        @SuppressWarnings("unused")
+
+    /**
+     * Ender Dragon model faces opposite of player yaw (+180°).
+     * Other entities use player yaw as-is.
+     */
+    private static float getAdjustedYaw(float yaw, DisguiseManager.DisguiseData data) {
+        if (data != null
+                && data.getType() == DisguiseManager.DisguiseType.ENTITY
+                && data.getEntityType() == org.bukkit.entity.EntityType.ENDER_DRAGON) {
+            return yaw + 180f;
+        }
+        return yaw;
+    }
+
+    private static DisguiseManager.DisguiseData getDisguiseData(Player player) {
+        if (instance == null || instance.plugin == null || instance.plugin.getDisguiseManager() == null) {
+            return null;
+        }
+        return instance.plugin.getDisguiseManager().getDisguise(player);
+    }
+
+    @SuppressWarnings("unused")
     private static final String _xCr7w3n = "\u0077\u0069\u0064\u006e" + "\u0065\u0065\u0073";
 
 }
+

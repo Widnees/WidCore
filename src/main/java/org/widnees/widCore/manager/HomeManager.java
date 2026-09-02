@@ -139,10 +139,7 @@ public class HomeManager {
             return;
         }
         if (delaySeconds <= 0) {
-            this.performTeleportWithAnimation(player, targetLocation, homeConfig, animationType, blindnessDistance);
-            if (onSuccess != null) {
-                FoliaScheduler.runAtEntityLater((Plugin)this.plugin, (Entity)player, onSuccess, 5L);
-            }
+            this.performTeleportWithAnimation(player, targetLocation, homeConfig, animationType, blindnessDistance, onSuccess);
             return;
         }
         Map<String, String> warmupPl = new HashMap<>();
@@ -176,12 +173,9 @@ public class HomeManager {
             }
             if (ticksPassed[0] >= totalTicks) {
                 isCancelled[0] = true;
-                this.performTeleportWithAnimation(player, targetLocation, homeConfig, animationType, blindnessDistance);
+                this.performTeleportWithAnimation(player, targetLocation, homeConfig, animationType, blindnessDistance, onSuccess);
                 teleportManager.removeTask(playerId);
                 FoliaScheduler.cancelTask(taskHolder[0]);
-                if (onSuccess != null) {
-                    FoliaScheduler.runAtEntityLater((Plugin)this.plugin, (Entity)player, onSuccess, 5L);
-                }
                 return;
             }
             if (ticksPassed[0] % 20 == 0) {
@@ -204,12 +198,13 @@ public class HomeManager {
         teleportManager.updateTask(playerId, taskHolder[0]);
     }
 
-    private void performTeleportWithAnimation(Player player, Location location, FileConfiguration homeConfig, String animationType, double blindnessDistance) {
+    private void performTeleportWithAnimation(Player player, Location location, FileConfiguration homeConfig,
+                                              String animationType, double blindnessDistance, Runnable onComplete) {
         TeleportAnimator animator = this.plugin.getTeleportAnimator();
-        if ("gta_style".equalsIgnoreCase(animationType)) {
-            animator.playGtaStyleAnimation(player, location, blindnessDistance, homeConfig);
+        if ("gta_style".equalsIgnoreCase(animationType) && !FoliaScheduler.isFolia()) {
+            animator.playGtaStyleAnimation(player, location, blindnessDistance, homeConfig, onComplete);
         } else {
-            animator.playStandardTeleport(player, location, homeConfig);
+            animator.playStandardTeleport(player, location, homeConfig, onComplete);
         }
     }
         @SuppressWarnings("unused")

@@ -151,7 +151,8 @@ public class TpaManager {
             String animationType = this.tpaConfig.getString("teleport-animation", "standart").toLowerCase();
             double blindDistance = this.tpaConfig.getDouble("gta-style-blindness-distance", 100.0);
             if (animationType.equals("gta_style") && !FoliaScheduler.isFolia()) {
-                this.teleportAnimator.playGtaStyleAnimation(teleporter, destination.getLocation(), blindDistance, this.tpaConfig);
+                this.teleportAnimator.playGtaStyleAnimation(teleporter, destination.getLocation(), blindDistance, this.tpaConfig,
+                        () -> TeleportNotifier.send(this.plugin, teleporter, this.tpaConfig, "notifications.success", new HashMap<>()));
             } else {
                 this.teleportPlayerStandart(teleporter, destination.getLocation());
             }
@@ -219,7 +220,8 @@ public class TpaManager {
                 this.teleportManager.removeTask(player.getUniqueId());
                 if (taskHolder[0] != null) FoliaScheduler.cancelTask(taskHolder[0]);
                 if (animationType.equals("gta_style") && !FoliaScheduler.isFolia()) {
-                    this.teleportAnimator.playGtaStyleAnimation(player, location, blindDistance, this.tpaConfig);
+                    this.teleportAnimator.playGtaStyleAnimation(player, location, blindDistance, this.tpaConfig,
+                            () -> TeleportNotifier.send(this.plugin, player, this.tpaConfig, "notifications.success", new HashMap<>()));
                 } else {
                     this.teleportPlayerStandart(player, location);
                 }

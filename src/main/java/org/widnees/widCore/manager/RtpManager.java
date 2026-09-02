@@ -306,7 +306,14 @@ public class RtpManager {
         String animationType = config.getString("teleport-animation", "standart").toLowerCase();
         TeleportAnimator teleportAnimator = this.plugin.getTeleportAnimator();
         if (animationType.equals("gta_style") && !FoliaScheduler.isFolia()) {
-            teleportAnimator.playGtaStyleAnimation(player, location, 1.0, config);
+            teleportAnimator.playGtaStyleAnimation(player, location, 1.0, config, () -> {
+                HashMap<String, String> placeholders = new HashMap<String, String>();
+                placeholders.put("%world%", location.getWorld().getName());
+                placeholders.put("%x%", String.valueOf(location.getBlockX()));
+                placeholders.put("%z%", String.valueOf(location.getBlockZ()));
+                TeleportNotifier.send(this.plugin, player, this.getConfig(), "notifications.success", placeholders);
+                this.sendRtpTitle(player, "rtp.titles.success", placeholders);
+            });
         } else {
             this.teleportPlayerStandart(player, location, config);
         }

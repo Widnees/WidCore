@@ -1,31 +1,123 @@
-# Ban broadcast message to server
-broadcast-message: "&c{target} &7was banned by &c{player}&7. &8(&f{reason}&8)"
+# Available placeholders: %target%, %player%, %reason%, %duration%
+messages:
+  # Broadcast message to server
+  broadcast:
+    - "&8&m----------------------------"
+    - "&c %target% &7was banned!"
+    - "&7 Staff: &f%player%"
+    - "&7 Reason: &f%reason%"
+    - "&7 Duration: &f%duration%"
+    - "&8&m----------------------------"
 
-# Message shown on banned player's screen
-kick-screen-message:
-  - "&c&lYOU HAVE BEEN BANNED"
-  - ""
-  - "&7Reason: &f{reason}"
-  - "&7Duration: &f{duration}"
-  - ""
-  - "&7You can appeal on our Discord."
+  # Message shown on banned player's screen on login
+  # Placeholders: %reason%, %punisher%, %ban-date%, %expiry%, %duration%
+  ban-screen:
+    - "&c&lYOU HAVE BEEN BANNED"
+    - ""
+    - "&7Reason: &f%reason%"
+    - "&7Banned by: &f%punisher%"
+    - "&7Ban date: &f%ban-date%"
+    - "&7Expires: &f%expiry%"
+    - "&7Time remaining: &f%duration%"
+    - ""
+    - "&7Appeal on our Discord."
+
+  # IP ban screen message on login
+  # Placeholders: %reason%, %punisher%, %ban-date%, %expiry%
+  ban-screen-ip:
+    - "&c&lYOU HAVE BEEN BANNED (IP Ban)"
+    - ""
+    - "&7Reason: &f%reason%"
+    - "&7Banned by: &f%punisher%"
+    - ""
+    - "&7Appeal on our Discord."
+
+  # /banip success message - %player%, %reason%
+  banip-success: "&a%player% &ahas been banned via IP. Reason: &f%reason%"
+
+  # /unbanip success message - %player%
+  unbanip-success: "&a%player%&a's IP ban has been removed."
+
+  # IP already banned - %player%
+  ip-already-banned: "&c%player%&c's IP is already banned."
+
+  # IP not banned - %player%
+  ip-not-banned: "&c%player%&c's IP is not banned."
+
+  # Unban success message - %player%, %type%
+  remove-success: "&aSuccessfully removed %type% from &e%player%&a."
+
+  # No active punishment found - %player%, %type%
+  not-punished: "&c%player% &cdoes not have an active %type%."
+
+  # Unban broadcast message - %target%, %player%
+  unban-broadcast: "&a%target%'s &7ban was lifted by &e%player%&7."
+
+  # Unbanip broadcast message - %target%, %player%
+  unbanip-broadcast: "&a%target%&7's IP ban was lifted by &e%player%&7."
 
 # These players cannot be banned
 exempt-players:
   - "Notch"
 
-# Use preset reason shortcuts in commands (e.g: /tempban player cheating)
+# Maximum ban duration per LuckPerms group (group name in lowercase)
+# Format: 1s 30m 2h 7d 2y (seconds/minutes/hours/days/years)
+# If the player's group is NOT in this list: they can ban for unlimited duration and permanently.
+# If the player's group IS in this list: they are capped at that duration.
+# Permanent bans are also blocked if the group is listed here (even with widcore.ban.permanent).
+group-max-duration:
+  mod: "30d"
+  helper: "7d"
+  default: "1d"
+
+# Use shortcut reasons in commands (e.g. /tempban player cheat)
 use-reason-shortcuts: true
 
-# Force use of only registered shortcuts
+# Force only registered shortcuts to be used
 force-reason-shortcuts: false
 
-# Preset reasons and durations (s: seconds, m: minutes, h: hours, d: days)
+# Shortcut reasons and their durations (s: seconds, m: minutes, h: hours, d: days)
 reasons:
-  cheating: "30d"
-  swearing: "1d"
-  advertising: "7d"
+  cheat: "30d"
+  swear: "1d"
+  advertise: "7d"
 
+# Discord webhook notification - Ban / Tempban
+# color: decimal color code (red: 15158332, blue: 3447003, green: 3066993)
+ban-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Punishment System"
+  title: "🔨 Player Banned"
+  color: 15158332
+  fields:
+    - name: "👤 Player"
+      value: "%target%"
+      inline: true
+    - name: "👮 Staff"
+      value: "%player%"
+      inline: true
+    - name: "📋 Reason"
+      value: "%reason%"
+      inline: false
+    - name: "⏳ Duration"
+      value: "%duration%"
+      inline: true
+
+# Discord webhook notification - Unban
+unban-webhook:
+  enabled: false
+  url: "https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+  author: "WidCore Punishment System"
+  title: "✅ Ban Removed"
+  color: 3066993
+  fields:
+    - name: "👤 Player"
+      value: "%target%"
+      inline: true
+    - name: "👮 Staff"
+      value: "%player%"
+      inline: true
 
 # Do not touch
-version: 1
+version: 6
